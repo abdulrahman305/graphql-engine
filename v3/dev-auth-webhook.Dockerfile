@@ -10,7 +10,7 @@ WORKDIR /app/crates/hasura-authn-webhook/dev-auth-webhook
 RUN cargo build --release
 
 # copy
-FROM debian:bookworm-slim
+FROM debian:12.6-slim
 
 COPY --from=builder /app/crates/hasura-authn-webhook/dev-auth-webhook/target/release/hasura-dev-auth-webhook /usr/bin
 
