@@ -10,10 +10,8 @@ use crate::stages::{
     models_graphql, object_boolean_expressions, object_types, relationships, scalar_types,
     type_permissions,
 };
-use crate::types::error::{
-    Error, RelationshipError, TypeError, TypeMappingValidationError, TypePredicateError,
-};
-use crate::types::permission::ValueExpression;
+use crate::types::error::{Error, RelationshipError, TypeError, TypePredicateError};
+use crate::types::permission::{ValueExpression, ValueExpressionOrPredicate};
 use crate::types::subgraph::{ArgumentInfo, Qualified, QualifiedBaseType, QualifiedTypeReference};
 
 use indexmap::IndexMap;
@@ -29,11 +27,9 @@ use open_dds::types::{CustomTypeName, FieldName, OperatorName};
 use ref_cast::RefCast;
 use std::collections::BTreeMap;
 
-use thiserror::Error;
-
 use super::ndc_validation::NDCValidationError;
 
-#[derive(Error, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum ArgumentMappingError {
     #[error(
         "the following arguments referenced in argument mappings are unknown: {}",
@@ -187,7 +183,7 @@ pub fn get_argument_mappings<'a>(
 /// exist etc
 pub(crate) fn resolve_value_expression_for_argument(
     argument_name: &open_dds::arguments::ArgumentName,
-    value_expression: &open_dds::permissions::ValueExpression,
+    value_expression: &open_dds::permissions::ValueExpressionOrPredicate,
     argument_type: &QualifiedTypeReference,
     source_argument_type: Option<&ndc_models::Type>,
     data_connector_link: &data_connectors::DataConnectorLink,
@@ -204,15 +200,17 @@ pub(crate) fn resolve_value_expression_for_argument(
         Qualified<DataConnectorName>,
         data_connector_scalar_types::ScalarTypeWithRepresentationInfoMap,
     >,
-) -> Result<ValueExpression, Error> {
+) -> Result<ValueExpressionOrPredicate, Error> {
     match value_expression {
-        open_dds::permissions::ValueExpression::SessionVariable(session_variable) => {
-            Ok::<ValueExpression, Error>(ValueExpression::SessionVariable(session_variable.clone()))
+        open_dds::permissions::ValueExpressionOrPredicate::SessionVariable(session_variable) => {
+            Ok::<ValueExpressionOrPredicate, Error>(ValueExpressionOrPredicate::SessionVariable(
+                session_variable.clone(),
+            ))
         }
-        open_dds::permissions::ValueExpression::Literal(json_value) => {
-            Ok(ValueExpression::Literal(json_value.clone()))
+        open_dds::permissions::ValueExpressionOrPredicate::Literal(json_value) => {
+            Ok(ValueExpressionOrPredicate::Literal(json_value.clone()))
         }
-        open_dds::permissions::ValueExpression::BooleanExpression(bool_exp) => {
+        open_dds::permissions::ValueExpressionOrPredicate::BooleanExpression(bool_exp) => {
             // get underlying object type name from argument type (ie, unwrap
             // array, nullability etc)
             let base_type =
@@ -255,11 +253,15 @@ pub(crate) fn resolve_value_expression_for_argument(
                 }
                 _ => None,
             }
-            .ok_or_else(|| Error::DataConnectorTypeMappingValidationError {
-                type_name: base_type.clone(),
-                error: TypeMappingValidationError::PredicateTypeNotFound {
-                    argument_name: argument_name.clone(),
-                },
+            .ok_or_else(|| {
+                Error::from(
+                    object_types::ObjectTypesError::DataConnectorTypeMappingValidationError {
+                        type_name: base_type.clone(),
+                        error: object_types::TypeMappingValidationError::PredicateTypeNotFound {
+                            argument_name: argument_name.clone(),
+                        },
+                    },
+                )
             })?;
 
             let data_connector_field_mappings = object_type_representation
@@ -268,14 +270,15 @@ pub(crate) fn resolve_value_expression_for_argument(
                 .map(|type_mapping| match type_mapping {
                     object_types::TypeMapping::Object { field_mappings, .. } => field_mappings,
                 })
-                .ok_or(Error::DataConnectorTypeMappingValidationError {
+                .ok_or_else(||Error::from(object_types::ObjectTypesError::DataConnectorTypeMappingValidationError {
                     type_name: base_type.clone(),
-                    error: TypeMappingValidationError::DataConnectorTypeMappingNotFound {
-                        object_type_name: base_type.clone(),
-                        data_connector_name: data_connector_link.name.clone(),
-                        data_connector_object_type: data_connector_object_type.clone(),
-                    },
-                })?;
+                    error:
+                        object_types::TypeMappingValidationError::DataConnectorTypeMappingNotFound {
+                            object_type_name: base_type.clone(),
+                            data_connector_name: data_connector_link.name.clone(),
+                            data_connector_object_type: data_connector_object_type.clone(),
+                        },
+                }))?;
 
             // Get available scalars defined for this data connector
             let specific_data_connector_scalars = data_connector_scalars
@@ -303,7 +306,7 @@ pub(crate) fn resolve_value_expression_for_argument(
                 &object_type_representation.object_type.fields,
             )?;
 
-            Ok(ValueExpression::BooleanExpression(Box::new(
+            Ok(ValueExpressionOrPredicate::BooleanExpression(Box::new(
                 resolved_model_predicate,
             )))
         }
@@ -397,19 +400,12 @@ pub(crate) fn resolve_model_predicate_with_type(
 
             let value_expression = match value {
                 open_dds::permissions::ValueExpression::Literal(json_value) => {
-                    Ok(ValueExpression::Literal(json_value.clone()))
+                    ValueExpression::Literal(json_value.clone())
                 }
                 open_dds::permissions::ValueExpression::SessionVariable(session_variable) => {
-                    Ok(ValueExpression::SessionVariable(session_variable.clone()))
+                    ValueExpression::SessionVariable(session_variable.clone())
                 }
-                open_dds::permissions::ValueExpression::BooleanExpression(
-                    _inner_model_predicate,
-                ) => Err(Error::TypePredicateError {
-                    type_predicate_error: TypePredicateError::NestedPredicateInTypePredicate {
-                        type_name: type_name.clone(),
-                    },
-                }),
-            }?;
+            };
 
             Ok(model_permissions::ModelPredicate::BinaryFieldComparison {
                 field: field.clone(),
@@ -435,7 +431,7 @@ pub(crate) fn resolve_model_predicate_with_type(
                 field: field.clone(),
                 field_parent_type: type_name.to_owned(),
                 ndc_column: field_mapping.column.clone(),
-                operator: ndc_models::UnaryComparisonOperator::IsNull,
+                operator: model_permissions::UnaryComparisonOperator::IsNull,
             })
         }
 
@@ -526,14 +522,14 @@ pub(crate) fn resolve_model_predicate_with_type(
                                         field_mappings, ..
                                     } => field_mappings,
                                 })
-                                .ok_or(Error::DataConnectorTypeMappingValidationError {
+                                .ok_or_else(||Error::from(object_types::ObjectTypesError::DataConnectorTypeMappingValidationError {
                                     type_name: target_typename.clone(),
-                                    error: TypeMappingValidationError::DataConnectorTypeMappingNotFound {
+                                    error: object_types::TypeMappingValidationError::DataConnectorTypeMappingNotFound {
                                         object_type_name: target_typename.clone(),
                                         data_connector_name: target_source.model.data_connector.name.clone(),
                                         data_connector_object_type: DataConnectorObjectType::from(target_source.model.collection.as_str())
                                     },
-                                })?;
+                                }))?;
 
                                 // Collect type mappings.
                                 let mut source_type_mappings = BTreeMap::new();
@@ -787,30 +783,32 @@ fn remove_object_relationships(
         Qualified<CustomTypeName>,
         relationships::ObjectTypeWithRelationships,
     >,
-) -> BTreeMap<Qualified<CustomTypeName>, type_permissions::ObjectTypeWithPermissions> {
-    object_types_with_relationships
-        .iter()
-        .map(
-            |(
-                object_name,
-                relationships::ObjectTypeWithRelationships {
-                    object_type,
-                    type_mappings,
-                    type_input_permissions,
-                    type_output_permissions,
-                    ..
-                },
-            )| {
-                (
-                    object_name.clone(),
-                    type_permissions::ObjectTypeWithPermissions {
-                        object_type: object_type.clone(),
-                        type_mappings: type_mappings.clone(),
-                        type_input_permissions: type_input_permissions.clone(),
-                        type_output_permissions: type_output_permissions.clone(),
+) -> type_permissions::ObjectTypesWithPermissions {
+    type_permissions::ObjectTypesWithPermissions(
+        object_types_with_relationships
+            .iter()
+            .map(
+                |(
+                    object_name,
+                    relationships::ObjectTypeWithRelationships {
+                        object_type,
+                        type_mappings,
+                        type_input_permissions,
+                        type_output_permissions,
+                        ..
                     },
-                )
-            },
-        )
-        .collect()
+                )| {
+                    (
+                        object_name.clone(),
+                        type_permissions::ObjectTypeWithPermissions {
+                            object_type: object_type.clone(),
+                            type_mappings: type_mappings.clone(),
+                            type_input_permissions: type_input_permissions.clone(),
+                            type_output_permissions: type_output_permissions.clone(),
+                        },
+                    )
+                },
+            )
+            .collect(),
+    )
 }

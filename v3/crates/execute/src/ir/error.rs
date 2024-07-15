@@ -94,7 +94,7 @@ pub enum InternalError {
     Engine(#[from] InternalEngineError),
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum InternalDeveloperError {
     #[error("No source data connector specified for field {field_name} of type {type_name}")]
     NoSourceDataConnector {
@@ -180,14 +180,9 @@ pub enum InternalDeveloperError {
         aggregate_operand_type: QualifiedTypeName,
         aggregation_function: AggregationFunctionName,
     },
-
-    // we'll be adding them shortly, and not advertising the feature until they are complete
-    // however temporarily emitting the error allows merging the work in chunks
-    #[error("boolean expressions not implemented")]
-    BooleanExpressionNotImplemented,
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum InternalEngineError {
     #[error("serialization error: {0}")]
     SerializationError(#[from] json::Error),
@@ -222,7 +217,7 @@ pub enum InternalEngineError {
     InternalGeneric { description: String },
 }
 
-#[derive(Error, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum OperatorMappingError {
     #[error("could not find operator mapping for column {column_name:} in data connector {data_connector_name}")]
     MissingEntryForDataConnector {

@@ -13,7 +13,7 @@ use open_dds::{
 
 use crate::stages::{data_connectors, models, models_graphql, object_types, relationships};
 use crate::types::error::{Error, RelationshipError};
-use crate::types::permission::ValueExpression;
+use crate::types::permission::{ValueExpression, ValueExpressionOrPredicate};
 use crate::types::subgraph::{deserialize_qualified_btreemap, serialize_qualified_btreemap};
 use crate::types::subgraph::{Qualified, QualifiedTypeReference};
 
@@ -35,7 +35,8 @@ pub enum FilterPermission {
 pub struct SelectPermission {
     pub filter: FilterPermission,
     // pub allow_aggregations: bool,
-    pub argument_presets: BTreeMap<ArgumentName, (QualifiedTypeReference, ValueExpression)>,
+    pub argument_presets:
+        BTreeMap<ArgumentName, (QualifiedTypeReference, ValueExpressionOrPredicate)>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -44,7 +45,7 @@ pub enum ModelPredicate {
         field: FieldName,
         field_parent_type: Qualified<CustomTypeName>,
         ndc_column: DataConnectorColumnName,
-        operator: ndc_models::UnaryComparisonOperator,
+        operator: UnaryComparisonOperator,
     },
     BinaryFieldComparison {
         field: FieldName,
@@ -61,6 +62,11 @@ pub enum ModelPredicate {
     And(Vec<ModelPredicate>),
     Or(Vec<ModelPredicate>),
     Not(Box<ModelPredicate>),
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum UnaryComparisonOperator {
+    IsNull,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

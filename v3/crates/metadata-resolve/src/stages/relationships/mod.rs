@@ -20,7 +20,7 @@ use crate::stages::{
     aggregates, commands, data_connector_scalar_types, data_connectors, graphql_config, models,
     object_types, type_permissions,
 };
-use crate::types::error::{Error, GraphqlConfigError, RelationshipError};
+use crate::types::error::{Error, RelationshipError};
 use crate::types::subgraph::Qualified;
 
 pub use types::{
@@ -40,10 +40,7 @@ pub fn resolve(
         Qualified<DataConnectorName>,
         data_connector_scalar_types::ScalarTypeWithRepresentationInfoMap,
     >,
-    object_types_with_permissions: &BTreeMap<
-        Qualified<CustomTypeName>,
-        type_permissions::ObjectTypeWithPermissions,
-    >,
+    object_types_with_permissions: &type_permissions::ObjectTypesWithPermissions,
     models: &IndexMap<Qualified<ModelName>, models::Model>,
     commands: &IndexMap<Qualified<CommandName>, commands::Command>,
     aggregate_expressions: &BTreeMap<
@@ -61,7 +58,7 @@ pub fn resolve(
             object_type,
             type_mappings,
         },
-    ) in object_types_with_permissions
+    ) in object_types_with_permissions.iter()
     {
         object_types_with_relationships.insert(
             object_type_name.clone(),
@@ -372,6 +369,8 @@ fn get_relationship_capabilities(
     source_data_connector: Option<&data_connectors::DataConnectorLink>,
     target_name: &RelationshipTargetName,
     data_connectors: &data_connectors::DataConnectors,
+    models: &IndexMap<Qualified<ModelName>, models::Model>,
+    commands: &IndexMap<Qualified<CommandName>, commands::Command>,
 ) -> Result<Option<RelationshipCapabilities>, Error> {
     let Some(data_connector) = source_data_connector else {
         return Ok(None);
@@ -394,9 +393,25 @@ fn get_relationship_capabilities(
                 }
             })?;
 
+    // which data connector is the target using?
+    let target_data_connector = match target_name {
+        RelationshipTargetName::Model(model_name) => models
+            .get(model_name)
+            .as_ref()
+            .and_then(|model| model.source.as_ref())
+            .map(|source| source.data_connector.name.clone()),
+        RelationshipTargetName::Command(command_name) => commands
+            .get(command_name)
+            .and_then(|command| command.source.as_ref())
+            .map(|source| source.data_connector.name.clone()),
+    };
+
     let capabilities = &resolved_data_connector.capabilities;
 
-    if capabilities.query.variables.is_none() {
+    // if relationship is remote, error if `foreach` capability is not available
+    if capabilities.query.variables.is_none()
+        && Some(&data_connector.name) != target_data_connector.as_ref()
+    {
         return Err(Error::RelationshipError {
             relationship_error: RelationshipError::RelationshipTargetDoesNotSupportForEach {
                 type_name: type_name.clone(),
@@ -430,7 +445,7 @@ fn resolve_aggregate_relationship_field(
         Qualified<AggregateExpressionName>,
         aggregates::AggregateExpression,
     >,
-    object_types: &BTreeMap<Qualified<CustomTypeName>, type_permissions::ObjectTypeWithPermissions>,
+    object_types: &type_permissions::ObjectTypesWithPermissions,
     graphql_config: &graphql_config::GraphqlConfig,
 ) -> Result<Option<RelationshipField>, Error> {
     // If an aggregate has been specified
@@ -491,7 +506,7 @@ fn resolve_aggregate_relationship_field(
                 .map(|agg| agg.filter_input_field_name.clone())
                 .ok_or_else::<Error, _>(|| Error::GraphqlConfigError {
                     graphql_config_error:
-                        GraphqlConfigError::MissingAggregateFilterInputFieldNameInGraphqlConfig,
+                        graphql_config::GraphqlConfigError::MissingAggregateFilterInputFieldNameInGraphqlConfig,
                 })?;
 
             Ok(RelationshipField {
@@ -529,7 +544,7 @@ fn resolve_model_relationship_fields(
         Qualified<AggregateExpressionName>,
         aggregates::AggregateExpression,
     >,
-    object_types: &BTreeMap<Qualified<CustomTypeName>, type_permissions::ObjectTypeWithPermissions>,
+    object_types: &type_permissions::ObjectTypesWithPermissions,
     graphql_config: &graphql_config::GraphqlConfig,
 ) -> Result<Vec<RelationshipField>, Error> {
     let qualified_target_model_name = Qualified::new(
@@ -555,6 +570,8 @@ fn resolve_model_relationship_fields(
         source_data_connector,
         &RelationshipTargetName::Model(resolved_target_model.name.clone()),
         data_connectors,
+        models,
+        &IndexMap::new(),
     )?;
 
     let mappings = resolve_relationship_mappings_model(
@@ -601,7 +618,7 @@ fn resolve_model_relationship_fields(
 pub fn make_relationship_field_name(
     relationship_name: &RelationshipName,
 ) -> Result<ast::Name, Error> {
-    mk_name(relationship_name.as_str())
+    mk_name(relationship_name.as_str()).map_err(Error::from)
 }
 
 fn resolve_command_relationship_field(
@@ -647,6 +664,8 @@ fn resolve_command_relationship_field(
         source_data_connector,
         &RelationshipTargetName::Command(resolved_target_command.name.clone()),
         data_connectors,
+        &IndexMap::new(),
+        commands,
     )?;
 
     let field_name = mk_name(relationship.name.as_str())?;
@@ -677,7 +696,7 @@ fn resolve_relationships(
         Qualified<AggregateExpressionName>,
         aggregates::AggregateExpression,
     >,
-    object_types: &BTreeMap<Qualified<CustomTypeName>, type_permissions::ObjectTypeWithPermissions>,
+    object_types: &type_permissions::ObjectTypesWithPermissions,
     graphql_config: &graphql_config::GraphqlConfig,
     source_type: &object_types::ObjectTypeRepresentation,
 ) -> Result<Vec<RelationshipField>, Error> {

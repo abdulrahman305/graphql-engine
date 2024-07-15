@@ -1,5 +1,5 @@
 pub mod aggregates;
-mod apollo;
+pub mod apollo;
 mod arguments;
 pub mod boolean_expressions;
 pub mod command_permissions;
@@ -13,6 +13,7 @@ pub mod models_graphql;
 pub mod object_boolean_expressions;
 pub mod object_types;
 pub mod relationships;
+mod relay;
 pub mod roles;
 pub mod scalar_boolean_expressions;
 pub mod scalar_types;
@@ -41,7 +42,7 @@ pub fn resolve(
     let data_connectors = data_connectors::resolve(&metadata_accessor, &configuration)?;
 
     // Validate object types defined in metadata
-    let object_types::DataConnectorTypeMappingsOutput {
+    let object_types::ObjectTypesOutput {
         graphql_types,
         global_id_enabled_types,
         apollo_federation_entity_enabled_types,
@@ -144,10 +145,9 @@ pub fn resolve(
         &boolean_expression_types,
     )?;
 
-    apollo::resolve(
-        &global_id_enabled_types,
-        &apollo_federation_entity_enabled_types,
-    )?;
+    apollo::resolve(&apollo_federation_entity_enabled_types)?;
+
+    relay::resolve(&global_id_enabled_types)?;
 
     let object_types_with_relationships = relationships::resolve(
         &metadata_accessor,
