@@ -214,7 +214,7 @@
     "@nrwl/storybook": "15.8.1",
     "@nrwl/web": "15.8.1",
     "@nrwl/webpack": "15.8.1",
-    "@nrwl/workspace": "15.8.1",
+    "@nrwl/workspace": "16.0.0",
     "@phenomnomnominal/tsquery": "^5.0.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
     "@storybook/addon-a11y": "^7.0.9",
