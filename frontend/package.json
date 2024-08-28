@@ -385,7 +385,7 @@
     "unplugin-dynamic-asset-loader": "1.0.0",
     "url-loader": "^4.1.1",
     "util": "^0.12.4",
-    "webpack": "^5.75.0",
+    "webpack": "^5.94.0",
     "webpack-merge": "^5.8.0",
     "whatwg-fetch": "^3.6.2"
   }
