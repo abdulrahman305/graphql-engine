@@ -1,0 +1,183 @@
+---
+source: crates/jsonapi/tests/jsonapi_golden_tests.rs
+expression: generated_openapi
+---
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "JSONAPI",
+    "version": "0.1"
+  },
+  "paths": {
+    "/default/Album": {
+      "get": {
+        "summary": "Fetch Album values",
+        "parameters": [
+          {
+            "name": "page[limit]",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "5"
+          },
+          {
+            "name": "page[offset]",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "10"
+          },
+          {
+            "name": "fields[Album]",
+            "in": "query",
+            "schema": {
+              "items": {
+                "enum": [
+                  "AlbumId",
+                  "Title"
+                ]
+              }
+            },
+            "example": "AlbumId,Title"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "Success": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "_type",
+                          "attributes"
+                        ],
+                        "properties": {
+                          "_type": {
+                            "enum": [
+                              "default_Album"
+                            ]
+                          },
+                          "attributes": {
+                            "type": "object",
+                            "properties": {
+                              "AlbumId": {
+                                "type": "object"
+                              },
+                              "Title": {
+                                "type": "object"
+                              }
+                            }
+                          },
+                          "id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/default/Articles": {
+      "get": {
+        "summary": "Fetch article values",
+        "parameters": [
+          {
+            "name": "page[limit]",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "5"
+          },
+          {
+            "name": "page[offset]",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "10"
+          },
+          {
+            "name": "fields[Articles]",
+            "in": "query",
+            "schema": {
+              "items": {
+                "enum": [
+                  "article_id",
+                  "author_id"
+                ]
+              }
+            },
+            "example": "article_id,author_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "Success": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "_type",
+                          "attributes"
+                        ],
+                        "properties": {
+                          "_type": {
+                            "enum": [
+                              "default_article"
+                            ]
+                          },
+                          "attributes": {
+                            "type": "object",
+                            "properties": {
+                              "article_id": {
+                                "type": "integer"
+                              },
+                              "author_id": {
+                                "type": "object"
+                              }
+                            }
+                          },
+                          "id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

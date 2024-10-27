@@ -7,6 +7,7 @@ use crate::stages::{
 pub use helpers::resolve_ndc_type;
 use open_dds::identifier::SubgraphName;
 
+use crate::helpers::ndc_validation::unwrap_nullable_type;
 use crate::helpers::types::{mk_name, store_new_graphql_type};
 use crate::types::subgraph::Qualified;
 
@@ -25,7 +26,7 @@ pub fn resolve(
     data_connectors: &data_connectors::DataConnectors,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
-        data_connector_scalar_types::ScalarTypeWithRepresentationInfoMap,
+        data_connector_scalar_types::DataConnectorScalars,
     >,
     object_types: &type_permissions::ObjectTypesWithPermissions,
     mut graphql_types: BTreeSet<ast::TypeName>,
@@ -83,7 +84,7 @@ pub(crate) fn resolve_object_boolean_expression_type(
     data_connectors: &data_connectors::DataConnectors,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
-        data_connector_scalar_types::ScalarTypeWithRepresentationInfoMap,
+        data_connector_scalar_types::DataConnectorScalars,
     >,
     object_types: &type_permissions::ObjectTypesWithPermissions,
     existing_graphql_types: &mut BTreeSet<ast::TypeName>,
@@ -263,7 +264,7 @@ pub fn resolve_boolean_expression_graphql_config(
     data_connector_name: &Qualified<open_dds::data_connector::DataConnectorName>,
     where_type_name: ast::TypeName,
     subgraph: &SubgraphName,
-    scalars: &data_connector_scalar_types::ScalarTypeWithRepresentationInfoMap,
+    scalars: &data_connector_scalar_types::DataConnectorScalars,
     type_mappings: &object_types::TypeMapping,
     graphql_config: &graphql_config::GraphqlConfig,
     fields: &IndexMap<open_dds::types::FieldName, object_types::FieldDefinition>,
@@ -341,22 +342,14 @@ pub fn resolve_boolean_expression_graphql_config(
     })
 }
 
-fn unwrap_nullable(field_type: &ndc_models::Type) -> &ndc_models::Type {
-    if let ndc_models::Type::Nullable { underlying_type } = field_type {
-        unwrap_nullable(underlying_type)
-    } else {
-        field_type
-    }
-}
-
 fn get_argument_type(
     op_definition: &ndc_models::ComparisonOperatorDefinition,
     field_type: &ndc_models::Type,
 ) -> ndc_models::Type {
     match op_definition {
-        ndc_models::ComparisonOperatorDefinition::Equal => unwrap_nullable(field_type).clone(),
+        ndc_models::ComparisonOperatorDefinition::Equal => unwrap_nullable_type(field_type).clone(),
         ndc_models::ComparisonOperatorDefinition::In => ndc_models::Type::Array {
-            element_type: Box::new(unwrap_nullable(field_type).clone()),
+            element_type: Box::new(unwrap_nullable_type(field_type).clone()),
         },
         ndc_models::ComparisonOperatorDefinition::Custom { argument_type } => argument_type.clone(),
     }

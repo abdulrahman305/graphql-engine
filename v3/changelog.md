@@ -8,6 +8,47 @@
 
 ### Changed
 
+## [v2024.10.25]
+
+### Fixed
+
+- `ModelPermissions` and `CommandPermissions` can now correctly preset
+  predicate-typed arguments that are nullable. Previously, trying to do so
+  resulted in a build error.
+
+## [v2024.10.23]
+
+### Added
+
+- Add a check to disallow defining boolean expression of array fields with
+  scalar boolean type while resolving the boolean expression
+
+### Fixed
+
+- Improve performance of metadata builds
+
+- When the `CompatibilityConfig` date is set to `2024-10-16` or newer, session
+  variables returned by webhooks, set in `noAuth` config in `AuthConfig` or set
+  in JWT claims are now correctly allowed to be full JSON values, not just JSON
+  strings. This fixes the bug where you were incorrectly required to JSON-encode
+  your JSON value inside a string. For example, you were previously incorrectly
+  required to return session variables like this
+  `{ "X-Hasura-AllowedUserIds": "[1,2,3]" }`, but now you can correctly return
+  them like this: `{ "X-Hasura-AllowedUserIds": [1,2,3] }`.
+
+- The warning about AuthConfig v1 being deprecated was only being displayed in
+  the engine's stdout logs and not as a build warning. This has been corrected.
+
+## [v2024.10.21]
+
+### Added
+
+- Support array values in session variables
+
+### Fixed
+
+### Changed
+
 ## [v2024.10.14]
 
 ### Added
@@ -659,7 +700,10 @@ Initial release.
 
 <!-- end -->
 
-[Unreleased]: https://github.com/hasura/v3-engine/compare/v2024.10.14...HEAD
+[Unreleased]: https://github.com/hasura/v3-engine/compare/v2024.10.25...HEAD
+[v2024.10.25]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.25
+[v2024.10.23]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.23
+[v2024.10.21]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.21
 [v2024.10.14]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.14
 [v2024.10.02]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.02
 [v2024.09.23]: https://github.com/hasura/v3-engine/releases/tag/v2024.09.23

@@ -35,7 +35,7 @@ pub fn resolve(
     data_connectors: &data_connectors::DataConnectors,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
-        data_connector_scalar_types::ScalarTypeWithRepresentationInfoMap,
+        data_connector_scalar_types::DataConnectorScalars,
     >,
 ) -> Result<IndexMap<Qualified<CommandName>, CommandWithPermissions>, Error> {
     let mut commands_with_permissions: IndexMap<Qualified<CommandName>, CommandWithPermissions> =
@@ -67,6 +67,7 @@ pub fn resolve(
             })?;
         if command.permissions.is_empty() {
             command.permissions = command_permission::resolve_command_permissions(
+                &metadata_accessor.flags,
                 &command.command,
                 command_permissions,
                 object_types,

@@ -23,7 +23,7 @@ pub fn resolve(
     data_connectors: &data_connectors::DataConnectors,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
-        data_connector_scalar_types::ScalarTypeWithRepresentationInfoMap,
+        data_connector_scalar_types::DataConnectorScalars,
     >,
     object_types: &BTreeMap<
         Qualified<CustomTypeName>,
@@ -81,6 +81,7 @@ pub fn resolve(
                 .and_then(|bool_exp| bool_exp.graphql.as_ref());
 
             let select_permissions = model_permission::resolve_model_select_permissions(
+                &metadata_accessor.flags,
                 &model.model,
                 subgraph,
                 permissions,

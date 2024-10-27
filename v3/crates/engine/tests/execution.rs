@@ -1513,7 +1513,7 @@ fn test_model_argument_presets_select_many() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -2082,6 +2082,41 @@ fn test_command_query_forwarded_headers() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
+        common::TestOpenDDPipeline::TestNDCResponses,
+    )
+}
+
+// Tests of session variables
+
+#[test]
+fn test_session_variables_json_enabled_array_session_variable() -> anyhow::Result<()> {
+    let test_path_string = "execute/session_variables/json_enabled/array_session_variable";
+    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
+    common::test_execution_expectation(
+        test_path_string,
+        &[common_metadata_path_string],
+        common::TestOpenDDPipeline::TestNDCResponses,
+    )
+}
+
+#[test]
+fn test_session_variables_json_enabled_integer_session_variable() -> anyhow::Result<()> {
+    let test_path_string = "execute/session_variables/json_enabled/integer_session_variable";
+    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
+    common::test_execution_expectation(
+        test_path_string,
+        &[common_metadata_path_string],
+        common::TestOpenDDPipeline::TestNDCResponses,
+    )
+}
+
+#[test]
+fn test_session_variables_json_disabled_integer_session_variable() -> anyhow::Result<()> {
+    let test_path_string = "execute/session_variables/json_disabled/integer_session_variable";
+    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
+    common::test_execution_expectation(
+        test_path_string,
+        &[common_metadata_path_string],
         common::TestOpenDDPipeline::TestNDCResponses,
     )
 }

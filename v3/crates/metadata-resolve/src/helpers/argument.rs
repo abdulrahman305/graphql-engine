@@ -1,4 +1,4 @@
-use super::ndc_validation::NDCValidationError;
+use super::ndc_validation::{unwrap_nullable_type, NDCValidationError};
 
 use crate::data_connectors::DataConnectorContext;
 use crate::helpers::ndc_validation;
@@ -253,6 +253,7 @@ pub fn get_argument_mappings<'a>(
 /// type to validate it against to ensure the fields it refers to
 /// exist etc
 pub(crate) fn resolve_value_expression_for_argument(
+    flags: &open_dds::flags::Flags,
     argument_name: &open_dds::arguments::ArgumentName,
     value_expression: &open_dds::permissions::ValueExpressionOrPredicate,
     argument_type: &QualifiedTypeReference,
@@ -272,13 +273,16 @@ pub(crate) fn resolve_value_expression_for_argument(
     models: &IndexMap<Qualified<ModelName>, models_graphql::ModelWithGraphql>,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
-        data_connector_scalar_types::ScalarTypeWithRepresentationInfoMap,
+        data_connector_scalar_types::DataConnectorScalars,
     >,
 ) -> Result<ValueExpressionOrPredicate, Error> {
     match value_expression {
         open_dds::permissions::ValueExpressionOrPredicate::SessionVariable(session_variable) => {
             Ok::<ValueExpressionOrPredicate, Error>(ValueExpressionOrPredicate::SessionVariable(
-                session_variable.clone(),
+                hasura_authn_core::SessionVariableReference {
+                    name: session_variable.clone(),
+                    passed_as_json: flags.json_session_variables,
+                },
             ))
         }
         open_dds::permissions::ValueExpressionOrPredicate::Literal(json_value) => {
@@ -321,22 +325,24 @@ pub(crate) fn resolve_value_expression_for_argument(
 
             // get the data_connector_object_type from the NDC command argument type
             // or explode
-            let data_connector_object_type = match &source_argument_type {
-                Some(ndc_models::Type::Predicate { object_type_name }) => {
-                    Some(DataConnectorObjectType::from(object_type_name.as_str()))
-                }
-                _ => None,
-            }
-            .ok_or_else(|| {
-                Error::from(
-                    object_types::ObjectTypesError::DataConnectorTypeMappingValidationError {
-                        type_name: base_type.clone(),
-                        error: object_types::TypeMappingValidationError::PredicateTypeNotFound {
-                            argument_name: argument_name.clone(),
+            let data_connector_object_type = source_argument_type
+                .and_then(|argument_type| match unwrap_nullable_type(argument_type) {
+                    ndc_models::Type::Predicate { object_type_name } => {
+                        Some(DataConnectorObjectType::from(object_type_name.as_str()))
+                    }
+                    _ => None,
+                })
+                .ok_or_else(|| {
+                    Error::from(
+                        object_types::ObjectTypesError::DataConnectorTypeMappingValidationError {
+                            type_name: base_type.clone(),
+                            error:
+                                object_types::TypeMappingValidationError::PredicateTypeNotFound {
+                                    argument_name: argument_name.clone(),
+                                },
                         },
-                    },
-                )
-            })?;
+                    )
+                })?;
 
             let data_connector_field_mappings = object_type_representation
                 .type_mappings
@@ -365,6 +371,7 @@ pub(crate) fn resolve_value_expression_for_argument(
                 })?;
 
             let resolved_model_predicate = model_permissions::resolve_model_predicate_with_type(
+                flags,
                 bool_exp,
                 base_type,
                 object_type_representation,
@@ -409,7 +416,10 @@ pub fn get_argument_kind(
             TypeName::Custom(type_name) => {
                 let qualified_type_name = Qualified::new(subgraph.clone(), type_name.to_owned());
 
-                match get_type_representation::<type_permissions::ObjectTypesWithPermissions>(
+                match get_type_representation::<
+                    type_permissions::ObjectTypesWithPermissions,
+                    scalar_types::ScalarTypeRepresentation,
+                >(
                     &qualified_type_name,
                     &BTreeMap::new(),
                     &BTreeMap::new(),

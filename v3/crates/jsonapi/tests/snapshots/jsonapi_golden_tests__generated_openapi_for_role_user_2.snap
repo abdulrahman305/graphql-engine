@@ -1,0 +1,98 @@
+---
+source: crates/jsonapi/tests/jsonapi_golden_tests.rs
+expression: generated_openapi
+---
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "JSONAPI",
+    "version": "0.1"
+  },
+  "paths": {
+    "/default/Articles": {
+      "get": {
+        "summary": "Fetch article values",
+        "parameters": [
+          {
+            "name": "page[limit]",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "5"
+          },
+          {
+            "name": "page[offset]",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "example": "10"
+          },
+          {
+            "name": "fields[Articles]",
+            "in": "query",
+            "schema": {
+              "items": {
+                "enum": [
+                  "article_id",
+                  "title"
+                ]
+              }
+            },
+            "example": "article_id,title"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": null,
+            "content": {
+              "Success": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "id",
+                          "_type",
+                          "attributes"
+                        ],
+                        "properties": {
+                          "_type": {
+                            "enum": [
+                              "default_article"
+                            ]
+                          },
+                          "attributes": {
+                            "type": "object",
+                            "properties": {
+                              "article_id": {
+                                "type": "integer"
+                              },
+                              "title": {
+                                "type": "string"
+                              }
+                            }
+                          },
+                          "id": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

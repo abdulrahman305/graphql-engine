@@ -3,11 +3,13 @@ use execute::{HttpContext, ProjectId};
 use goldenfile::{differs::text_diff, Mint};
 use graphql_frontend::execute_query;
 use graphql_schema::GDS;
-use hasura_authn_core::{Identity, Role, Session, SessionError, SessionVariableValue};
+use hasura_authn_core::{
+    Identity, JsonSessionVariableValue, Role, Session, SessionError, SessionVariableValue,
+};
 use lang_graphql::ast::common as ast;
 use lang_graphql::{http::RawRequest, schema::Schema};
 use metadata_resolve::{data_connectors::NdcVersion, LifecyclePluginConfigs};
-use open_dds::session_variables::{SessionVariable, SESSION_VARIABLE_ROLE};
+use open_dds::session_variables::{SessionVariableName, SESSION_VARIABLE_ROLE};
 use pretty_assertions::assert_eq;
 use serde_json as json;
 use sql::execute::SqlRequest;
@@ -41,13 +43,21 @@ pub fn setup(test_dir: &Path) -> GoldenTestContext {
 }
 
 pub(crate) fn resolve_session(
-    session_variables: HashMap<SessionVariable, SessionVariableValue>,
+    session_variables: HashMap<SessionVariableName, SessionVariableValue>,
 ) -> Result<Session, SessionError> {
     //return an arbitrary identity with role emulation enabled
     let authorization = Identity::admin(Role::new("admin"));
     let role = session_variables
         .get(&SESSION_VARIABLE_ROLE)
-        .map(|v| Role::new(&v.0));
+        .map(|v| {
+            Ok(Role::new(v.as_str().ok_or_else(|| {
+                SessionError::InvalidHeaderValue {
+                    header_name: SESSION_VARIABLE_ROLE.to_string(),
+                    error: "session variable value is not a string".to_owned(),
+                }
+            })?))
+        })
+        .transpose()?;
     let role_authorization = authorization.get_role_authorization(role.as_ref())?;
     let session = role_authorization.build_session(session_variables);
     Ok(session)
@@ -107,11 +117,18 @@ pub(crate) fn test_introspection_expectation(
 
         let request_headers = reqwest::header::HeaderMap::new();
         let session_vars_path = &test_path.join("session_variables.json");
-        let sessions: Vec<HashMap<SessionVariable, SessionVariableValue>> =
+        let sessions: Vec<HashMap<SessionVariableName, JsonSessionVariableValue>> =
             json::from_str(read_to_string(session_vars_path)?.as_ref())?;
         let sessions: Vec<Session> = sessions
             .into_iter()
-            .map(resolve_session)
+            .map(|session_vars| {
+                resolve_session(
+                    session_vars
+                        .into_iter()
+                        .map(|(k, v)| (k, v.into()))
+                        .collect(),
+                )
+            })
             .collect::<Result<_, _>>()?;
 
         let raw_request = RawRequest {
@@ -266,11 +283,18 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
 
             let request_headers = reqwest::header::HeaderMap::new();
             let session_vars_path = &test_path.join("session_variables.json");
-            let sessions: Vec<HashMap<SessionVariable, SessionVariableValue>> =
+            let sessions: Vec<HashMap<SessionVariableName, JsonSessionVariableValue>> =
                 json::from_str(read_to_string(session_vars_path)?.as_ref())?;
             let sessions: Vec<Session> = sessions
                 .into_iter()
-                .map(resolve_session)
+                .map(|session_vars| {
+                    resolve_session(
+                        session_vars
+                            .into_iter()
+                            .map(|(k, v)| (k, v.into()))
+                            .collect(),
+                    )
+                })
                 .collect::<Result<_, _>>()?;
 
             // expected response headers are a `Vec<String>`; one set for each
@@ -456,7 +480,6 @@ pub fn test_execute_explain(
             unstable_features: metadata_resolve::configuration::UnstableFeatures {
                 enable_order_by_expressions: false,
                 enable_ndc_v02_support: true,
-                enable_subscriptions: false,
                 enable_jsonapi: false,
                 ..Default::default()
             },
@@ -469,11 +492,11 @@ pub fn test_execute_explain(
         let schema = GDS::build_schema(&gds)?;
         let request_headers = reqwest::header::HeaderMap::new();
         let session = {
-            let session_variables_raw = r#"{
-                "x-hasura-role": "admin"
-            }"#;
-            let session_variables: HashMap<SessionVariable, SessionVariableValue> =
-                serde_json::from_str(session_variables_raw)?;
+            let session_variables: HashMap<SessionVariableName, SessionVariableValue> =
+                HashMap::from_iter([(
+                    SESSION_VARIABLE_ROLE.clone(),
+                    SessionVariableValue::Unparsed("admin".to_owned()),
+                )]);
             resolve_session(session_variables)
         }?;
         let query = read_to_string(&root_test_dir.join(gql_request_file_path))?;
@@ -518,7 +541,6 @@ pub(crate) fn test_metadata_resolve_configuration() -> metadata_resolve::configu
         unstable_features: metadata_resolve::configuration::UnstableFeatures {
             enable_order_by_expressions: false,
             enable_ndc_v02_support: true,
-            enable_subscriptions: true,
             enable_jsonapi: false,
             ..Default::default()
         },
@@ -579,9 +601,14 @@ pub(crate) fn test_sql(test_path_string: &str) -> anyhow::Result<()> {
 
         let session = Arc::new({
             let session_vars_path = &test_path.join("session_variables.json");
-            let session_variables: HashMap<SessionVariable, SessionVariableValue> =
+            let session_variables: HashMap<SessionVariableName, JsonSessionVariableValue> =
                 serde_json::from_str(read_to_string(session_vars_path)?.as_ref())?;
-            resolve_session(session_variables)
+            resolve_session(
+                session_variables
+                    .into_iter()
+                    .map(|(k, v)| (k, v.into()))
+                    .collect(),
+            )
         }?);
 
         let catalog = Arc::new(sql::catalog::Catalog::from_metadata(gds.metadata));
@@ -635,7 +662,7 @@ async fn snapshot_sql(
 
     let response = match response {
         Ok(r) => r,
-        Err(e) => serde_json::to_vec(&serde_json::json!({"error": e.to_string()}))?,
+        Err(e) => serde_json::to_vec(&e.to_error_response())?,
     };
     let response = serde_json::from_reader::<_, serde_json::Value>(response.as_slice())?;
     let mut expected = mint.new_goldenfile_with_differ(
@@ -718,7 +745,7 @@ async fn run_query_graphql_ws(
     // Using the internal function. The actual 'execute_request' function from
     // graphl_ws crate needs a parent span context for linking purposes.
     // Traces are not considered in tests
-    let result = graphql_ws::execute_request_internal(
+    let result = graphql_ws::execute_query_internal(
         operation_id.clone(),
         session.clone(),
         request_headers.clone(),
@@ -742,30 +769,38 @@ async fn run_query_graphql_ws(
     // Assert response
     let message = channel_receiver.recv().await.expect("Expected a message");
     let response = match message {
-        graphql_ws::Message::Protocol(graphql_ws::ServerMessage::Next { id, payload }) => {
-            assert_eq!(operation_id, id);
-            payload
-        }
-        graphql_ws::Message::Protocol(graphql_ws::ServerMessage::Error {
-            id,
-            payload: errors,
-        }) => {
-            assert_eq!(operation_id, id);
-            lang_graphql::http::Response::errors(errors)
-        }
-        _ => {
-            panic!("Expected a Next or Error message")
-        }
+        graphql_ws::Message::Protocol(message) => match *message {
+            graphql_ws::ServerMessage::Next { id, payload } => {
+                assert_eq!(operation_id, id);
+                payload
+            }
+            graphql_ws::ServerMessage::Error {
+                id,
+                payload: errors,
+            } => {
+                assert_eq!(operation_id, id);
+                lang_graphql::http::Response::errors(errors)
+            }
+            _ => {
+                panic!("Expected a Next or Error message")
+            }
+        },
+        graphql_ws::Message::Raw(_) => panic!("Expected a Next or Error message"),
     };
 
     // Assert completion when no errors
     if response.errors.is_none() {
         let message = channel_receiver.recv().await.expect("Expected a message");
         match message {
-            graphql_ws::Message::Protocol(graphql_ws::ServerMessage::Complete { id }) => {
-                assert_eq!(operation_id, id);
-            }
-            _ => {
+            graphql_ws::Message::Protocol(message) => match *message {
+                graphql_ws::ServerMessage::Complete { id } => {
+                    assert_eq!(operation_id, id);
+                }
+                _ => {
+                    panic!("Expected a Complete message")
+                }
+            },
+            graphql_ws::Message::Raw(_) => {
                 panic!("Expected a Complete message")
             }
         };
@@ -811,7 +846,10 @@ pub async fn open_dd_pipeline_test(
                 // for instance
                 let ir = graphql_frontend::to_opendd_ir(&normalized_request);
 
-                insta::assert_debug_snapshot!(format!("ir_{test_path_string}"), ir);
+                insta::assert_debug_snapshot!(
+                    format!("ir_{test_path_string}_{}", session.role),
+                    ir
+                );
             }
         }
         TestOpenDDPipeline::TestNDCResponses => {
@@ -830,7 +868,10 @@ pub async fn open_dd_pipeline_test(
                 let query_ir = graphql_frontend::to_opendd_ir(&normalized_request);
 
                 // check IR is what we expect
-                insta::assert_debug_snapshot!(format!("ir_{test_path_string}"), query_ir);
+                insta::assert_debug_snapshot!(
+                    format!("ir_{test_path_string}_{}", session.role),
+                    query_ir
+                );
 
                 // create a query execution plan for a single node with the new pipeline
                 let (query_execution_plan, _) = plan::plan_query_request(
@@ -852,10 +893,10 @@ pub async fn open_dd_pipeline_test(
                         let rowsets =
                             graphql_frontend::resolve_ndc_query_execution(http_context, plan)
                                 .await
-                                .unwrap();
+                                .map_err(|e| e.to_string());
 
                         insta::assert_json_snapshot!(
-                            format!("rowsets_{test_path_string}"),
+                            format!("rowsets_{test_path_string}_{}", session.role),
                             rowsets
                         );
                     }
