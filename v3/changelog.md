@@ -8,6 +8,39 @@
 
 ### Changed
 
+## [v2024.10.30]
+
+### Added
+
+#### Order by Nested Fields
+
+Add support for ordering by nested fields.
+
+Example query:
+
+```graphql
+query MyQuery {
+  InstitutionMany(order_by: { location: { city: Asc } }) {
+    id
+    location {
+      city
+      campuses
+    }
+  }
+}
+```
+
+This will order by the value of the nested field `city` within the `location`
+JSONB column.
+
+- New metadata item `OrderByExpression`
+
+- New metadata item `Model` version 2
+
+### Fixed
+
+### Changed
+
 ## [v2024.10.25]
 
 ### Fixed
@@ -284,27 +317,6 @@ query MyQuery {
 
 This query would return us details of `Chalmers University of Technology`, where
 `John Hughes` is a member of staff.
-
-#### Order by Nested Fields
-
-Add support for ordering by nested fields.
-
-Example query:
-
-```graphql
-query MyQuery {
-  InstitutionMany(order_by: { location: { city: Asc } }) {
-    id
-    location {
-      city
-      campuses
-    }
-  }
-}
-```
-
-This will order by the value of the nested field `city` within the `location`
-JSONB column.
 
 ### Fixed
 
@@ -700,7 +712,8 @@ Initial release.
 
 <!-- end -->
 
-[Unreleased]: https://github.com/hasura/v3-engine/compare/v2024.10.25...HEAD
+[Unreleased]: https://github.com/hasura/v3-engine/compare/v2024.10.30...HEAD
+[v2024.10.30]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.30
 [v2024.10.25]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.25
 [v2024.10.23]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.23
 [v2024.10.21]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.21

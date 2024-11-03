@@ -260,7 +260,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                 serde_json::from_str(&serialized_metadata).expect("Failed to deserialize metadata");
 
             // Ensure sql_context can be serialized and deserialized
-            let sql_context = sql::catalog::Catalog::from_metadata(gds.metadata.clone());
+            let sql_context = sql::catalog::Catalog::from_metadata(&gds.metadata);
             let sql_context_str = serde_json::to_string(&sql_context)?;
             let sql_context_parsed = serde_json::from_str(&sql_context_str)?;
             assert_eq!(sql_context, sql_context_parsed);
@@ -478,7 +478,6 @@ pub fn test_execute_explain(
 
         let configuration = metadata_resolve::configuration::Configuration {
             unstable_features: metadata_resolve::configuration::UnstableFeatures {
-                enable_order_by_expressions: false,
                 enable_ndc_v02_support: true,
                 enable_jsonapi: false,
                 ..Default::default()
@@ -539,7 +538,6 @@ pub(crate) fn test_metadata_resolve_configuration() -> metadata_resolve::configu
 {
     metadata_resolve::configuration::Configuration {
         unstable_features: metadata_resolve::configuration::UnstableFeatures {
-            enable_order_by_expressions: false,
             enable_ndc_v02_support: true,
             enable_jsonapi: false,
             ..Default::default()
@@ -580,7 +578,7 @@ pub(crate) fn test_sql(test_path_string: &str) -> anyhow::Result<()> {
         serde_json::to_string(&schema)?;
 
         // Ensure sql_context can be serialized and deserialized
-        let sql_context = sql::catalog::Catalog::from_metadata(gds.metadata.clone());
+        let sql_context = sql::catalog::Catalog::from_metadata(&gds.metadata);
         let sql_context_str = serde_json::to_string(&sql_context)?;
         let sql_context_parsed = serde_json::from_str(&sql_context_str)?;
         assert_eq!(sql_context, sql_context_parsed);
@@ -611,13 +609,14 @@ pub(crate) fn test_sql(test_path_string: &str) -> anyhow::Result<()> {
             )
         }?);
 
-        let catalog = Arc::new(sql::catalog::Catalog::from_metadata(gds.metadata));
+        let catalog = Arc::new(sql::catalog::Catalog::from_metadata(&gds.metadata));
         let http_context = Arc::new(test_ctx.http_context);
 
         // Execute the test
 
         snapshot_sql(
             &catalog,
+            &gds.metadata,
             &session,
             &http_context,
             &mut test_ctx.mint,
@@ -629,6 +628,7 @@ pub(crate) fn test_sql(test_path_string: &str) -> anyhow::Result<()> {
 
         snapshot_sql(
             &catalog,
+            &gds.metadata,
             &session,
             &http_context,
             &mut test_ctx.mint,
@@ -644,6 +644,7 @@ pub(crate) fn test_sql(test_path_string: &str) -> anyhow::Result<()> {
 
 async fn snapshot_sql(
     catalog: &Arc<sql::catalog::Catalog>,
+    metadata: &Arc<metadata_resolve::Metadata>,
     session: &Arc<hasura_authn_core::Session>,
     http_context: &Arc<execute::HttpContext>,
     mint: &mut Mint,
@@ -654,6 +655,7 @@ async fn snapshot_sql(
     let response = sql::execute::execute_sql(
         request_headers.clone(),
         catalog.clone(),
+        metadata.clone(),
         session.clone(),
         http_context.clone(),
         request,
@@ -727,6 +729,7 @@ async fn run_query_graphql_ws(
     });
 
     let context = graphql_ws::Context {
+        connection_expiry: graphql_ws::ConnectionExpiry::Never,
         http_context: http_context.clone(),
         expose_internal_errors,
         project_id: project_id.cloned(),
@@ -736,6 +739,7 @@ async fn run_query_graphql_ws(
             pre_parse_plugins: Vec::new(),
             pre_response_plugins: Vec::new(),
         }),
+        metrics: graphql_ws::NoOpWebSocketMetrics,
     };
     let (channel_sender, mut channel_receiver) =
         tokio::sync::mpsc::channel::<graphql_ws::Message>(10);
