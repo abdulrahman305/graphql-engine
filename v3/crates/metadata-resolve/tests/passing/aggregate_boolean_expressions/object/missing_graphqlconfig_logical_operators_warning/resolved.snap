@@ -162,8 +162,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                         target_capabilities: Some(
                             RelationshipCapabilities {
                                 foreach: (),
-                                relationships: true,
-                                relationship_comparison: false,
+                                supports_relationships: Some(
+                                    DataConnectorRelationshipCapabilities {
+                                        supports_relation_comparisons: false,
+                                        supports_nested_relationships: Some(
+                                            DataConnectorNestedRelationshipCapabilities {
+                                                supports_nested_array_selection: true,
+                                                supports_nested_in_filtering: false,
+                                                supports_nested_in_ordering: false,
+                                            },
+                                        ),
+                                    },
+                                ),
                             },
                         ),
                         description: None,
@@ -278,29 +288,6 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                     },
                                 },
                             },
-                        },
-                    },
-                    scalar_representations: {
-                        FieldName(
-                            Identifier(
-                                "album_id",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "artist_id",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "title",
-                            ),
-                        ): {
-                            String,
                         },
                     },
                 },
@@ -446,22 +433,6 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             },
                         },
                     },
-                    scalar_representations: {
-                        FieldName(
-                            Identifier(
-                                "artist_id",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "name",
-                            ),
-                        ): {
-                            String,
-                        },
-                    },
                 },
             },
         },
@@ -599,8 +570,25 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                     supports_explaining_queries: false,
                                     supports_explaining_mutations: false,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_object_aggregations: false,
                                     supports_nested_array_filtering: false,
+                                    supports_aggregates: Some(
+                                        DataConnectorAggregateCapabilities {
+                                            supports_nested_object_aggregations: false,
+                                        },
+                                    ),
+                                    supports_query_variables: false,
+                                    supports_relationships: Some(
+                                        DataConnectorRelationshipCapabilities {
+                                            supports_relation_comparisons: false,
+                                            supports_nested_relationships: Some(
+                                                DataConnectorNestedRelationshipCapabilities {
+                                                    supports_nested_array_selection: true,
+                                                    supports_nested_in_filtering: false,
+                                                    supports_nested_in_ordering: false,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                             },
                             collection: CollectionName(
@@ -878,8 +866,25 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                     supports_explaining_queries: false,
                                     supports_explaining_mutations: false,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_object_aggregations: false,
                                     supports_nested_array_filtering: false,
+                                    supports_aggregates: Some(
+                                        DataConnectorAggregateCapabilities {
+                                            supports_nested_object_aggregations: false,
+                                        },
+                                    ),
+                                    supports_query_variables: false,
+                                    supports_relationships: Some(
+                                        DataConnectorRelationshipCapabilities {
+                                            supports_relation_comparisons: false,
+                                            supports_nested_relationships: Some(
+                                                DataConnectorNestedRelationshipCapabilities {
+                                                    supports_nested_array_selection: true,
+                                                    supports_nested_in_filtering: false,
+                                                    supports_nested_in_ordering: false,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                             },
                             collection: CollectionName(
@@ -1071,7 +1076,10 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             "Int_bool_exp",
                         ),
                     ),
-                    include_is_null: Yes,
+                    logical_operators: Exclude,
+                    is_null_operator: Include {
+                        graphql: None,
+                    },
                 },
                 Qualified {
                     subgraph: SubgraphName(
@@ -1103,7 +1111,10 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             "String_bool_exp",
                         ),
                     ),
-                    include_is_null: Yes,
+                    logical_operators: Exclude,
+                    is_null_operator: Include {
+                        graphql: None,
+                    },
                 },
             },
             object_aggregates: {
@@ -2000,14 +2011,71 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
             enable_apollo_federation_fields: false,
             bypass_relation_comparisons_ndc_capability: true,
             propagate_boolean_expression_deprecation_status: true,
+            multiple_order_by_input_object_fields: Allow,
         },
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
         },
-        roles: [],
+        roles: {},
     },
     [
+        ScalarBooleanExpressionIssue(
+            LogicalOperatorsUnavailable {
+                type_name: Qualified {
+                    subgraph: SubgraphName(
+                        "default",
+                    ),
+                    name: CustomTypeName(
+                        Identifier(
+                            "Int_bool_exp",
+                        ),
+                    ),
+                },
+            },
+        ),
+        ScalarBooleanExpressionIssue(
+            MissingIsNullOperatorNameInGraphqlConfig {
+                type_name: Qualified {
+                    subgraph: SubgraphName(
+                        "default",
+                    ),
+                    name: CustomTypeName(
+                        Identifier(
+                            "Int_bool_exp",
+                        ),
+                    ),
+                },
+            },
+        ),
+        ScalarBooleanExpressionIssue(
+            LogicalOperatorsUnavailable {
+                type_name: Qualified {
+                    subgraph: SubgraphName(
+                        "default",
+                    ),
+                    name: CustomTypeName(
+                        Identifier(
+                            "String_bool_exp",
+                        ),
+                    ),
+                },
+            },
+        ),
+        ScalarBooleanExpressionIssue(
+            MissingIsNullOperatorNameInGraphqlConfig {
+                type_name: Qualified {
+                    subgraph: SubgraphName(
+                        "default",
+                    ),
+                    name: CustomTypeName(
+                        Identifier(
+                            "String_bool_exp",
+                        ),
+                    ),
+                },
+            },
+        ),
         AggregateBooleanExpressionIssue(
             NamedAggregateBooleanExpressionIssue {
                 type_name: Qualified {

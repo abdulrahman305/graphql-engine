@@ -40,9 +40,10 @@ pub use types::output_type::relationship::{
 };
 pub use types::{
     Annotation, ApolloFederationRootFields, BooleanExpressionAnnotation, CommandSourceDetail,
-    EntityFieldTypeNameMapping, GlobalID, InputAnnotation, ModelFilterArgument,
+    EntityFieldTypeNameMapping, GlobalID, InputAnnotation, LogicalOperatorField,
     ModelInputAnnotation, ModelOrderByDirection, NamespaceAnnotation, NodeFieldTypeNameMapping,
-    ObjectFieldKind, OutputAnnotation, RootFieldAnnotation, RootFieldKind, TypeKind,
+    ObjectBooleanExpressionField, ObjectFieldKind, OutputAnnotation, RootFieldAnnotation,
+    RootFieldKind, ScalarBooleanExpressionField, TypeKind,
 };
 
 /// This 'NamespacedGetter' looks up 'NamespacedNodeInfo's according to actual roles.
@@ -190,18 +191,20 @@ impl gql_schema::SchemaContext for GDS {
             } => model_arguments::build_model_arguments_input_schema(
                 self, builder, type_name, model_name,
             ),
-            types::TypeId::ScalarTypeComparisonExpression {
+            types::TypeId::InputScalarBooleanExpressionType {
                 graphql_type_name,
                 operators,
                 operator_mapping,
                 is_null_operator_name,
-            } => model_filter::build_scalar_comparison_input(
+                logical_operators,
+            } => boolean_expression::build_scalar_boolean_expression_input(
                 self,
                 builder,
                 graphql_type_name,
                 operators,
                 operator_mapping,
-                is_null_operator_name,
+                is_null_operator_name.as_ref(),
+                logical_operators,
             ),
             types::TypeId::ModelOrderByExpression {
                 order_by_expression_identifier,
@@ -459,7 +462,7 @@ pub fn mk_typename(name: &str) -> Result<ast::TypeName, Error> {
 }
 
 pub(crate) fn mk_deprecation_status(
-    deprecated: &Option<Deprecated>,
+    deprecated: Option<&Deprecated>,
 ) -> gql_schema::DeprecationStatus {
     match deprecated {
         Some(Deprecated { reason }) => gql_schema::DeprecationStatus::Deprecated {

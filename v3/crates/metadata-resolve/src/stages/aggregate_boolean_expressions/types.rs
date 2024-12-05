@@ -11,7 +11,8 @@ use open_dds::{
 };
 
 use crate::{
-    stages::graphql_config::GraphqlConfigError, Qualified, QualifiedTypeName,
+    stages::graphql_config::GraphqlConfigError,
+    stages::scalar_boolean_expressions::LogicalOperators, Qualified, QualifiedTypeName,
     QualifiedTypeReference,
 };
 
@@ -38,6 +39,8 @@ pub struct ScalarAggregateBooleanExpression {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComparableAggregationFunction {
     pub aggregate_function_name: AggregationFunctionName,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub description: Option<String>,
     pub boolean_expression_type: Qualified<CustomTypeName>,
 }
@@ -71,21 +74,6 @@ pub struct AggregateBooleanExpressionGraphqlConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub enum LogicalOperators {
-    Include {
-        graphql: Option<LogicalOperatorsGraphqlConfig>,
-    },
-    Exclude,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct LogicalOperatorsGraphqlConfig {
-    pub and_operator_name: ast::Name,
-    pub or_operator_name: ast::Name,
-    pub not_operator_name: ast::Name,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectAggregateBooleanExpression {
     pub operand_type: Qualified<CustomTypeName>,
     pub aggregate_expression: Qualified<AggregateExpressionName>,
@@ -102,6 +90,8 @@ pub struct ObjectAggregateBooleanExpression {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComparableAggregatableField {
     pub field_name: FieldName,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub description: Option<String>,
     pub aggregate_boolean_expression_type: Qualified<CustomTypeName>,
 }
@@ -109,6 +99,8 @@ pub struct ComparableAggregatableField {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComparableAggregatableRelationship {
     pub relationship_name: RelationshipName,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub description: Option<String>,
     pub aggregate_boolean_expression_type: Qualified<CustomTypeName>,
 }
@@ -340,33 +332,33 @@ pub enum AggregateBooleanExpressionError {
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, derive_more::Display)]
 pub enum CountAggregateType {
-    #[display(fmt = "count")]
+    #[display("count")]
     Count,
-    #[display(fmt = "count distinct")]
+    #[display("count distinct")]
     CountDistinct,
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, derive_more::Display)]
 pub enum AggregateOperandType {
-    #[display(fmt = "object aggregate")]
+    #[display("object aggregate")]
     ObjectAggregate,
-    #[display(fmt = "scalar aggregate")]
+    #[display("scalar aggregate")]
     ScalarAggregate,
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, derive_more::Display)]
 pub enum NameSource {
-    #[display(fmt = "comparable aggregation function")]
+    #[display("comparable aggregation function")]
     ComparableAggregationFunction,
-    #[display(fmt = "comparable aggregatable field")]
+    #[display("comparable aggregatable field")]
     ComparableAggregatableField,
-    #[display(fmt = "comparable aggregatable relationship")]
+    #[display("comparable aggregatable relationship")]
     ComparableAggregatableRelationship,
-    #[display(fmt = "logical operator")]
+    #[display("logical operator")]
     LogicalOperator,
-    #[display(fmt = "count aggregation function")]
+    #[display("count aggregation function")]
     CountAggregationFunction,
-    #[display(fmt = "count distinct aggregation function")]
+    #[display("count distinct aggregation function")]
     CountDistinctAggregationFunction,
 }
 

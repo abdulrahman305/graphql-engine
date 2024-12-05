@@ -2,6 +2,7 @@ use std::sync::Arc;
 
 use crate::data_connectors::ArgumentPresetValue;
 use crate::helpers::argument::ArgumentMappingIssue;
+use crate::helpers::types::DuplicateRootFieldError;
 use crate::stages::{data_connectors, object_types};
 use crate::types::error::ShouldBeAnError;
 use crate::types::subgraph::{
@@ -29,6 +30,8 @@ pub struct CommandsOutput {
 pub struct CommandGraphQlApi {
     pub root_field_kind: GraphQlRootFieldKind,
     pub root_field_name: ast::Name,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub deprecated: Option<Deprecated>,
 }
 
@@ -57,6 +60,8 @@ pub struct Command {
     pub arguments: IndexMap<ArgumentName, ArgumentInfo>,
     pub graphql_api: Option<CommandGraphQlApi>,
     pub source: Option<Arc<CommandSource>>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub description: Option<String>,
 }
 
@@ -76,17 +81,17 @@ pub enum CommandsIssue {
         procedure_name: ProcedureName,
         issue: ArgumentMappingIssue,
     },
-    #[error("Cannot add command {command_name:} to GraphQL schema as the root field name {graphql_name:} is already in use")]
-    GraphQlNameAlreadyInUse {
+    #[error("Cannot add the command {command_name:} to GraphQL schema: {error:}")]
+    GraphQlRootFieldAlreadyInUse {
         command_name: Qualified<CommandName>,
-        graphql_name: ast::Name,
+        error: DuplicateRootFieldError,
     },
 }
 
 impl ShouldBeAnError for CommandsIssue {
     fn should_be_an_error(&self, flags: &open_dds::flags::Flags) -> bool {
         match self {
-            CommandsIssue::GraphQlNameAlreadyInUse { .. } => {
+            CommandsIssue::GraphQlRootFieldAlreadyInUse { .. } => {
                 flags.require_unique_command_graphql_names
             }
             _ => false,

@@ -64,6 +64,7 @@ pub type TargetField = (FieldName, metadata_resolve::NdcColumnForComparison);
 pub fn generate_model_relationship_ir<'s>(
     field: &Field<'s, GDS>,
     relationship_annotation: &'s ModelRelationshipAnnotation,
+    relationship_field_nestedness: metadata_resolve::FieldNestedness,
     source_data_connector: &'s metadata_resolve::DataConnectorLink,
     source_type_mappings: &'s BTreeMap<Qualified<CustomTypeName>, metadata_resolve::TypeMapping>,
     session_variables: &SessionVariables,
@@ -96,7 +97,11 @@ pub fn generate_model_relationship_ir<'s>(
                                 )?);
                             }
                             ModelInputAnnotation::ModelOrderByExpression => {
-                                order_by = Some(build_ndc_order_by(argument, usage_counts)?);
+                                order_by = Some(build_ndc_order_by(
+                                    argument,
+                                    session_variables,
+                                    usage_counts,
+                                )?);
                             }
                             _ => {
                                 return Err(error::InternalEngineError::UnexpectedAnnotation {
@@ -106,13 +111,14 @@ pub fn generate_model_relationship_ir<'s>(
                         }
                     }
                     InputAnnotation::BooleanExpression(
-                        BooleanExpressionAnnotation::BooleanExpression,
+                        BooleanExpressionAnnotation::BooleanExpressionRootField,
                     ) => {
                         if let Some(model_source) = &relationship_annotation.target_source {
                             where_clause = Some(filter::resolve_filter_expression(
                                 argument.value.as_object()?,
                                 &model_source.model.data_connector,
                                 &model_source.model.type_mappings,
+                                session_variables,
                                 usage_counts,
                             )?);
                         }
@@ -158,7 +164,7 @@ pub fn generate_model_relationship_ir<'s>(
         &target_source.model,
         BTreeMap::new(),
         query_filter,
-        permissions::get_select_filter_predicate(field_call)?,
+        permissions::get_select_filter_predicate(&field_call.info)?,
         limit,
         offset,
         order_by,
@@ -168,6 +174,7 @@ pub fn generate_model_relationship_ir<'s>(
     )?;
 
     match metadata_resolve::relationship_execution_category(
+        relationship_field_nestedness,
         source_data_connector,
         &target_source.model.data_connector,
         &target_source.capabilities,
@@ -200,6 +207,7 @@ pub fn generate_model_relationship_ir<'s>(
 pub fn generate_model_aggregate_relationship_ir<'s>(
     field: &Field<'s, GDS>,
     relationship_annotation: &'s ModelAggregateRelationshipAnnotation,
+    relationship_field_nestedness: metadata_resolve::FieldNestedness,
     source_data_connector: &'s metadata_resolve::DataConnectorLink,
     source_type_mappings: &'s BTreeMap<Qualified<CustomTypeName>, metadata_resolve::TypeMapping>,
     session_variables: &SessionVariables,
@@ -234,6 +242,7 @@ pub fn generate_model_aggregate_relationship_ir<'s>(
     )?;
 
     match metadata_resolve::relationship_execution_category(
+        relationship_field_nestedness,
         source_data_connector,
         &target_source.model.data_connector,
         &target_source.capabilities,
@@ -266,6 +275,7 @@ pub fn generate_model_aggregate_relationship_ir<'s>(
 pub fn generate_command_relationship_ir<'s>(
     field: &Field<'s, GDS>,
     annotation: &'s CommandRelationshipAnnotation,
+    relationship_field_nestedness: metadata_resolve::FieldNestedness,
     source_data_connector: &'s metadata_resolve::DataConnectorLink,
     type_mappings: &'s BTreeMap<Qualified<CustomTypeName>, metadata_resolve::TypeMapping>,
     session_variables: &SessionVariables,
@@ -290,6 +300,7 @@ pub fn generate_command_relationship_ir<'s>(
             })?;
 
     match metadata_resolve::relationship_execution_category(
+        relationship_field_nestedness,
         source_data_connector,
         &target_source.details.data_connector,
         &target_source.capabilities,

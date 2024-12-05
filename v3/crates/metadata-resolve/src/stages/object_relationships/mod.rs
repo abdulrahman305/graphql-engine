@@ -22,10 +22,10 @@ use crate::types::error::{Error, RelationshipError};
 use crate::types::subgraph::Qualified;
 
 pub use types::{
-    CommandRelationshipTarget, ModelAggregateRelationshipTarget, ModelRelationshipTarget,
-    ObjectTypeWithRelationships, RelationshipCapabilities, RelationshipCommandMapping,
-    RelationshipExecutionCategory, RelationshipField, RelationshipModelMapping, RelationshipTarget,
-    RelationshipTargetName,
+    CommandRelationshipTarget, FieldNestedness, ModelAggregateRelationshipTarget,
+    ModelRelationshipTarget, ObjectTypeWithRelationships, RelationshipCapabilities,
+    RelationshipCommandMapping, RelationshipExecutionCategory, RelationshipField,
+    RelationshipModelMapping, RelationshipTarget, RelationshipTargetName,
 };
 
 /// resolve relationships
@@ -127,21 +127,45 @@ pub fn resolve(
 
 #[allow(clippy::match_single_binding)]
 pub fn relationship_execution_category(
+    relationship_field_nestedness: FieldNestedness,
     source_connector: &data_connectors::DataConnectorLink,
     target_connector: &data_connectors::DataConnectorLink,
     target_source_relationship_capabilities: &RelationshipCapabilities,
 ) -> RelationshipExecutionCategory {
     // It's a local relationship if the source and target connectors are the same and
     // the connector supports relationships.
-    if target_connector.name == source_connector.name
-        && target_source_relationship_capabilities.relationships
-    {
-        RelationshipExecutionCategory::Local
-    } else {
-        match target_source_relationship_capabilities.foreach {
-            // TODO: When we support naive relationships for connectors not implementing foreach,
-            // add another match arm / return enum variant
-            () => RelationshipExecutionCategory::RemoteForEach,
+    match &target_source_relationship_capabilities.supports_relationships {
+        Some(supports_relationships) if target_connector.name == source_connector.name => {
+            match relationship_field_nestedness {
+                // If the relationship is not nested, we support it ...
+                FieldNestedness::NotNested => RelationshipExecutionCategory::Local,
+                // ... but we only support relationships nested inside objects if the connector declares it does ...
+                FieldNestedness::ObjectNested
+                    if supports_relationships
+                        .supports_nested_relationships
+                        .is_some() =>
+                {
+                    RelationshipExecutionCategory::Local
+                }
+                // ... and we only support relationships nested inside arrays if the connector declares it does ...
+                FieldNestedness::ArrayNested
+                    if supports_relationships
+                        .supports_nested_relationships
+                        .as_ref()
+                        .is_some_and(|n| n.supports_nested_array_selection) =>
+                {
+                    RelationshipExecutionCategory::Local
+                }
+                // ... otherwise we fall back to remote joins
+                _ => RelationshipExecutionCategory::RemoteForEach,
+            }
+        }
+        _ => {
+            match target_source_relationship_capabilities.foreach {
+                // TODO: When we support naive relationships for connectors not implementing foreach,
+                // add another match arm / return enum variant
+                () => RelationshipExecutionCategory::RemoteForEach,
+            }
         }
     }
 }
@@ -420,7 +444,7 @@ fn get_relationship_capabilities(
     let capabilities = &resolved_data_connector.capabilities;
 
     // if relationship is remote, error if `foreach` capability is not available
-    if capabilities.query.variables.is_none()
+    if capabilities.supports_query_variables
         && Some(&data_connector.name) != target_data_connector.as_ref()
     {
         return Err(Error::ObjectRelationshipError {
@@ -432,16 +456,9 @@ fn get_relationship_capabilities(
         });
     };
 
-    let relationships = capabilities.relationships.is_some();
-    let relationship_comparison = capabilities
-        .relationships
-        .as_ref()
-        .is_some_and(|r| r.relation_comparisons.is_some());
-
     Ok(Some(RelationshipCapabilities {
         foreach: (),
-        relationships,
-        relationship_comparison,
+        supports_relationships: capabilities.supports_relationships.clone(),
     }))
 }
 
@@ -449,7 +466,7 @@ fn resolve_aggregate_relationship_field(
     model_relationship_target: &open_dds::relationships::ModelRelationshipTarget,
     resolved_target_model: &models::Model,
     resolved_relationship_mappings: &[RelationshipModelMapping],
-    resolved_target_capabilities: &Option<RelationshipCapabilities>,
+    resolved_target_capabilities: Option<&RelationshipCapabilities>,
     relationship: &RelationshipV1,
     source_type_name: &Qualified<CustomTypeName>,
     aggregate_expressions: &BTreeMap<
@@ -483,7 +500,7 @@ fn resolve_aggregate_relationship_field(
                 ),
                 &resolved_target_model.name,
                 &resolved_target_model.data_type,
-                &resolved_target_model.source,
+                resolved_target_model.source.as_ref(),
                 aggregate_expressions,
                 object_types,
             )
@@ -531,7 +548,7 @@ fn resolve_aggregate_relationship_field(
                     aggregate_expression,
                     filter_input_field_name,
                 }),
-                target_capabilities: resolved_target_capabilities.clone(),
+                target_capabilities: resolved_target_capabilities.cloned(),
                 description: description.clone(),
                 deprecated: relationship.deprecated.clone(),
             })
@@ -598,7 +615,7 @@ fn resolve_model_relationship_fields(
         target_model,
         resolved_target_model,
         &mappings,
-        &target_capabilities,
+        target_capabilities.as_ref(),
         relationship,
         source_type_name,
         aggregate_expressions,

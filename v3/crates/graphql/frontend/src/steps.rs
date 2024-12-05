@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use super::types::{GraphQlParseError, GraphQlValidationError};
 
+use crate::query_usage;
 use gql::normalized_ast::Operation;
 use graphql_schema::{GDSRoleNamespaceGetter, GDS};
 use hasura_authn_core::Session;
@@ -95,15 +96,16 @@ pub fn build_ir<'n, 's>(
 }
 
 /// Build a plan to execute the request
+/// using the new execution plan
 pub fn build_request_plan<'n, 's, 'ir>(
     ir: &'ir graphql_ir::IR<'n, 's>,
-) -> Result<execute::RequestPlan<'n, 's, 'ir>, execute::PlanError> {
+) -> Result<graphql_ir::RequestPlan<'n, 's, 'ir>, graphql_ir::PlanError> {
     let tracer = tracing_util::global_tracer();
     let plan = tracer.in_span(
         "plan",
         "Construct a plan to execute the request",
         SpanVisibility::Internal,
-        || execute::generate_request_plan(ir),
+        || graphql_ir::generate_request_plan(ir),
     )?;
     Ok(plan)
 }
@@ -145,39 +147,15 @@ pub fn generate_ir<'n, 's>(
 
 pub fn analyze_query_usage<'s>(
     normalized_request: &'s Operation<'s, GDS>,
-) -> Result<String, execute::QueryUsageAnalyzeError> {
+) -> Result<String, query_usage::QueryUsageAnalyzeError> {
     let tracer = tracing_util::global_tracer();
     tracer.in_span(
         "analyze_query_usage",
         "Analyze query usage",
         SpanVisibility::Internal,
         || {
-            let query_usage_analytics = execute::analyze_query_usage(normalized_request);
+            let query_usage_analytics = query_usage::analyze_query_usage(normalized_request);
             Ok(serde_json::to_string(&query_usage_analytics)?)
         },
     )
-}
-
-// run ndc query, do any joins, and process result
-// we only use this in engine tests at the moment, and it will be removed as soon
-// as we're able to use the new pipeline with the existing execution / process response
-// for now, it allows us a cheap way to test our GraphQL -> OpenDD IR -> execute pipeline
-pub async fn resolve_ndc_query_execution<'ir>(
-    http_context: &execute::HttpContext,
-    query_execution_plan: execute::ResolvedQueryExecutionPlan,
-) -> Result<Vec<ndc_models::RowSet>, execute::FieldError> {
-    let data_connector = query_execution_plan.data_connector.clone();
-    let query_request = execute::plan::ndc_request::make_ndc_query_request(query_execution_plan)?;
-
-    let response = execute::ndc::execute_ndc_query(
-        http_context,
-        &query_request,
-        &data_connector,
-        "graphql",
-        "graphql".to_owned(),
-        None, // TODO: plumb in project id
-    )
-    .await?;
-
-    Ok(response.as_latest_rowsets())
 }

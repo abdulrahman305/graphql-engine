@@ -89,6 +89,7 @@ pub fn select_many_generate_ir<'n, 's>(
                                 argument,
                                 &model_source.type_mappings,
                                 &model_source.data_connector,
+                                session_variables,
                                 &mut usage_counts,
                             )?;
 
@@ -100,7 +101,11 @@ pub fn select_many_generate_ir<'n, 's>(
                     })?,
                 },
                 ModelInputAnnotation::ModelOrderByExpression => {
-                    order_by = Some(build_ndc_order_by(argument, &mut usage_counts)?);
+                    order_by = Some(build_ndc_order_by(
+                        argument,
+                        session_variables,
+                        &mut usage_counts,
+                    )?);
                 }
                 _ => {
                     return Err(error::InternalEngineError::UnexpectedAnnotation {
@@ -110,12 +115,13 @@ pub fn select_many_generate_ir<'n, 's>(
             },
 
             Annotation::Input(graphql_schema::InputAnnotation::BooleanExpression(
-                BooleanExpressionAnnotation::BooleanExpression,
+                BooleanExpressionAnnotation::BooleanExpressionRootField,
             )) => {
                 where_clause = Some(filter::resolve_filter_expression(
                     argument.value.as_object()?,
                     &model_source.data_connector,
                     &model_source.type_mappings,
+                    session_variables,
                     &mut usage_counts,
                 )?);
             }
@@ -130,7 +136,7 @@ pub fn select_many_generate_ir<'n, 's>(
 
     // the first and only argument seemingly being "args"
     let argument_presets = if let Some((_, field_call_argument)) = &field_call.arguments.first() {
-        permissions::get_argument_presets(field_call_argument.info.namespaced)?
+        permissions::get_argument_presets(field_call_argument.info.namespaced.as_ref())?
     } else {
         None
     };
@@ -158,7 +164,7 @@ pub fn select_many_generate_ir<'n, 's>(
         model_source,
         model_arguments,
         query_filter,
-        permissions::get_select_filter_predicate(field_call)?,
+        permissions::get_select_filter_predicate(&field_call.info)?,
         limit,
         offset,
         order_by,

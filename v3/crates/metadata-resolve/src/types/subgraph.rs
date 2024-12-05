@@ -11,8 +11,19 @@ use serde_json;
     Serialize, Deserialize, JsonSchema, Clone, Debug, PartialEq, Hash, Eq, PartialOrd, Ord,
 )]
 pub struct Qualified<T: Display> {
+    #[serde(default = "subgraph_default")]
+    #[serde(skip_serializing_if = "is_subgraph_default")]
     pub subgraph: SubgraphName,
     pub name: T,
+}
+
+fn subgraph_default() -> SubgraphName {
+    SubgraphName::new_inline_static("default")
+}
+
+fn is_subgraph_default(x: &SubgraphName) -> bool {
+    static D: SubgraphName = SubgraphName::new_inline_static("default");
+    *x == D
 }
 
 impl<T: Display> Display for Qualified<T> {
@@ -41,6 +52,8 @@ impl<T: Display> Qualified<T> {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Hash, Eq, JsonSchema)]
 pub struct QualifiedTypeReference {
     pub underlying_type: QualifiedBaseType,
+    #[serde(default = "serde_ext::ser_default::<bool>")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub nullable: bool,
 }
 
@@ -171,7 +184,7 @@ pub enum UnTaggedQualifiedTypeName {
 #[allow(dead_code)]
 /// not using this now, but feel we'll need to again
 pub fn serialize_optional_qualified_btreemap<T, V, S>(
-    optional_map: &Option<BTreeMap<Qualified<T>, V>>,
+    optional_map: Option<&BTreeMap<Qualified<T>, V>>,
     s: S,
 ) -> Result<S::Ok, S::Error>
 where

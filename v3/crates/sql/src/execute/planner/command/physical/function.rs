@@ -12,13 +12,12 @@ use datafusion::{
 };
 use futures::TryFutureExt;
 use metadata_resolve::Qualified;
+use plan_types::FUNCTION_IR_VALUE_COLUMN_NAME;
 use serde::{Deserialize, Serialize};
 use std::{any::Any, sync::Arc};
 
-use execute::{
-    ndc::{NdcQueryResponse, FUNCTION_IR_VALUE_COLUMN_NAME},
-    HttpContext,
-};
+use engine_types::HttpContext;
+use execute::ndc::NdcQueryResponse;
 use open_dds::{data_connector::DataConnectorColumnName, types::CustomTypeName};
 use plan::NDCFunction;
 use tracing_util::{FutureExt, SpanVisibility, TraceableError};
@@ -54,7 +53,7 @@ pub(crate) enum CommandOutput {
 // should come from engine's plan but we aren't there yet
 #[derive(Debug, Clone)]
 pub(crate) struct NDCFunctionPushDown {
-    http_context: Arc<execute::HttpContext>,
+    http_context: Arc<HttpContext>,
     function: NDCFunction,
     // used to post process a command's output
     output: CommandOutput,
@@ -71,7 +70,7 @@ pub(crate) struct NDCFunctionPushDown {
 impl NDCFunctionPushDown {
     pub fn new(
         function: NDCFunction,
-        http_context: Arc<execute::HttpContext>,
+        http_context: Arc<HttpContext>,
         // schema of the output of the command selection
         schema: &DFSchemaRef,
         output: CommandOutput,
@@ -150,10 +149,8 @@ impl ExecutionPlan for NDCFunctionPushDown {
 
         let query_execution_plan = plan::execute_plan_from_function(&self.function);
 
-        let query_request = execute::plan::ndc_request::make_ndc_query_request(
-            query_execution_plan,
-        )
-        .map_err(|e| DataFusionError::Internal(format!("error creating ndc request: {e}")))?;
+        let query_request = execute::make_ndc_query_request(query_execution_plan)
+            .map_err(|e| DataFusionError::Internal(format!("error creating ndc request: {e}")))?;
 
         let fut = fetch_from_data_connector(
             self.projected_schema.clone(),

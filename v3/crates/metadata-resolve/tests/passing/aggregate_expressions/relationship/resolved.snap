@@ -351,8 +351,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                         target_capabilities: Some(
                             RelationshipCapabilities {
                                 foreach: (),
-                                relationships: true,
-                                relationship_comparison: true,
+                                supports_relationships: Some(
+                                    DataConnectorRelationshipCapabilities {
+                                        supports_relation_comparisons: true,
+                                        supports_nested_relationships: Some(
+                                            DataConnectorNestedRelationshipCapabilities {
+                                                supports_nested_array_selection: true,
+                                                supports_nested_in_filtering: false,
+                                                supports_nested_in_ordering: false,
+                                            },
+                                        ),
+                                    },
+                                ),
                             },
                         ),
                         description: None,
@@ -447,8 +457,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                         target_capabilities: Some(
                             RelationshipCapabilities {
                                 foreach: (),
-                                relationships: true,
-                                relationship_comparison: true,
+                                supports_relationships: Some(
+                                    DataConnectorRelationshipCapabilities {
+                                        supports_relation_comparisons: true,
+                                        supports_nested_relationships: Some(
+                                            DataConnectorNestedRelationshipCapabilities {
+                                                supports_nested_array_selection: true,
+                                                supports_nested_in_filtering: false,
+                                                supports_nested_in_ordering: false,
+                                            },
+                                        ),
+                                    },
+                                ),
                             },
                         ),
                         description: None,
@@ -1079,71 +1099,6 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                             },
                         },
                     },
-                    scalar_representations: {
-                        FieldName(
-                            Identifier(
-                                "billingAddress",
-                            ),
-                        ): {
-                            String,
-                        },
-                        FieldName(
-                            Identifier(
-                                "billingCity",
-                            ),
-                        ): {
-                            String,
-                        },
-                        FieldName(
-                            Identifier(
-                                "billingCountry",
-                            ),
-                        ): {
-                            String,
-                        },
-                        FieldName(
-                            Identifier(
-                                "billingPostalCode",
-                            ),
-                        ): {
-                            String,
-                        },
-                        FieldName(
-                            Identifier(
-                                "billingState",
-                            ),
-                        ): {
-                            String,
-                        },
-                        FieldName(
-                            Identifier(
-                                "customerId",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "invoiceDate",
-                            ),
-                        ): {
-                            Timestamp,
-                        },
-                        FieldName(
-                            Identifier(
-                                "invoiceId",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "total",
-                            ),
-                        ): {
-                            BigDecimal,
-                        },
-                    },
                 },
             },
             Qualified {
@@ -1578,43 +1533,6 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                             },
                         },
                     },
-                    scalar_representations: {
-                        FieldName(
-                            Identifier(
-                                "invoiceId",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "invoiceLineId",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "quantity",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "trackId",
-                            ),
-                        ): {
-                            Int32,
-                        },
-                        FieldName(
-                            Identifier(
-                                "unitPrice",
-                            ),
-                        ): {
-                            BigDecimal,
-                        },
-                    },
                 },
             },
         },
@@ -1647,9 +1565,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                                 "mypg",
                             ),
                         ),
-                    }: FromDataConnectorSchema(
-                        Int32,
-                    ),
+                    }: Int32,
                 },
             },
             Qualified {
@@ -1680,7 +1596,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                                 "mypg",
                             ),
                         ),
-                    }: AssumeJson,
+                    }: JSON,
                 },
             },
         },
@@ -2034,8 +1950,25 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: true,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_object_aggregations: false,
                                     supports_nested_array_filtering: false,
+                                    supports_aggregates: Some(
+                                        DataConnectorAggregateCapabilities {
+                                            supports_nested_object_aggregations: false,
+                                        },
+                                    ),
+                                    supports_query_variables: true,
+                                    supports_relationships: Some(
+                                        DataConnectorRelationshipCapabilities {
+                                            supports_relation_comparisons: true,
+                                            supports_nested_relationships: Some(
+                                                DataConnectorNestedRelationshipCapabilities {
+                                                    supports_nested_array_selection: true,
+                                                    supports_nested_in_filtering: false,
+                                                    supports_nested_in_ordering: false,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                             },
                             collection: CollectionName(
@@ -3101,8 +3034,25 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: true,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_object_aggregations: false,
                                     supports_nested_array_filtering: false,
+                                    supports_aggregates: Some(
+                                        DataConnectorAggregateCapabilities {
+                                            supports_nested_object_aggregations: false,
+                                        },
+                                    ),
+                                    supports_query_variables: true,
+                                    supports_relationships: Some(
+                                        DataConnectorRelationshipCapabilities {
+                                            supports_relation_comparisons: true,
+                                            supports_nested_relationships: Some(
+                                                DataConnectorNestedRelationshipCapabilities {
+                                                    supports_nested_array_selection: true,
+                                                    supports_nested_in_filtering: false,
+                                                    supports_nested_in_ordering: false,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                             },
                             collection: CollectionName(
@@ -3448,7 +3398,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                                 aggregate: Some(
                                     ModelAggregateGraphQlDefinition {
                                         query_root_field: GraphQlFieldName(
-                                            "app_invoice_aggregate",
+                                            "app_invoiceLine_aggregate",
                                         ),
                                         description: None,
                                         deprecated: None,
@@ -3523,7 +3473,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
                     select_aggregate: Some(
                         SelectAggregateGraphQlDefinition {
                             query_root_field: Name(
-                                "app_invoice_aggregate",
+                                "app_invoiceLine_aggregate",
                             ),
                             description: None,
                             deprecated: None,
@@ -4362,12 +4312,13 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/relation
             enable_apollo_federation_fields: false,
             bypass_relation_comparisons_ndc_capability: false,
             propagate_boolean_expression_deprecation_status: false,
+            multiple_order_by_input_object_fields: Allow,
         },
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
         },
-        roles: [],
+        roles: {},
     },
     [],
 )

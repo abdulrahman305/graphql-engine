@@ -1,5 +1,5 @@
 use axum::extract::ws;
-use execute::{ExposeInternalErrors, HttpContext, ProjectId};
+use engine_types::{ExposeInternalErrors, HttpContext, ProjectId};
 use hasura_authn::AuthConfig;
 use metadata_resolve::LifecyclePluginConfigs;
 use serde::Serialize;
@@ -88,10 +88,8 @@ impl<M> Connections<M> {
         if let Some(connection) = self.remove_connection(id).await {
             // Record the connection drop in metrics
             connection.context.metrics.record_connection_drop();
-            // Clean up pollers when the connection ends
-            for operation_id in connection.pollers.read().await.keys() {
-                connection.stop_poller(operation_id).await;
-            }
+            // Stop all pollers associated with the connection
+            connection.stop_all_pollers().await;
         }
     }
 
@@ -155,6 +153,25 @@ impl<M> Connection<M> {
             // Record the poller drop in the metrics.
             self.context.metrics.record_poller_stop(&self.id);
             poller.stop(); // Stop the poller before dropping it
+        }
+    }
+
+    /// Stops all pollers associated with the connection.
+    pub(crate) async fn stop_all_pollers(&self)
+    where
+        M: WebSocketMetrics,
+    {
+        // Fetch all poller keys from the mutex-protected map by cloning them into a vector.
+        // This is necessary to avoid holding the mutex guard lock while dropping the pollers.
+        let pollers = self
+            .pollers
+            .read()
+            .await
+            .keys()
+            .cloned()
+            .collect::<Vec<_>>();
+        for operation_id in pollers {
+            self.stop_poller(&operation_id).await;
         }
     }
 
@@ -237,6 +254,16 @@ impl Message {
         // THe 1013 code is used to indicate "Try Again Later".
         // The session is expired and the client should try to reconnect.
         Self::close_message(1013, "WebSocket session expired")
+    }
+
+    /// Keep alive message
+    pub fn keep_alive() -> Self {
+        let payload = serde_json::json!({
+            "message": "keepalive"
+        });
+        Self::Protocol(Box::new(protocol::ServerMessage::Ping {
+            payload: Some(payload),
+        }))
     }
 }
 

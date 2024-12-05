@@ -1,5 +1,11 @@
+use metadata_resolve::Qualified;
 use oas3::spec::{ObjectOrReference, ObjectSchema, SchemaType, SchemaTypeSet};
+use open_dds::types::CustomTypeName;
 use std::collections::BTreeMap;
+
+pub fn pretty_typename(custom_type_name: &Qualified<CustomTypeName>) -> String {
+    format!("{}_{}", custom_type_name.subgraph, custom_type_name.name)
+}
 
 pub fn bool_schema() -> ObjectSchema {
     ObjectSchema {
@@ -61,6 +67,14 @@ pub fn array_schema(items: ObjectOrReference<ObjectSchema>) -> ObjectSchema {
     ObjectSchema {
         schema_type: Some(SchemaTypeSet::Single(SchemaType::Array)),
         items: Some(Box::new(items)),
+        ..ObjectSchema::default()
+    }
+}
+
+pub fn any_of_schema(schemas: Vec<ObjectSchema>) -> ObjectSchema {
+    ObjectSchema {
+        schema_type: Some(SchemaTypeSet::Single(SchemaType::Object)),
+        any_of: schemas.into_iter().map(ObjectOrReference::Object).collect(),
         ..ObjectSchema::default()
     }
 }

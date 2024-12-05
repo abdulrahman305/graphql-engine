@@ -11,47 +11,99 @@ pub use command::{
 use indexmap::IndexMap;
 pub use model::{
     from_model_aggregate_selection, from_model_selection, ndc_query_to_query_execution_plan,
+    ModelAggregateSelection,
 };
 use std::sync::Arc;
 pub use types::{NDCFunction, NDCProcedure, NDCQuery, QueryContext};
 
 use hasura_authn_core::Session;
 use metadata_resolve::Metadata;
-use open_dds::query::{Query, QueryRequest};
+use open_dds::query::{Alias, Query, QueryRequest};
+use plan_types::{
+    ExecutionTree, FieldsSelection, JoinLocations, PredicateQueryTrees, UniqueNumber,
+};
 
-// temporary type, we assume only one node atm
+// these types should probably live in `plan-types`
 pub enum SingleNodeExecutionPlan {
-    Query(execute::plan::ResolvedQueryExecutionPlan),
-    Mutation(execute::plan::ResolvedMutationExecutionPlan),
+    Query(plan_types::ExecutionTree),
+    Mutation(plan_types::MutationExecutionPlan),
 }
 
-// make a query execution plan, assuming an OpenDD IR with a single model request
-pub async fn plan_query_request<'req, 'metadata>(
+pub struct QueryExecution {
+    pub execution_tree: ExecutionTree,
+    pub query_context: QueryContext,
+}
+
+pub enum ExecutionPlan {
+    Queries(IndexMap<Alias, QueryExecution>),
+    Mutation(plan_types::MutationExecutionPlan), // currently only support a single mutation
+}
+
+// make a query execution plan from OpenDD IR
+pub fn plan_query_request<'req, 'metadata>(
     query_request: &'req QueryRequest,
     metadata: &'metadata Metadata,
     session: &Arc<Session>,
-    http_context: &Arc<execute::HttpContext>,
     request_headers: &reqwest::header::HeaderMap,
-) -> Result<(SingleNodeExecutionPlan, QueryContext), PlanError>
+) -> Result<ExecutionPlan, PlanError>
 where
     'metadata: 'req,
 {
     let QueryRequest::V1(query_request_v1) = query_request;
+    let mut unique_number = UniqueNumber::new();
 
-    // to limit scope, let's assume there's one item and explode otherwise
-    let (_alias, query) = query_request_v1.queries.first().unwrap();
+    let mut queries = IndexMap::new();
+    let mut mutation = None;
 
-    // return plan for a single query (again, wrong, but let's unblock ourselves for now)
-    query_to_plan(query, metadata, session, http_context, request_headers).await
+    for (alias, query) in &query_request_v1.queries {
+        let (single_node, query_context) = query_to_plan(
+            query,
+            metadata,
+            session,
+            request_headers,
+            &mut unique_number,
+        )?;
+
+        match single_node {
+            SingleNodeExecutionPlan::Query(execution_tree) => {
+                queries.insert(
+                    alias.clone(),
+                    QueryExecution {
+                        execution_tree,
+                        query_context,
+                    },
+                );
+            }
+            SingleNodeExecutionPlan::Mutation(mutation_execution_plan) => {
+                if mutation.is_some() {
+                    return Err(PlanError::Internal(
+                        "Multiple mutations not currently supported in OpenDD pipeline".into(),
+                    ));
+                }
+                mutation = Some(mutation_execution_plan);
+            }
+        }
+    }
+    if let Some(mutation) = mutation {
+        if queries.is_empty() {
+            Ok(ExecutionPlan::Mutation(mutation))
+        } else {
+            Err(PlanError::Internal(
+                "Mixture of queries and mutations is not supported in OpenDD pipeline".into(),
+            ))
+        }
+    } else {
+        Ok(ExecutionPlan::Queries(queries))
+    }
 }
 
 // turn a single OpenDD IR Query into a query execution plan
-async fn query_to_plan<'req, 'metadata>(
+fn query_to_plan<'req, 'metadata>(
     query: &'req Query,
     metadata: &'metadata Metadata,
     session: &Arc<Session>,
-    http_context: &Arc<execute::HttpContext>,
     request_headers: &reqwest::header::HeaderMap,
+    unique_number: &mut UniqueNumber,
 ) -> Result<(SingleNodeExecutionPlan, QueryContext), PlanError>
 where
     'metadata: 'req,
@@ -62,15 +114,21 @@ where
                 model_selection,
                 metadata,
                 session,
-                http_context,
                 request_headers,
-            )
-            .await?;
+                unique_number,
+            )?;
+
             let query_execution_plan =
                 model::ndc_query_to_query_execution_plan(&ndc_query, &fields, &IndexMap::new());
             let query_context = QueryContext { type_name };
+            let execution_tree = ExecutionTree {
+                query_execution_plan,
+                remote_predicates: PredicateQueryTrees::new(),
+                remote_join_executions: JoinLocations::new(),
+            };
+
             Ok((
-                SingleNodeExecutionPlan::Query(query_execution_plan),
+                SingleNodeExecutionPlan::Query(execution_tree),
                 query_context,
             ))
         }
@@ -84,24 +142,34 @@ where
                 .map(|(k, v)| (k.to_string(), v.clone()))
                 .collect();
 
-            let (type_name, ndc_query, aggregate_fields) = model::from_model_aggregate_selection(
+            let ModelAggregateSelection {
+                object_type_name: type_name,
+                query: ndc_query,
+                fields: aggregate_fields,
+            } = model::from_model_aggregate_selection(
                 &model_aggregate.target,
                 &selection,
                 metadata,
                 session,
-                http_context,
                 request_headers,
-            )
-            .await?;
+                unique_number,
+            )?;
 
             let query_execution_plan = model::ndc_query_to_query_execution_plan(
                 &ndc_query,
-                &IndexMap::new(),
+                &FieldsSelection {
+                    fields: IndexMap::new(),
+                },
                 &aggregate_fields,
             );
             let query_context = QueryContext { type_name };
+            let execution_tree = ExecutionTree {
+                query_execution_plan,
+                remote_predicates: PredicateQueryTrees::new(),
+                remote_join_executions: JoinLocations::new(),
+            };
             Ok((
-                SingleNodeExecutionPlan::Query(query_execution_plan),
+                SingleNodeExecutionPlan::Query(execution_tree),
                 query_context,
             ))
         }
@@ -111,7 +179,13 @@ where
                 command_plan,
                 output_object_type_name,
                 extract_response_from: _,
-            } = command::from_command(command_selection, metadata, session, request_headers)?;
+            } = command::from_command(
+                command_selection,
+                metadata,
+                session,
+                request_headers,
+                unique_number,
+            )?;
             match command_plan {
                 command::CommandPlan::Function(ndc_function) => {
                     let query_execution_plan = command::execute_plan_from_function(&ndc_function);
@@ -119,8 +193,14 @@ where
                     let query_context = QueryContext {
                         type_name: output_object_type_name,
                     };
+                    let execution_tree = ExecutionTree {
+                        query_execution_plan,
+                        remote_predicates: PredicateQueryTrees::new(),
+                        remote_join_executions: JoinLocations::new(),
+                    };
+
                     Ok((
-                        SingleNodeExecutionPlan::Query(query_execution_plan),
+                        SingleNodeExecutionPlan::Query(execution_tree),
                         query_context,
                     ))
                 }

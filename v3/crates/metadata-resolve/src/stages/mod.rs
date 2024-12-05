@@ -29,6 +29,7 @@ use open_dds::flags;
 pub use types::Metadata;
 pub mod scalar_type_representations;
 
+use crate::helpers::types::TrackGraphQLRootFields;
 use crate::types::configuration::Configuration;
 use crate::types::error::{Error, SeparatedBy, ShouldBeAnError, WithContext};
 
@@ -40,6 +41,9 @@ pub fn resolve(
     // all issues raised throughout metadata-resolve. These will be turned into `warnings` or
     // `errors` at the end of this function, depending on OpenDDS flags.
     let mut all_issues = vec![];
+
+    // Create a empty tracked root fields
+    let mut track_root_fields = TrackGraphQLRootFields::new();
 
     let metadata_accessor: open_dds::accessor::MetadataAccessor =
         open_dds::accessor::MetadataAccessor::new(metadata);
@@ -79,14 +83,18 @@ pub fn resolve(
     let scalar_boolean_expressions::ScalarBooleanExpressionsOutput {
         graphql_types,
         boolean_expression_scalar_types,
+        issues,
     } = scalar_boolean_expressions::resolve(
         &metadata_accessor,
         graphql_types,
         &data_connectors,
         &object_types,
         &scalar_types,
+        &graphql_config,
     )
     .map_err(Error::from)?;
+
+    all_issues.extend(issues.into_iter().map(Warning::from));
 
     // Validate `DataConnectorScalarType` metadata. This will soon be deprecated and subsumed by
     // `BooleanExpressionType`
@@ -161,6 +169,7 @@ pub fn resolve(
         &graphql_config,
         &object_types_with_permissions,
         &relationships,
+        &metadata_accessor.flags,
     )
     .map_err(Error::from)?;
 
@@ -190,6 +199,7 @@ pub fn resolve(
         &object_types_with_permissions,
         graphql_types,
         &graphql_config,
+        &metadata_accessor.flags,
     )
     .map_err(Error::from)?;
 
@@ -201,7 +211,7 @@ pub fn resolve(
         global_id_enabled_types,
         apollo_federation_entity_enabled_types,
         order_by_expressions,
-        mut graphql_types,
+        graphql_types,
         issues,
     } = models::resolve(
         &metadata_accessor,
@@ -225,7 +235,7 @@ pub fn resolve(
         &metadata_accessor,
         &data_connectors,
         &object_types_with_permissions,
-        &mut graphql_types,
+        &mut track_root_fields,
         &scalar_types,
         &object_boolean_expression_types,
         &boolean_expression_types,
@@ -258,6 +268,7 @@ pub fn resolve(
         &scalar_types,
         &object_boolean_expression_types,
         &boolean_expression_types,
+        &metadata_accessor.flags,
     )?;
 
     all_issues.extend(issues.into_iter().map(Warning::from));
@@ -276,7 +287,9 @@ pub fn resolve(
         &boolean_expression_types,
         &order_by_expressions,
         &graphql_types,
+        &mut track_root_fields,
         &graphql_config,
+        &metadata_accessor.flags,
     )?;
 
     all_issues.extend(issues);
@@ -302,6 +315,7 @@ pub fn resolve(
         &models_with_graphql,
         &object_boolean_expression_types,
         &boolean_expression_types,
+        &metadata_accessor.flags,
     )?;
 
     // calculate any preset arguments for these models

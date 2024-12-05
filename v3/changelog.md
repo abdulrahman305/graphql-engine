@@ -6,7 +6,176 @@
 
 ### Fixed
 
+- GraphQL queries with `order_by` arguments that contain multiple properties set
+  on one input object now properly return an error. For example
+  `order_by: { location: { city: Asc, country: Asc } }` is no longer allowed.
+  This is because the order of input object fields in GraphQL is not defined, so
+  it is unclear whether ordering should be first by city or first by country.
+  Instead, write this query like so:
+  `order_by: [{ location: { city: Asc } }, { location: { country: Asc } }]`.
+
+  Additionally, ordering by nested fields using an nested array is no longer
+  allowed (for example:
+  `order_by: { location: [{ city: Asc }, { country: Asc }] }`). Instead, write
+  this query like so:
+  `order_by: [{ location: { city: Asc } }, { location: { country: Asc } }]`.
+
+  These fixes are only enabled if your `CompatibilityConfig` date is set to
+  `2024-12-10` or newer.
+
 ### Changed
+
+## [v2024.12.04]
+
+### Added
+
+- Added support for the sparse fieldset parameter for nested field types in
+  JSON:API.
+
+### Fixed
+
+- Conflicts between `BooleanExpressionType` fields that have the same name are
+  now detected and a build error is raised. Previously the duplicated fields
+  would have been silently dropped.
+- Row filters configured in `ModelPermissions` are now correctly applied when
+  referencing the model across a relationship in a filter predicate.
+- Row filters configured in `ModelPermissions` are now correctly applied when
+  referencing the model across a relationship is order by expressions.
+
+## [v2024.11.25]
+
+### Added
+
+#### Logical operators in scalar boolean expressions
+
+Adds the ability to use `_and`, `_or` and `_not` operators at every level of the
+where clause in GraphQL queries. Previously logical operators only appeared at
+the object type level of expressions, not at the scalar type level.
+
+Instead of writing:
+
+```graphql
+query {
+  AuthorMany(
+    where: { _or: [{ author_id: { _eq: 1 } }, { author_id: { _eq: 2 } }] }
+  ) {
+    author_id
+    first_name
+  }
+}
+```
+
+You can now write:
+
+```graphql
+query {
+  AuthorMany(where: { author_id: { _or: [{ _eq: 1 }, { _eq: 2 }] } }) {
+    author_id
+    first_name
+  }
+}
+```
+
+In order to use this, you must have `logicalOperators` enabled on your scalar
+`BooleanExpressionType` and your
+[compatibility date](https://hasura.io/docs/3.0/supergraph-modeling/compatibility-config/)
+must be at least `2024-11-26`.
+
+#### Other
+
+- Added support for fetching relationships in JSON:API using the `include`
+  parameter.
+
+### Fixed
+
+- Fixed an error that occurred when filtering by more than one nested field at a
+  time.
+- Fixed an error that occurred when filtering using logical operators (eg
+  `_and`) from inside a nested field.
+
+### Changed
+
+- MBS error contexts now contain explicit subgraphs where appropriate for each
+  individual error step.
+
+## [v2024.11.18]
+
+### Added
+
+#### Subscriptions
+
+Adds real-time data capabilities through GraphQL subscriptions. Available for a
+model's select unique, select many, and aggregate queries.
+
+For fresh DDN projects, subscription support is automatically enabled when
+adding models via `ddn model add`. For existing projects, run
+`ddn codemod upgrade-graphqlconfig-subscriptions` to enable.
+
+Configure
+[polling intervals](https://hasura.io/docs/3.0/graphql-api/subscriptions/#polling-interval)
+in your model's metadata (defaults to 1000ms). Use the `allowSubscriptions` flag
+in
+[select permissions](https://hasura.io/docs/3.0/graphql-api/subscriptions/#permissions)
+to control role access.
+
+Example subscription:
+
+```graphql
+subscription UserNotificationSubscription {
+  notifications(where: { user_id: { _eq: 123 } }) {
+    id
+    created_at
+    message
+  }
+}
+```
+
+For more details, see the
+[subscriptions documentation](https://hasura.io/docs/3.0/graphql-api/subscriptions/).
+
+## [v2024.11.13]
+
+Minor internal refactors
+
+## [v2024.11.11]
+
+### Changed
+
+- Prevent duplicate GraphQL root field names for models; previously, one was
+  arbitrarily chosen as the exposed field. This change does not impact existing
+  projects, and warnings are emitted while creating a build. Projects created or
+  with a
+  [compatibility date](https://hasura.io/docs/3.0/supergraph-modeling/compatibility-config/)
+  after `2024-11-15` are affected.
+
+## [v2024.11.05]
+
+### Added
+
+#### JSONAPI alpha release
+
+Adds a new set of endpoints at `/v1/rest` that follow the
+[JSONAPI](https://jsonapi.org/) specification.
+
+An [OpenAPI](https://swagger.io/specification/) schema for a given role can be
+accessed at `v1/rest/__schema`.
+
+Currently, every model that a given role is able to access is exposed at
+`GET v1/rest/subgraph/model`. In further releases models will be explicitly
+configured and exposed via metadata to match the GraphQL schema.
+
+Select the fields you receive with `?fields[model]=fieldname,anotherfield`.
+
+Limit the number of results with `?page[limit]=10`
+
+Offset the results with `?page[offset]=5`
+
+Order the results with `?sort[model]=fieldname,-anotherfield`. Default is
+sorting in ascending order, adding `-` at the start of the field name makes the
+ordering descending instead.
+
+This feature is still very much alpha and in active development, all feedback
+gratefully received.
 
 ## [v2024.10.30]
 
@@ -31,7 +200,7 @@ query MyQuery {
 ```
 
 This will order by the value of the nested field `city` within the `location`
-JSONB column.
+column.
 
 - New metadata item `OrderByExpression`
 
@@ -712,7 +881,13 @@ Initial release.
 
 <!-- end -->
 
-[Unreleased]: https://github.com/hasura/v3-engine/compare/v2024.10.30...HEAD
+[Unreleased]: https://github.com/hasura/v3-engine/compare/v2024.12.03...HEAD
+[v2024.12.03]: https://github.com/hasura/v3-engine/releases/tag/v2024.12.03
+[v2024.11.25]: https://github.com/hasura/v3-engine/releases/tag/v2024.11.25
+[v2024.11.18]: https://github.com/hasura/v3-engine/releases/tag/v2024.11.18
+[v2024.11.13]: https://github.com/hasura/v3-engine/releases/tag/v2024.11.13
+[v2024.11.11]: https://github.com/hasura/v3-engine/releases/tag/v2024.11.11
+[v2024.11.05]: https://github.com/hasura/v3-engine/releases/tag/v2024.11.05
 [v2024.10.30]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.30
 [v2024.10.25]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.25
 [v2024.10.23]: https://github.com/hasura/v3-engine/releases/tag/v2024.10.23

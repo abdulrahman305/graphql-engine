@@ -1,121 +1,12 @@
-use crate::catalog::get_model_fields;
+use crate::parse;
 use hasura_authn_core::Role;
-use indexmap::IndexMap;
-use metadata_resolve::{
-    ModelExpressionType, ModelWithArgumentPresets, ObjectTypeWithRelationships, Qualified,
-    ScalarTypeRepresentation,
-};
+use metadata_resolve::Qualified;
 use open_dds::{
-    data_connector::DataConnectorName,
-    identifier::SubgraphName,
-    models::ModelName,
-    types::{CustomTypeName, FieldName},
+    identifier::SubgraphName, models::ModelName, relationships::RelationshipType,
+    types::CustomTypeName,
 };
 use std::collections::BTreeMap;
 use tracing_util::{ErrorVisibility, TraceableError};
-
-#[derive(Debug)]
-pub struct Catalog {
-    pub state_per_role: BTreeMap<Role, State>,
-}
-
-impl Catalog {
-    pub fn new(metadata: &metadata_resolve::Metadata) -> (Self, Vec<Warning>) {
-        let mut warnings = vec![];
-
-        let state_per_role = metadata
-            .roles
-            .iter()
-            .map(|role| {
-                let (state, role_warnings) = State::new(metadata, role);
-                warnings.extend(role_warnings.iter().map(|warning| Warning::Role {
-                    role: role.clone(),
-                    warning: warning.clone(),
-                }));
-                (role.clone(), state)
-            })
-            .collect();
-
-        (Self { state_per_role }, warnings)
-    }
-}
-
-#[derive(Debug)]
-pub struct State {
-    pub routes: BTreeMap<String, Model>,
-}
-
-impl State {
-    pub fn new(metadata: &metadata_resolve::Metadata, role: &Role) -> (Self, Vec<RoleWarning>) {
-        let mut warnings = vec![];
-
-        let routes = metadata
-            .models
-            .iter()
-            .filter_map(|(model_name, model)| {
-                match Model::new(model, role, &metadata.object_types, &metadata.scalar_types) {
-                    Ok(jsonapi_model) => Some((
-                        format!("/{}/{}", model_name.subgraph, model_name.name),
-                        jsonapi_model,
-                    )),
-                    Err(warning) => {
-                        warnings.push(RoleWarning::Model {
-                            model_name: model_name.clone(),
-                            warning,
-                        });
-                        None
-                    }
-                }
-            })
-            .collect::<BTreeMap<_, _>>();
-
-        (Self { routes }, warnings)
-    }
-}
-
-// feel we're going to need to think about object types for nested stuff here too
-#[derive(Debug)]
-pub enum FieldType {
-    TypeRepresentation(ndc_models::TypeRepresentation),
-    List(Box<FieldType>),
-    Object(IndexMap<FieldName, FieldType>),
-}
-
-// only the parts of a Model we need to construct a JSONAPI
-// we'll filter out fields a given role can't see
-#[derive(Debug)]
-pub struct Model {
-    pub name: Qualified<ModelName>,
-    pub description: Option<String>,
-    pub data_type: Qualified<CustomTypeName>,
-    pub type_fields: IndexMap<FieldName, FieldType>,
-    /// let's consider only making this work with `BooleanExpressionType`
-    /// to simplify implementation and nudge users to upgrade
-    pub filter_expression_type: Option<ModelExpressionType>,
-}
-
-impl Model {
-    pub fn new(
-        model: &ModelWithArgumentPresets,
-        role: &Role,
-        object_types: &BTreeMap<Qualified<CustomTypeName>, ObjectTypeWithRelationships>,
-        scalar_types: &BTreeMap<Qualified<CustomTypeName>, ScalarTypeRepresentation>,
-    ) -> Result<Model, ModelWarning> {
-        let type_fields = get_model_fields(model, role, object_types, scalar_types)?;
-
-        Ok(Model {
-            name: model.model.name.clone(),
-            description: model.model.raw.description.clone(),
-            data_type: model.model.data_type.clone(),
-            type_fields,
-            filter_expression_type: model.filter_expression_type.clone(),
-        })
-    }
-
-    pub fn pretty_typename(&self) -> String {
-        format!("{}_{}", self.data_type.subgraph, self.data_type.name)
-    }
-}
 
 #[derive(Debug, Clone)]
 pub enum Warning {
@@ -128,6 +19,20 @@ pub enum RoleWarning {
         model_name: Qualified<ModelName>,
         warning: ModelWarning,
     },
+    ObjectType {
+        object_type_name: Qualified<CustomTypeName>,
+        warning: ObjectTypeWarning,
+    },
+}
+
+// if we exclude something, let's say why
+#[derive(Debug, Clone)]
+#[allow(clippy::enum_variant_names)]
+pub enum ObjectTypeWarning {
+    NoObjectTypePermission {},
+    NestedObjectNotFound {
+        object_type_name: Qualified<CustomTypeName>,
+    },
 }
 
 // if we exclude something, let's say why
@@ -139,13 +44,6 @@ pub enum ModelWarning {
         object_type_name: Qualified<CustomTypeName>,
     },
     NoModelSource,
-    NoTypeRepresentationFound {
-        object_type_name: Qualified<CustomTypeName>,
-    },
-    NoTypeRepresentationFoundForDataConnector {
-        data_connector_name: Qualified<DataConnectorName>,
-        object_type_name: Qualified<CustomTypeName>,
-    },
 }
 
 #[derive(Debug, derive_more::Display)]
@@ -155,6 +53,36 @@ pub enum RequestError {
     InternalError(InternalError),
     PlanError(plan::PlanError),
     ExecuteError(execute::FieldError),
+    ParseError(parse::ParseError),
+}
+
+impl RequestError {
+    pub fn to_error_response(&self) -> serde_json::Value {
+        match self {
+            RequestError::ParseError(err) => serde_json::json!({"error": err}),
+            RequestError::BadRequest(err) => serde_json::json!({"error": err}),
+            RequestError::NotFound => {
+                serde_json::json!({"error": "invalid route or path"})
+            }
+            RequestError::InternalError(InternalError::EmptyQuerySet) => {
+                serde_json::json!({"error": "Internal error"})
+            }
+            RequestError::PlanError(
+                plan::PlanError::Internal(msg) | plan::PlanError::Relationship(msg),
+            ) => {
+                serde_json::json!({"error": msg })
+            }
+            RequestError::PlanError(plan::PlanError::External(_err)) => {
+                serde_json::json!({"error": "Internal error" })
+            }
+            RequestError::PlanError(plan::PlanError::Permission(_msg)) => {
+                serde_json::json!({"error": "Access forbidden" })
+            }
+            RequestError::ExecuteError(field_error) => {
+                serde_json::json!({"error": field_error.to_string() })
+            }
+        }
+    }
 }
 
 #[derive(Debug, derive_more::Display)]
@@ -180,22 +108,20 @@ pub struct ModelInfo {
     pub relationship: Vec<String>,
 }
 
-pub struct ParseError(String);
-
-impl From<&str> for ParseError {
-    fn from(value: &str) -> Self {
-        Self(value.to_string())
-    }
-}
-
-impl From<ParseError> for RequestError {
-    fn from(value: ParseError) -> Self {
-        Self::BadRequest(format!("Parse Error: {}", value.0))
-    }
-}
-
 // this is not the correct output type, we should be outputting a JSONAPI document instead
 pub struct QueryResult {
     pub type_name: Qualified<CustomTypeName>,
     pub rowsets: Vec<ndc_models::RowSet>,
+}
+
+/// A tree of relationships, used in processing of relationships in the JSON:API response creation
+#[derive(Default)]
+pub struct RelationshipTree {
+    pub relationships: BTreeMap<String, RelationshipNode>,
+}
+
+pub struct RelationshipNode {
+    pub object_type: Qualified<CustomTypeName>,
+    pub relationship_type: RelationshipType,
+    pub nested: RelationshipTree,
 }

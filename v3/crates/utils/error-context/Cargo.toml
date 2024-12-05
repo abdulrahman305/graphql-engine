@@ -9,7 +9,8 @@ bench = false
 
 [dependencies]
 jsonpath = { path = "../jsonpath" }
-serde = { workspace = true, features = ["derive"] }
+open-dds = { path = "../../open-dds" }
+serde = { workspace = true }
 
 [lints]
 workspace = true

@@ -5,12 +5,14 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+engine-types = { path = "../engine-types" }
 execute = { path = "../execute" }
 hasura-authn-core = { path = "../auth/hasura-authn-core" }
 jsonpath = { path = "../utils/jsonpath" }
 metadata-resolve = { path = "../metadata-resolve" }
 open-dds = { path = "../open-dds" }
 plan = { path = "../plan" }
+plan-types = { path = "../plan-types" }
 tracing-util = { path = "../utils/tracing-util" }
 
 axum = { workspace = true }
@@ -20,10 +22,12 @@ indexmap = { workspace = true }
 jsonapi_library = { workspace = true }
 ndc-models = { workspace = true }
 oas3 = { workspace = true }
+serde = { workspace = true }
 serde_json = { workspace = true }
+thiserror = { workspace = true }
 
 [dev-dependencies]
-insta = { workspace = true, features = ["glob","json"] }
+insta = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true }
 
@@ -31,4 +35,4 @@ tokio = { workspace = true }
 workspace = true
 
 [package.metadata.cargo-machete]
-ignored = ["error_chain", "log", "queryst", "serde", "serde_derive" ]
+ignored = ["error_chain", "log", "queryst", "serde_derive" ]

@@ -17,8 +17,9 @@ pub use types::{
     BooleanExpressionComparableRelationship, BooleanExpressionGraphqlConfig,
     BooleanExpressionGraphqlFieldConfig, BooleanExpressionIssue, BooleanExpressionTypes,
     BooleanExpressionsOutput, ComparableFieldKind, ComparisonExpressionInfo,
-    IncludeLogicalOperators, ObjectComparisonExpressionInfo, ObjectComparisonKind,
-    ResolvedObjectBooleanExpressionType,
+    IncludeLogicalOperators, ObjectBooleanExpressionGraphqlConfig, ObjectComparisonExpressionInfo,
+    ObjectComparisonKind, OperatorMapping, ResolvedObjectBooleanExpressionType,
+    ResolvedObjectBooleanExpressionTypeFields, ScalarBooleanExpressionGraphqlConfig,
 };
 
 use super::aggregate_boolean_expressions;
@@ -41,9 +42,38 @@ pub fn resolve(
     graphql_config: &graphql_config::GraphqlConfig,
     object_types: &type_permissions::ObjectTypesWithPermissions,
     relationships: &relationships::Relationships,
+    flags: &open_dds::flags::Flags,
 ) -> Result<BooleanExpressionsOutput, BooleanExpressionError> {
     let mut raw_boolean_expression_types = BTreeMap::new();
     let mut issues = Vec::new();
+    let mut raw_models = BTreeMap::new();
+    let mut object_boolean_expression_type_names = BTreeSet::new();
+
+    // collect raw models for use in resolving relationships
+    for open_dds::accessor::QualifiedObject {
+        path: _,
+        subgraph,
+        object: model,
+    } in &metadata_accessor.models
+    {
+        raw_models.insert(
+            Qualified::new(subgraph.clone(), model.name().clone()),
+            model,
+        );
+    }
+
+    // collect raw object_boolean_expression_type names for validation
+    for open_dds::accessor::QualifiedObject {
+        path: _,
+        subgraph,
+        object: object_boolean_expression_type,
+    } in &metadata_accessor.object_boolean_expression_types
+    {
+        object_boolean_expression_type_names.insert(Qualified::new(
+            subgraph.clone(),
+            object_boolean_expression_type.name.clone(),
+        ));
+    }
 
     // first we collect all the boolean_expression_types
     // so we have a full set to refer to when resolving them
@@ -73,13 +103,16 @@ pub fn resolve(
                     boolean_expression_object_operand,
                     &boolean_expression_type.logical_operators,
                     subgraph,
-                    &boolean_expression_type.graphql,
+                    boolean_expression_type.graphql.as_ref(),
                     object_types,
                     &boolean_expression_scalar_types,
                     &raw_boolean_expression_types,
                     relationships,
+                    &raw_models,
+                    &object_boolean_expression_type_names,
                     graphql_config,
                     &mut graphql_types,
+                    flags,
                 )?;
 
             issues.extend(boolean_expression_issues);

@@ -113,7 +113,7 @@ fn resolve_aggregate_expression(
         graphql_config,
         aggregate_expression_name,
         &operand,
-        &aggregate_expression.graphql,
+        aggregate_expression.graphql.as_ref(),
         issues,
     )?;
 
@@ -121,8 +121,8 @@ fn resolve_aggregate_expression(
         name: aggregate_expression_name.clone(),
         operand,
         graphql,
-        count: resolve_aggregate_count(&aggregate_expression.count),
-        count_distinct: resolve_aggregate_count(&aggregate_expression.count_distinct),
+        count: resolve_aggregate_count(aggregate_expression.count.as_ref()),
+        count_distinct: resolve_aggregate_count(aggregate_expression.count_distinct.as_ref()),
         description: aggregate_expression.description.clone(),
     })
 }
@@ -400,7 +400,7 @@ fn resolve_aggregation_function(
                         name: aggregate_expression_name.clone(),
                         data_connector_name: data_connector_name.clone(),
                 })?;
-            if data_connector.capabilities.query.aggregates.is_none() {
+            if data_connector.capabilities.supports_aggregates.is_none() {
                 return Err(AggregateExpressionError::AggregateOperandDataConnectorNotSupported {
                     name: aggregate_expression_name.clone(),
                     data_connector_name: data_connector_name.clone(),
@@ -436,9 +436,17 @@ fn resolve_aggregation_function(
                         data_connector_aggregate_function_name: fn_mapping.name.clone(),
                 })?;
 
+            let data_connector_fn_result_type = match data_connector_fn {
+                ndc_models::AggregateFunctionDefinition::Min |
+                ndc_models::AggregateFunctionDefinition::Max => ndc_models::Type::Named { name: ndc_models::TypeName::from(data_connector_fn_mappings.data_connector_scalar_type.as_str()) },
+                ndc_models::AggregateFunctionDefinition::Sum { result_type } |
+                ndc_models::AggregateFunctionDefinition::Average { result_type } => ndc_models::Type::Named { name: result_type.inner().clone() },
+                ndc_models::AggregateFunctionDefinition::Custom { result_type } => result_type.clone(),
+            };
+
             check_aggregation_function_return_type(
                 &return_type,
-                &data_connector_fn.result_type,
+                &data_connector_fn_result_type,
                 aggregate_expression_name,
                 &aggregation_function_def.name,
                 &data_connector_name,
@@ -605,8 +613,8 @@ fn resolve_aggregate_expression_graphql_config(
     graphql_config: &graphql_config::GraphqlConfig,
     aggregate_expression_name: &Qualified<AggregateExpressionName>,
     aggregate_operand: &AggregateOperand,
-    aggregate_expression_graphql_definition: &Option<
-        open_dds::aggregates::AggregateExpressionGraphQlDefinition,
+    aggregate_expression_graphql_definition: Option<
+        &open_dds::aggregates::AggregateExpressionGraphQlDefinition,
     >,
     issues: &mut Vec<AggregateExpressionIssue>,
 ) -> Result<Option<AggregateExpressionGraphqlConfig>, AggregateExpressionError> {
@@ -708,7 +716,7 @@ fn resolve_aggregate_expression_graphql_config(
 }
 
 fn resolve_aggregate_count(
-    aggregate_count_definition: &Option<open_dds::aggregates::AggregateCountDefinition>,
+    aggregate_count_definition: Option<&open_dds::aggregates::AggregateCountDefinition>,
 ) -> AggregateCountDefinition {
     if let Some(aggregate_count_definition) = aggregate_count_definition {
         AggregateCountDefinition {

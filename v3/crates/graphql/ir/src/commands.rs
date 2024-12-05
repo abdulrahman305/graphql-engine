@@ -101,13 +101,15 @@ pub fn generate_command_info<'n, 's>(
             argument,
             &command_source.type_mappings,
             &command_source.data_connector,
+            session_variables,
             usage_counts,
         )?;
 
         command_arguments.insert(ndc_arg_name, ndc_val);
     }
 
-    let command_argument_presets = permissions::get_argument_presets(field_call.info.namespaced)?;
+    let command_argument_presets =
+        permissions::get_argument_presets(field_call.info.namespaced.as_ref())?;
 
     // preset arguments from permissions presets (both command permission argument
     // presets and input field presets)
@@ -129,6 +131,8 @@ pub fn generate_command_info<'n, 's>(
     let selection = selection_set::generate_nested_selection(
         result_type,
         result_base_type_kind,
+        metadata_resolve::FieldNestedness::NotNested,
+        selection_set::NestedSelectionType::CommandRootSelection,
         field,
         &command_source.data_connector,
         &command_source.type_mappings,

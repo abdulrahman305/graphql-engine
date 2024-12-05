@@ -36,9 +36,9 @@ use tracing_util::{FutureExt, SpanVisibility, TraceableError};
 
 use super::common::from_plan_error;
 use crate::catalog::model::filter;
-use execute::{ndc::NdcQueryResponse, plan::ResolvedField, HttpContext};
-use graphql_ir::AggregateFieldSelection;
-use plan_types::NdcFieldAlias;
+use engine_types::HttpContext;
+use execute::ndc::NdcQueryResponse;
+use plan_types::{AggregateFieldSelection, FieldsSelection, NdcFieldAlias, UniqueNumber};
 
 use plan::{
     from_model_aggregate_selection, from_model_selection, ndc_query_to_query_execution_plan,
@@ -74,22 +74,25 @@ pub(crate) struct ModelAggregate {
 }
 
 impl ModelAggregate {
-    pub(crate) async fn to_physical_node(
+    pub(crate) fn to_physical_node(
         &self,
         session: &Arc<Session>,
-        http_context: &Arc<execute::HttpContext>,
+        http_context: &Arc<HttpContext>,
         metadata: &metadata_resolve::Metadata,
         request_headers: &reqwest::header::HeaderMap,
     ) -> Result<NDCAggregatePushdown> {
-        let (_, query, fields) = from_model_aggregate_selection(
+        // this will need to be threaded throughout entire query
+        // if we want to support remote predicates in `sql`
+        let mut unique_number = UniqueNumber::new();
+
+        let plan::ModelAggregateSelection { query, fields, .. } = from_model_aggregate_selection(
             &self.model_target,
             &self.selection,
             metadata,
             session,
-            http_context,
             request_headers,
+            &mut unique_number,
         )
-        .await
         .map_err(from_plan_error)?;
 
         Ok(NDCAggregatePushdown::new(
@@ -406,21 +409,21 @@ fn to_aggregate(aggregate: &Expr) -> datafusion::error::Result<Option<Aggregate>
 }
 
 impl ModelQuery {
-    pub(super) async fn to_physical_node(
+    pub(super) fn to_physical_node(
         &self,
         session: &Arc<Session>,
-        http_context: &Arc<execute::HttpContext>,
+        http_context: &Arc<HttpContext>,
         metadata: &metadata_resolve::Metadata,
         request_headers: &reqwest::header::HeaderMap,
+        unique_number: &mut UniqueNumber,
     ) -> Result<NDCQueryPushDown> {
         let (_, query, ndc_fields) = from_model_selection(
             &self.model_selection,
             metadata,
             session,
-            http_context,
             request_headers,
+            unique_number,
         )
-        .await
         .map_err(from_plan_error)?;
 
         let ndc_pushdown = NDCQueryPushDown::new(
@@ -601,13 +604,16 @@ impl ExecutionPlan for NDCAggregatePushdown {
 
         let baseline_metrics = BaselineMetrics::new(&self.metrics, partition);
 
-        let query_execution_plan =
-            ndc_query_to_query_execution_plan(&self.query, &IndexMap::new(), &self.fields);
+        let query_execution_plan = ndc_query_to_query_execution_plan(
+            &self.query,
+            &FieldsSelection {
+                fields: IndexMap::new(),
+            },
+            &self.fields,
+        );
 
-        let query_request = execute::plan::ndc_request::make_ndc_query_request(
-            query_execution_plan,
-        )
-        .map_err(|e| DataFusionError::Internal(format!("error creating ndc request: {e}")))?;
+        let query_request = execute::make_ndc_query_request(query_execution_plan)
+            .map_err(|e| DataFusionError::Internal(format!("error creating ndc request: {e}")))?;
 
         let fut = fetch_aggregates_from_data_connector(
             self.projected_schema.clone(),
@@ -628,8 +634,8 @@ impl ExecutionPlan for NDCAggregatePushdown {
 
 #[derive(Debug, Clone)]
 pub(crate) struct NDCQueryPushDown {
-    http_context: Arc<execute::HttpContext>,
-    fields: IndexMap<NdcFieldAlias, ResolvedField>,
+    http_context: Arc<HttpContext>,
+    fields: FieldsSelection,
     query: NDCQuery,
     projected_schema: SchemaRef,
     cache: PlanProperties,
@@ -640,7 +646,7 @@ impl NDCQueryPushDown {
     pub(crate) fn new(
         http_context: Arc<HttpContext>,
         schema: SchemaRef,
-        fields: IndexMap<NdcFieldAlias, ResolvedField>,
+        fields: FieldsSelection,
         query: NDCQuery,
     ) -> Self {
         let cache = Self::compute_properties(schema.clone());
@@ -717,10 +723,8 @@ impl ExecutionPlan for NDCQueryPushDown {
         let query_execution_plan =
             ndc_query_to_query_execution_plan(&self.query, &self.fields, &IndexMap::new());
 
-        let query_request = execute::plan::ndc_request::make_ndc_query_request(
-            query_execution_plan,
-        )
-        .map_err(|e| DataFusionError::Internal(format!("error creating ndc request: {e}")))?;
+        let query_request = execute::make_ndc_query_request(query_execution_plan)
+            .map_err(|e| DataFusionError::Internal(format!("error creating ndc request: {e}")))?;
 
         let fut = fetch_from_data_connector(
             self.projected_schema.clone(),

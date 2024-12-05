@@ -96,13 +96,14 @@ pub fn select_one_generate_ir<'n, 's>(
             argument,
             &model_source.type_mappings,
             &model_source.data_connector,
+            session_variables,
             &mut usage_counts,
         )?;
 
         model_arguments.insert(ndc_arg_name, ndc_val);
     }
 
-    let argument_presets = permissions::get_argument_presets(field_call.info.namespaced)?;
+    let argument_presets = permissions::get_argument_presets(field_call.info.namespaced.as_ref())?;
     // add any preset arguments from model permissions
     model_arguments = arguments::process_argument_presets(
         &model_source.data_connector,
@@ -126,7 +127,7 @@ pub fn select_one_generate_ir<'n, 's>(
         model_source,
         model_arguments,
         query_filter,
-        permissions::get_select_filter_predicate(field_call)?,
+        permissions::get_select_filter_predicate(&field_call.info)?,
         None, // limit
         None, // offset
         None, // order_by

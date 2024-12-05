@@ -1,16 +1,17 @@
+use super::types::{ConnectionInitState, OperationId, ServerMessage};
+use crate::metrics::WebSocketMetrics;
+use crate::poller;
+use crate::websocket::types as ws;
 use axum::http;
 use blake2::{Blake2b, Digest};
-use execute::{self, plan, ExposeInternalErrors};
+use engine_types::ExposeInternalErrors;
+use graphql_frontend::{process_response, ExecuteQueryResult, RootFieldResult};
+use graphql_ir::RequestPlan;
 use hasura_authn_core::Session;
 use indexmap::IndexMap;
 use nonempty::NonEmpty;
 use pre_parse_plugin::execute as pre_parse_plugin;
 use pre_response_plugin::execute as pre_response_plugin;
-
-use super::types::{ConnectionInitState, OperationId, ServerMessage};
-use crate::metrics::WebSocketMetrics;
-use crate::poller;
-use crate::websocket::types as ws;
 
 #[derive(thiserror::Error, Debug)]
 enum Error {
@@ -237,7 +238,7 @@ async fn execute_query<M: WebSocketMetrics>(
 }
 
 pub async fn send_request_error<M: WebSocketMetrics>(
-    error: execute::RequestError,
+    error: graphql_frontend::RequestError,
     expose_internal_errors: ExposeInternalErrors,
     operation_id: OperationId,
     connection: &ws::Connection<M>,
@@ -259,7 +260,7 @@ pub async fn execute_query_internal<M: WebSocketMetrics>(
     headers: http::HeaderMap,
     connection: &ws::Connection<M>,
     raw_request: lang_graphql::http::RawRequest,
-) -> Result<(), execute::RequestError> {
+) -> Result<(), graphql_frontend::RequestError> {
     let schema = &connection.context.schema;
     // Parse the raw GraphQL request.
     let query = graphql_frontend::parse_query(&raw_request.query)?;
@@ -309,16 +310,17 @@ async fn execute<M: WebSocketMetrics>(
     session: Session,
     headers: http::HeaderMap,
     raw_request: lang_graphql::http::RawRequest,
-    request_plan: execute::RequestPlan<'_, '_, '_>,
+    request_plan: RequestPlan<'_, '_, '_>,
 ) {
     let project_id = connection.context.project_id.as_ref();
     let http_context = &connection.context.http_context;
     let expose_internal_errors = connection.context.expose_internal_errors;
     match request_plan {
         // Handle mutations.
-        plan::RequestPlan::MutationPlan(mutation_plan) => {
+        RequestPlan::MutationPlan(mutation_plan) => {
             let execute_query_result =
-                plan::execute_mutation_plan(http_context, mutation_plan, project_id).await;
+                graphql_frontend::execute_mutation_plan(http_context, mutation_plan, project_id)
+                    .await;
             send_single_result_operation_response(
                 operation_id,
                 &raw_request,
@@ -331,9 +333,9 @@ async fn execute<M: WebSocketMetrics>(
             .await;
         }
         // Handle queries.
-        plan::RequestPlan::QueryPlan(query_plan) => {
+        RequestPlan::QueryPlan(query_plan) => {
             let execute_query_result =
-                plan::execute_query_plan(http_context, query_plan, project_id).await;
+                graphql_frontend::execute_query_plan(http_context, query_plan, project_id).await;
             send_single_result_operation_response(
                 operation_id,
                 &raw_request,
@@ -346,12 +348,12 @@ async fn execute<M: WebSocketMetrics>(
             .await;
         }
         // Handle subscriptions by starting a polling loop to repeatedly fetch data.
-        plan::RequestPlan::SubscriptionPlan(alias, plan) => {
-            match plan::resolve_ndc_subscription_execution(plan).await {
+        RequestPlan::SubscriptionPlan(alias, plan) => {
+            match execute::resolve_ndc_subscription_execution(plan.subscription_execution).await {
                 Ok(ndc_subscription) => {
                     let query_request = ndc_subscription.query_request;
                     let data_connector = ndc_subscription.data_connector;
-                    let selection_set = ndc_subscription.selection_set;
+                    let selection_set = plan.selection_set;
                     let process_response_as = ndc_subscription.process_response_as;
                     let is_nullable = process_response_as.is_nullable();
                     let polling_interval_duration =
@@ -388,21 +390,20 @@ async fn execute<M: WebSocketMetrics>(
                                         .await?;
                                         // Process response
                                         let response_rowsets = response.as_latest_rowsets();
-                                        let processed_response = execute::process_response(
+                                        let processed_response = process_response(
                                             selection_set,
                                             response_rowsets,
                                             &process_response_as,
                                         );
                                         let root_fields = IndexMap::from([(
                                             alias.clone(),
-                                            plan::RootFieldResult::from_processed_response(
+                                            RootFieldResult::from_processed_response(
                                                 is_nullable,
                                                 processed_response,
                                             ),
                                         )]);
                                         // Generate a single root field query response
-                                        let query_result =
-                                            execute::ExecuteQueryResult { root_fields };
+                                        let query_result = ExecuteQueryResult { root_fields };
 
                                         let graphql_response =
                                             graphql_frontend::GraphQLResponse::from_result(
@@ -558,7 +559,7 @@ async fn send_single_result_operation_response<M: WebSocketMetrics>(
     raw_request: &lang_graphql::http::RawRequest,
     session: Session,
     headers: http::HeaderMap,
-    result: execute::ExecuteQueryResult,
+    result: ExecuteQueryResult,
     expose_internal_errors: ExposeInternalErrors,
     connection: &ws::Connection<M>,
 ) {

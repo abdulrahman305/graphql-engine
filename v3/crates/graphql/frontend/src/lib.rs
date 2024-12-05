@@ -1,20 +1,23 @@
+mod error;
+mod execute;
 mod explain;
+mod process_response;
 mod query;
+mod query_usage;
 mod steps;
 mod to_opendd_ir;
 mod types;
 
+pub use error::RequestError;
+pub use execute::{execute_mutation_plan, execute_query_plan, ExecuteQueryResult, RootFieldResult};
 pub use explain::execute_explain;
 pub use explain::types::{redact_ndc_explain, ExplainResponse};
-pub use steps::{
-    build_ir, build_request_plan, generate_ir, normalize_request, parse_query,
-    resolve_ndc_query_execution,
-};
-pub use to_opendd_ir::to_opendd_ir;
-
+pub use process_response::process_response;
 pub use query::{
     execute_query, execute_query_internal, set_request_metadata_attributes, set_usage_attributes,
 };
+pub use steps::{build_ir, build_request_plan, generate_ir, normalize_request, parse_query};
+pub use to_opendd_ir::to_opendd_ir;
 pub use types::{GraphQLErrors, GraphQLResponse};
 
 #[cfg(test)]
@@ -33,7 +36,7 @@ mod tests {
     };
 
     use crate::generate_ir;
-    use execute::analyze_query_usage;
+    use crate::query_usage::analyze_query_usage;
     use graphql_schema::GDS;
 
     #[test]

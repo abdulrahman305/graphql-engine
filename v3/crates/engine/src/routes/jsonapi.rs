@@ -49,7 +49,10 @@ impl IntoResponse for JsonApiSchemaResponse {
 
 /// Implement traceable for GraphQL Response
 impl Traceable for JsonApiSchemaResponse {
-    type ErrorType<'a> = Infallible where Self: 'a;
+    type ErrorType<'a>
+        = Infallible
+    where
+        Self: 'a;
 
     fn get_error(&self) -> Option<Self::ErrorType<'_>> {
         None
@@ -67,10 +70,12 @@ async fn handle_rest_schema(
         "Handle schema",
         SpanVisibility::User,
         || match state.jsonapi_catalog.state_per_role.get(&session.role) {
-            Some(jsonapi_state) => {
-                let spec = jsonapi::openapi_schema(jsonapi_state);
-                JsonApiSchemaResponse { spec }
-            }
+            Some(jsonapi_state) => match jsonapi::openapi_schema(jsonapi_state) {
+                Ok(spec) => JsonApiSchemaResponse { spec },
+                Err(_) => JsonApiSchemaResponse {
+                    spec: jsonapi::empty_schema(),
+                },
+            },
             None => JsonApiSchemaResponse {
                 spec: jsonapi::empty_schema(),
             },
@@ -98,7 +103,7 @@ async fn handle_rest_request(
                     Arc::new(state.http_context.clone()),
                     Arc::new(session),
                     &state.jsonapi_catalog,
-                    &state.resolved_metadata,
+                    state.resolved_metadata,
                     method,
                     uri,
                     jsonapi_library::query::Query::from_params(&raw_query.unwrap_or_default()),
@@ -112,6 +117,10 @@ async fn handle_rest_request(
         Ok(r) => (axum::http::StatusCode::OK, Json(r)).into_response(),
         Err(e) => (match e {
             jsonapi::RequestError::BadRequest(err) => (
+                axum::http::StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({"error": err})),
+            ),
+            jsonapi::RequestError::ParseError(err) => (
                 axum::http::StatusCode::BAD_REQUEST,
                 Json(serde_json::json!({"error": err})),
             ),
@@ -136,6 +145,10 @@ async fn handle_rest_request(
                 Json(serde_json::json!({"error": "Access forbidden" })), // need to decide how much
                                                                          // we tell the user, for
                                                                          // now default to nothing
+            ),
+            jsonapi::RequestError::PlanError(plan::PlanError::Relationship(msg)) => (
+                axum::http::StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({"error": msg })),
             ),
             jsonapi::RequestError::ExecuteError(field_error) => (
                 axum::http::StatusCode::INTERNAL_SERVER_ERROR,

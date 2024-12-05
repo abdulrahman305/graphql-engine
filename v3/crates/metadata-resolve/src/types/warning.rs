@@ -2,7 +2,7 @@ use open_dds::flags;
 
 use crate::stages::{
     aggregate_boolean_expressions, aggregates, boolean_expressions, commands, data_connectors,
-    models, models_graphql, object_boolean_expressions, scalar_types,
+    models, models_graphql, object_boolean_expressions, scalar_boolean_expressions, scalar_types,
 };
 
 use super::error::ShouldBeAnError;
@@ -15,6 +15,10 @@ pub enum Warning {
     ObjectBooleanExpressionIssue(#[from] object_boolean_expressions::ObjectBooleanExpressionIssue),
     #[error("{0}")]
     DataConnectorIssue(#[from] data_connectors::NamedDataConnectorIssue),
+    #[error("{0}")]
+    ScalarBooleanExpressionIssue(
+        #[from] scalar_boolean_expressions::ScalarBooleanExpressionTypeIssue,
+    ),
     #[error("{0}")]
     BooleanExpressionIssue(#[from] boolean_expressions::BooleanExpressionIssue),
     #[error("{0}")]
@@ -38,8 +42,11 @@ impl ShouldBeAnError for Warning {
         match self {
             Warning::DataConnectorIssue(issue) => issue.should_be_an_error(flags),
             Warning::BooleanExpressionIssue(issue) => issue.should_be_an_error(flags),
+            Warning::ObjectBooleanExpressionIssue(issue) => issue.should_be_an_error(flags),
             Warning::ScalarTypesIssue(issue) => issue.should_be_an_error(flags),
+            Warning::ModelGraphqlIssue(issue) => issue.should_be_an_error(flags),
             Warning::CommandIssue(issue) => issue.should_be_an_error(flags),
+            Warning::ScalarBooleanExpressionIssue(issue) => issue.should_be_an_error(flags),
             _ => false,
         }
     }

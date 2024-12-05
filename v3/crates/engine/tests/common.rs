@@ -1,17 +1,19 @@
 use anyhow::anyhow;
-use execute::{HttpContext, ProjectId};
 use goldenfile::{differs::text_diff, Mint};
 use graphql_frontend::execute_query;
 use graphql_schema::GDS;
 use hasura_authn_core::{
     Identity, JsonSessionVariableValue, Role, Session, SessionError, SessionVariableValue,
 };
+use indexmap::IndexMap;
 use lang_graphql::ast::common as ast;
 use lang_graphql::{http::RawRequest, schema::Schema};
 use metadata_resolve::{data_connectors::NdcVersion, LifecyclePluginConfigs};
 use open_dds::session_variables::{SessionVariableName, SESSION_VARIABLE_ROLE};
+use plan_types::{NDCQueryExecution, ProcessResponseAs};
 use pretty_assertions::assert_eq;
 use serde_json as json;
+use sql::catalog::CatalogSerializable;
 use sql::execute::SqlRequest;
 use std::collections::BTreeMap;
 use std::iter;
@@ -23,8 +25,8 @@ use std::{
     path::Path,
     path::PathBuf,
 };
-
 extern crate json_value_merge;
+use engine_types::{ExposeInternalErrors, HttpContext, ProjectId};
 use json_value_merge::Merge;
 use serde_json::Value;
 
@@ -141,7 +143,7 @@ pub(crate) fn test_introspection_expectation(
         let mut responses = Vec::new();
         for session in &sessions {
             let (_, response) = execute_query(
-                execute::ExposeInternalErrors::Expose,
+                ExposeInternalErrors::Expose,
                 &test_ctx.http_context,
                 &schema,
                 session,
@@ -261,9 +263,12 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
 
             // Ensure sql_context can be serialized and deserialized
             let sql_context = sql::catalog::Catalog::from_metadata(&gds.metadata);
-            let sql_context_str = serde_json::to_string(&sql_context)?;
-            let sql_context_parsed = serde_json::from_str(&sql_context_str)?;
-            assert_eq!(sql_context, sql_context_parsed);
+            let sql_context_str = serde_json::to_string(&sql_context.clone().to_serializable())?;
+            let sql_context_parsed: CatalogSerializable = serde_json::from_str(&sql_context_str)?;
+            assert_eq!(
+                sql_context,
+                sql_context_parsed.from_serializable(&gds.metadata)
+            );
             assert_eq!(
                 schema, deserialized_metadata,
                 "initial built metadata does not match deserialized metadata"
@@ -332,7 +337,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
 
                         // do actual test
                         let (_, response) = execute_query(
-                            execute::ExposeInternalErrors::Expose,
+                            ExposeInternalErrors::Expose,
                             &test_ctx.http_context,
                             &schema,
                             session,
@@ -343,7 +348,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                         .await;
                         let http_response = response.inner();
                         let graphql_ws_response = run_query_graphql_ws(
-                            execute::ExposeInternalErrors::Expose,
+                            ExposeInternalErrors::Expose,
                             &test_ctx.http_context,
                             &schema,
                             session,
@@ -378,7 +383,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                         .await;
                         // do actual test
                         let (_, response) = execute_query(
-                            execute::ExposeInternalErrors::Expose,
+                            ExposeInternalErrors::Expose,
                             &test_ctx.http_context,
                             &schema,
                             session,
@@ -389,7 +394,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                         .await;
                         let http_response = response.inner();
                         let graphql_ws_response = run_query_graphql_ws(
-                            execute::ExposeInternalErrors::Expose,
+                            ExposeInternalErrors::Expose,
                             &test_ctx.http_context,
                             &schema,
                             session,
@@ -479,7 +484,6 @@ pub fn test_execute_explain(
         let configuration = metadata_resolve::configuration::Configuration {
             unstable_features: metadata_resolve::configuration::UnstableFeatures {
                 enable_ndc_v02_support: true,
-                enable_jsonapi: false,
                 ..Default::default()
             },
         };
@@ -505,7 +509,7 @@ pub fn test_execute_explain(
             variables: None,
         };
         let (_, raw_response) = graphql_frontend::execute_explain(
-            execute::ExposeInternalErrors::Expose,
+            ExposeInternalErrors::Expose,
             &test_ctx.http_context,
             &schema,
             &session,
@@ -539,7 +543,6 @@ pub(crate) fn test_metadata_resolve_configuration() -> metadata_resolve::configu
     metadata_resolve::configuration::Configuration {
         unstable_features: metadata_resolve::configuration::UnstableFeatures {
             enable_ndc_v02_support: true,
-            enable_jsonapi: false,
             ..Default::default()
         },
     }
@@ -579,9 +582,12 @@ pub(crate) fn test_sql(test_path_string: &str) -> anyhow::Result<()> {
 
         // Ensure sql_context can be serialized and deserialized
         let sql_context = sql::catalog::Catalog::from_metadata(&gds.metadata);
-        let sql_context_str = serde_json::to_string(&sql_context)?;
-        let sql_context_parsed = serde_json::from_str(&sql_context_str)?;
-        assert_eq!(sql_context, sql_context_parsed);
+        let sql_context_str = serde_json::to_string(&sql_context.clone().to_serializable())?;
+        let sql_context_parsed: CatalogSerializable = serde_json::from_str(&sql_context_str)?;
+        assert_eq!(
+            sql_context,
+            sql_context_parsed.from_serializable(&gds.metadata)
+        );
 
         let request = if let Ok(content) = read_to_string(&request_path) {
             SqlRequest::new(content)
@@ -613,7 +619,6 @@ pub(crate) fn test_sql(test_path_string: &str) -> anyhow::Result<()> {
         let http_context = Arc::new(test_ctx.http_context);
 
         // Execute the test
-
         snapshot_sql(
             &catalog,
             &gds.metadata,
@@ -646,7 +651,7 @@ async fn snapshot_sql(
     catalog: &Arc<sql::catalog::Catalog>,
     metadata: &Arc<metadata_resolve::Metadata>,
     session: &Arc<hasura_authn_core::Session>,
-    http_context: &Arc<execute::HttpContext>,
+    http_context: &Arc<HttpContext>,
     mint: &mut Mint,
     response_path: String,
     request_headers: &Arc<reqwest::header::HeaderMap>,
@@ -709,7 +714,7 @@ fn compare_graphql_responses(
 
 /// Execute a GraphQL query over a dummy WebSocket connection.
 async fn run_query_graphql_ws(
-    expose_internal_errors: execute::ExposeInternalErrors,
+    expose_internal_errors: ExposeInternalErrors,
     http_context: &HttpContext,
     schema: &Schema<GDS>,
     session: &Session,
@@ -878,30 +883,53 @@ pub async fn open_dd_pipeline_test(
                 );
 
                 // create a query execution plan for a single node with the new pipeline
-                let (query_execution_plan, _) = plan::plan_query_request(
+                let plan_result = plan::plan_query_request(
                     &query_ir,
                     metadata,
                     &Arc::new(session.clone()),
-                    http_context,
                     request_headers,
-                )
-                .await
-                .unwrap();
+                );
 
-                match query_execution_plan {
-                    plan::SingleNodeExecutionPlan::Mutation(_) => {
-                        todo!("Executing mutations in OpenDD IR pipeline tests not implemented yet")
-                    }
-                    plan::SingleNodeExecutionPlan::Query(plan) => {
-                        // run the pipeline using functions from GraphQL frontend
-                        let rowsets =
-                            graphql_frontend::resolve_ndc_query_execution(http_context, plan)
+                match plan_result {
+                    Ok(execution_plan) => match execution_plan {
+                        plan::ExecutionPlan::Mutation(_) => {
+                            todo!("Executing mutations in OpenDD IR pipeline tests not implemented yet")
+                        }
+                        plan::ExecutionPlan::Queries(queries) => {
+                            // this should probably happen in `execute`
+                            let mut results = IndexMap::new();
+
+                            for (alias, query_execution) in queries {
+                                let ndc_query_execution = NDCQueryExecution {
+                                    execution_span_attribute:
+                                        "Engine GraphQL OpenDD pipeline tests",
+                                    execution_tree: query_execution.execution_tree,
+                                    field_span_attribute: "Engine GraphQL OpenDD pipeline tests"
+                                        .into(),
+                                    process_response_as: ProcessResponseAs::Array {
+                                        is_nullable: false,
+                                    },
+                                };
+                                let rowsets = execute::resolve_ndc_query_execution(
+                                    http_context,
+                                    ndc_query_execution,
+                                    None,
+                                )
                                 .await
                                 .map_err(|e| e.to_string());
+                                results.insert(alias, rowsets);
+                            }
 
-                        insta::assert_json_snapshot!(
-                            format!("rowsets_{test_path_string}_{}", session.role),
-                            rowsets
+                            insta::assert_json_snapshot!(
+                                format!("rowsets_{test_path_string}_{}", session.role),
+                                results
+                            );
+                        }
+                    },
+                    Err(err) => {
+                        insta::assert_debug_snapshot!(
+                            format!("{test_path_string}_{}_error", session.role),
+                            err
                         );
                     }
                 }

@@ -41,6 +41,27 @@ pub struct Flags {
         rename = "disallow_array_field_compared_with_scalar_boolean_type"
     )]
     pub disallow_array_field_compared_with_scalar_boolean_type: bool,
+
+    #[opendd(default, rename = "allow_boolean_expression_fields_without_graphql")]
+    pub allow_boolean_expression_fields_without_graphql: bool,
+
+    #[opendd(default, rename = "require_unique_model_graphql_names")]
+    pub require_unique_model_graphql_names: bool,
+
+    #[opendd(default, rename = "disallow_object_boolean_expression_type")]
+    pub disallow_object_boolean_expression_type: bool,
+
+    #[opendd(default, rename = "logical_operators_in_scalar_boolean_expressions")]
+    pub logical_operators_in_scalar_boolean_expressions: bool,
+
+    #[opendd(default, rename = "disallow_duplicate_names_in_boolean_expressions")]
+    pub disallow_duplicate_names_in_boolean_expressions: bool,
+
+    #[opendd(
+        default,
+        rename = "disallow_multiple_input_object_fields_in_graphql_order_by"
+    )]
+    pub disallow_multiple_input_object_fields_in_graphql_order_by: bool,
 }
 
 impl Flags {
@@ -57,6 +78,12 @@ impl Flags {
             allow_partial_supergraph: false,
             json_session_variables: false,
             disallow_array_field_compared_with_scalar_boolean_type: false,
+            allow_boolean_expression_fields_without_graphql: false,
+            require_unique_model_graphql_names: false,
+            disallow_object_boolean_expression_type: false,
+            logical_operators_in_scalar_boolean_expressions: false,
+            disallow_duplicate_names_in_boolean_expressions: false,
+            disallow_multiple_input_object_fields_in_graphql_order_by: false,
         }
     }
 

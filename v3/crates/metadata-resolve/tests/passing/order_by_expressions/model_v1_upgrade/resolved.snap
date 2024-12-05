@@ -93,15 +93,6 @@ input_file: crates/metadata-resolve/tests/passing/order_by_expressions/model_v1_
                             },
                         },
                     },
-                    scalar_representations: {
-                        FieldName(
-                            Identifier(
-                                "test",
-                            ),
-                        ): {
-                            String,
-                        },
-                    },
                 },
             },
         },
@@ -239,8 +230,25 @@ input_file: crates/metadata-resolve/tests/passing/order_by_expressions/model_v1_
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: true,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_object_aggregations: false,
                                     supports_nested_array_filtering: false,
+                                    supports_aggregates: Some(
+                                        DataConnectorAggregateCapabilities {
+                                            supports_nested_object_aggregations: false,
+                                        },
+                                    ),
+                                    supports_query_variables: true,
+                                    supports_relationships: Some(
+                                        DataConnectorRelationshipCapabilities {
+                                            supports_relation_comparisons: true,
+                                            supports_nested_relationships: Some(
+                                                DataConnectorNestedRelationshipCapabilities {
+                                                    supports_nested_array_selection: true,
+                                                    supports_nested_in_filtering: false,
+                                                    supports_nested_in_ordering: false,
+                                                },
+                                            ),
+                                        },
+                                    ),
                                 },
                             },
                             collection: CollectionName(
@@ -526,12 +534,13 @@ input_file: crates/metadata-resolve/tests/passing/order_by_expressions/model_v1_
             enable_apollo_federation_fields: false,
             bypass_relation_comparisons_ndc_capability: false,
             propagate_boolean_expression_deprecation_status: false,
+            multiple_order_by_input_object_fields: Allow,
         },
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
         },
-        roles: [],
+        roles: {},
     },
     [],
 )

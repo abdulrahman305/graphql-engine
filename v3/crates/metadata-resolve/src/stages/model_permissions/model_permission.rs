@@ -37,7 +37,9 @@ fn resolve_model_predicate_with_model(
     model_predicate: &open_dds::permissions::ModelPredicate,
     model: &models::Model,
     subgraph: &SubgraphName,
-    boolean_expression_graphql: Option<&boolean_expressions::BooleanExpressionGraphqlConfig>,
+    boolean_expression_fields: Option<
+        &boolean_expressions::ResolvedObjectBooleanExpressionTypeFields,
+    >,
     data_connectors: &data_connectors::DataConnectors,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
@@ -107,7 +109,7 @@ fn resolve_model_predicate_with_model(
         model_predicate,
         &model.data_type,
         object_type_representation,
-        boolean_expression_graphql,
+        boolean_expression_fields,
         field_mappings,
         &data_connector_link,
         subgraph,
@@ -142,7 +144,9 @@ pub fn resolve_model_select_permissions(
     model: &models::Model,
     subgraph: &SubgraphName,
     model_permissions: &ModelPermissionsV1,
-    boolean_expression_graphql: Option<&boolean_expressions::BooleanExpressionGraphqlConfig>,
+    boolean_expression_fields: Option<
+        &boolean_expressions::ResolvedObjectBooleanExpressionTypeFields,
+    >,
     data_connectors: &data_connectors::DataConnectors,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
@@ -170,7 +174,7 @@ pub fn resolve_model_select_permissions(
                         model_predicate,
                         model,
                         subgraph,
-                        boolean_expression_graphql,
+                        boolean_expression_fields,
                         data_connectors,
                         data_connector_scalars,
                         &model.type_fields,
@@ -269,16 +273,14 @@ pub fn resolve_model_select_permissions(
     Ok(validated_permissions)
 }
 
-/// a simplified version of resolve_model_predicate that only requires a type rather than an entire
-/// Model for context. It skips relationships for simplicity, this should be simple enough to
-/// re-add in future. Because this function takes the `data_connector_field_mappings` as an input,
-/// many of the errors thrown in `resolve_model_predicate` are pushed out.
 pub(crate) fn resolve_model_predicate_with_type(
     flags: &open_dds::flags::Flags,
     model_predicate: &open_dds::permissions::ModelPredicate,
     type_name: &Qualified<CustomTypeName>,
     object_type_representation: &object_relationships::ObjectTypeWithRelationships,
-    boolean_expression_graphql: Option<&boolean_expressions::BooleanExpressionGraphqlConfig>,
+    boolean_expression_fields: Option<
+        &boolean_expressions::ResolvedObjectBooleanExpressionTypeFields,
+    >,
     data_connector_field_mappings: &BTreeMap<FieldName, object_types::FieldMapping>,
     data_connector_link: &data_connectors::DataConnectorLink,
     subgraph: &SubgraphName,
@@ -324,10 +326,10 @@ pub(crate) fn resolve_model_predicate_with_type(
                     })?;
 
             // for newer boolean expressions we already have the information we need
-            let (resolved_operator, argument_type) = match boolean_expression_graphql {
-                Some(graphql) => {
+            let (resolved_operator, argument_type) = match boolean_expression_fields {
+                Some(fields) => {
                     // lookup this field
-                    let comparable_field = graphql.scalar_fields.get(field).ok_or_else(|| {
+                    let comparable_field = fields.scalar_fields.get(field).ok_or_else(|| {
                         Error::from(TypePredicateError::UnknownFieldInTypePredicate {
                             field_name: field.clone(),
                             type_name: type_name.clone(),
@@ -346,9 +348,7 @@ pub(crate) fn resolve_model_predicate_with_type(
 
                     // lookup ndc operator name in mappings, falling back to using OperatorName
                     // when an override has not been specified
-                    let ndc_operator_name = operator_mappings
-                        .get(operator)
-                        .unwrap_or_else(|| DataConnectorOperatorName::ref_cast(operator.inner()));
+                    let ndc_operator_name = operator_mappings.get(operator);
 
                     // lookup the argument type for this comparison operator
                     let argument_type =
@@ -604,7 +604,7 @@ pub(crate) fn resolve_model_predicate_with_type(
                                     &remove_object_relationships(object_types),
                                     scalar_types,
                                     &mut source_type_mappings,
-                                    &None,
+                                    None,
                                 )
                                 .map_err(|error| {
                                     Error::from(TypePredicateError::TypeMappingCollectionError {
@@ -637,14 +637,13 @@ pub(crate) fn resolve_model_predicate_with_type(
                             // // if a boolean expression type was provided, we can find the
                             // // target boolean expression type by following the appropriate
                             // // `comparable_relationship` field
-                            let target_boolean_expression_graphql = match boolean_expression_graphql
-                            {
-                                Some(graphql) => lookup_relationship_in_boolean_expression(
-                                    graphql,
+                            let target_boolean_expression_fields = match boolean_expression_fields {
+                                Some(fields) => lookup_relationship_in_boolean_expression(
+                                    fields,
                                     type_name,
                                     &relationship.relationship_name,
-                                    target_model,
                                     boolean_expression_types,
+                                    flags,
                                 ),
                                 None => Ok(None),
                             }?;
@@ -654,7 +653,7 @@ pub(crate) fn resolve_model_predicate_with_type(
                                 nested_predicate,
                                 &target_model.inner.data_type,
                                 target_object_type,
-                                target_boolean_expression_graphql.as_ref(),
+                                target_boolean_expression_fields.as_ref(),
                                 target_data_connector_field_mappings,
                                 data_connector_link,
                                 subgraph,
@@ -696,7 +695,7 @@ pub(crate) fn resolve_model_predicate_with_type(
                 predicate,
                 type_name,
                 object_type_representation,
-                boolean_expression_graphql,
+                boolean_expression_fields,
                 data_connector_field_mappings,
                 data_connector_link,
                 subgraph,
@@ -717,7 +716,7 @@ pub(crate) fn resolve_model_predicate_with_type(
                     predicate,
                     type_name,
                     object_type_representation,
-                    boolean_expression_graphql,
+                    boolean_expression_fields,
                     data_connector_field_mappings,
                     data_connector_link,
                     subgraph,
@@ -739,7 +738,7 @@ pub(crate) fn resolve_model_predicate_with_type(
                     predicate,
                     type_name,
                     object_type_representation,
-                    boolean_expression_graphql,
+                    boolean_expression_fields,
                     data_connector_field_mappings,
                     data_connector_link,
                     subgraph,
@@ -759,15 +758,15 @@ pub(crate) fn resolve_model_predicate_with_type(
 // if we use a relationship in a predicate, we should be able to find it in our
 // `BooleanExpressionType` and use it
 fn lookup_relationship_in_boolean_expression(
-    graphql: &boolean_expressions::BooleanExpressionGraphqlConfig,
+    fields: &boolean_expressions::ResolvedObjectBooleanExpressionTypeFields,
     type_name: &Qualified<CustomTypeName>,
     relationship_name: &open_dds::relationships::RelationshipName,
-    target_model: &models_graphql::ModelWithGraphql,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
-) -> Result<Option<boolean_expressions::BooleanExpressionGraphqlConfig>, Error> {
+    flags: &open_dds::flags::Flags,
+) -> Result<Option<boolean_expressions::ResolvedObjectBooleanExpressionTypeFields>, Error> {
     // lookup relationship in boolean expression type's
     // comparable relationships
-    let comparable_relationship = graphql
+    let comparable_relationship = fields
         .relationship_fields
         .get(relationship_name.as_str())
         .ok_or_else(|| {
@@ -778,29 +777,16 @@ fn lookup_relationship_in_boolean_expression(
         })?;
 
     // lookup the boolean expression type for this comparable
-    // relationship
-    // if it is defined, we fetch it from metadata
-    match &comparable_relationship.boolean_expression_type {
-        Some(target_bool_exp_name) => boolean_expression_types
-            .objects
-            .get(target_bool_exp_name)
-            .map(|bool_exp| bool_exp.graphql.clone())
-            .ok_or_else(|| {
-                Error::from(TypePredicateError::BooleanExpressionNotFound {
-                    boolean_expression_name: target_bool_exp_name.clone(),
-                })
-            }),
-        None => {
-            // if it is not defined we fall back to the one defined on the model
-            // we ignore `ObjectBooleanExpressionType` as we should not be using a mixture
-            match &target_model.filter_expression_type {
-                Some(models_graphql::ModelExpressionType::BooleanExpressionType(bool_exp)) => {
-                    Ok(bool_exp.graphql.clone())
-                }
-                _ => Ok(None),
-            }
-        }
-    }
+    // relationship and fetch it from metadata
+    boolean_expression_types
+        .objects
+        .get(&comparable_relationship.boolean_expression_type)
+        .map(|bool_exp| bool_exp.get_fields(flags).cloned())
+        .ok_or_else(|| {
+            Error::from(TypePredicateError::BooleanExpressionNotFound {
+                boolean_expression_name: comparable_relationship.boolean_expression_type.clone(),
+            })
+        })
 }
 
 // this is only used for the older `ObjectBooleanExpressionType` where we
@@ -839,7 +825,11 @@ fn resolve_binary_operator_for_type<'a>(
         })?;
 
     match comparison_operator_definition {
-        ndc_models::ComparisonOperatorDefinition::Equal => {
+        ndc_models::ComparisonOperatorDefinition::Equal
+        | ndc_models::ComparisonOperatorDefinition::LessThan
+        | ndc_models::ComparisonOperatorDefinition::LessThanOrEqual
+        | ndc_models::ComparisonOperatorDefinition::GreaterThan
+        | ndc_models::ComparisonOperatorDefinition::GreaterThanOrEqual => {
             Ok((ndc_operator_name, field_definition.field_type.clone()))
         }
         ndc_models::ComparisonOperatorDefinition::In => Ok((
