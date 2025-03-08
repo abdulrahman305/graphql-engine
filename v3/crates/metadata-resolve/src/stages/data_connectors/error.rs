@@ -13,8 +13,6 @@ pub struct NamedDataConnectorError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum DataConnectorError {
-    #[error("The data connector uses ndc-spec v0.2.* and is not yet supported")]
-    NdcV02DataConnectorNotSupported,
     #[error("the data connector is defined more than once")]
     DuplicateDataConnectorDefinition,
     #[error("The url for the data connector is invalid: {error}")]
@@ -47,7 +45,7 @@ pub struct NamedDataConnectorIssue {
 }
 
 impl ShouldBeAnError for NamedDataConnectorIssue {
-    fn should_be_an_error(&self, flags: &flags::Flags) -> bool {
+    fn should_be_an_error(&self, flags: &flags::OpenDdFlags) -> bool {
         self.issue.should_be_an_error(flags)
     }
 }
@@ -63,9 +61,11 @@ pub enum DataConnectorIssue {
     },
 }
 impl ShouldBeAnError for DataConnectorIssue {
-    fn should_be_an_error(&self, flags: &flags::Flags) -> bool {
+    fn should_be_an_error(&self, flags: &flags::OpenDdFlags) -> bool {
         match self {
-            DataConnectorIssue::InvalidNdcV01Version { .. } => flags.require_valid_ndc_v01_version,
+            DataConnectorIssue::InvalidNdcV01Version { .. } => {
+                flags.contains(flags::Flag::RequireValidNdcV01Version)
+            }
         }
     }
 }

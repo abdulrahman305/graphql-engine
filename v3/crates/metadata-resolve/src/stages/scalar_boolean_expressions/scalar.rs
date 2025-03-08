@@ -5,7 +5,7 @@ use super::types::{
     IsNullOperator, IsNullOperatorGraphqlConfig, LogicalOperators, LogicalOperatorsGraphqlConfig,
     ResolvedScalarBooleanExpressionType,
 };
-use crate::helpers::types::{mk_name, store_new_graphql_type, unwrap_qualified_type_name};
+use crate::helpers::types::{mk_name, unwrap_qualified_type_name};
 use crate::stages::{data_connectors, graphql_config, object_types, scalar_types};
 use crate::types::subgraph::{mk_qualified_type_name, mk_qualified_type_reference};
 use crate::{Qualified, QualifiedTypeName, QualifiedTypeReference};
@@ -15,7 +15,7 @@ use open_dds::{
     boolean_expression::{BooleanExpressionScalarOperand, BooleanExpressionTypeV1},
     types::CustomTypeName,
 };
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 /// Resolves a given scalar boolean expression type
 pub(crate) fn resolve_scalar_boolean_expression_type(
@@ -27,8 +27,8 @@ pub(crate) fn resolve_scalar_boolean_expression_type(
     object_types: &object_types::ObjectTypesWithTypeMappings,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
     graphql_config: &graphql_config::GraphqlConfig,
-    flags: &open_dds::flags::Flags,
-    graphql_types: &mut BTreeSet<ast::TypeName>,
+    flags: &open_dds::flags::OpenDdFlags,
+    graphql_types: &mut graphql_config::GraphqlTypeNames,
     issues: &mut Vec<ScalarBooleanExpressionTypeIssue>,
 ) -> Result<ResolvedScalarBooleanExpressionType, ScalarBooleanExpressionTypeError> {
     let mut data_connector_operator_mappings = BTreeMap::new();
@@ -123,26 +123,28 @@ pub(crate) fn resolve_scalar_boolean_expression_type(
         .map(|name| mk_name(name.as_str()).map(ast::TypeName))
         .transpose()?;
 
-    store_new_graphql_type(graphql_types, graphql_type.as_ref())?;
+    graphql_types.store(graphql_type.as_ref())?;
 
-    let logical_operators = if flags.logical_operators_in_scalar_boolean_expressions {
-        resolve_logical_operators(boolean_expression, graphql_config, issues, || {
-            ScalarBooleanExpressionTypeIssue::MissingLogicalOperatorNamesInGraphqlConfig {
-                type_name: boolean_expression_type_name.clone(),
-            }
-        })
-    } else {
-        issues.push(
-            ScalarBooleanExpressionTypeIssue::LogicalOperatorsUnavailable {
-                type_name: boolean_expression_type_name.clone(),
-            },
-        );
+    let logical_operators =
+        if flags.contains(open_dds::flags::Flag::LogicalOperatorsInScalarBooleanExpressions) {
+            resolve_logical_operators(boolean_expression, graphql_config, issues, || {
+                ScalarBooleanExpressionTypeIssue::MissingLogicalOperatorNamesInGraphqlConfig {
+                    type_name: boolean_expression_type_name.clone(),
+                }
+            })
+        } else {
+            issues.push(
+                ScalarBooleanExpressionTypeIssue::LogicalOperatorsUnavailable {
+                    type_name: boolean_expression_type_name.clone(),
+                },
+            );
 
-        LogicalOperators::Exclude
-    };
+            LogicalOperators::Exclude
+        };
 
     let is_null_operator = resolve_is_null_operator(
-        boolean_expression,
+        &boolean_expression.is_null,
+        boolean_expression.graphql.as_ref(),
         boolean_expression_type_name,
         graphql_config,
         issues,
@@ -157,7 +159,6 @@ pub(crate) fn resolve_scalar_boolean_expression_type(
     );
 
     Ok(ResolvedScalarBooleanExpressionType {
-        name: boolean_expression_type_name.clone(),
         comparison_operators: resolved_comparison_operators,
         operand_type: mk_qualified_type_name(&scalar_boolean_expression_operand.r#type, subgraph),
         data_connector_operator_mappings,
@@ -168,12 +169,15 @@ pub(crate) fn resolve_scalar_boolean_expression_type(
 }
 
 fn resolve_is_null_operator(
-    boolean_expression: &open_dds::boolean_expression::BooleanExpressionTypeV1,
+    is_null: &open_dds::boolean_expression::BooleanExpressionIsNull,
+    boolean_expression_graphql: Option<
+        &open_dds::boolean_expression::BooleanExpressionTypeGraphQlConfiguration,
+    >,
     boolean_expression_type_name: &Qualified<CustomTypeName>,
     graphql_config: &graphql_config::GraphqlConfig,
     issues: &mut Vec<ScalarBooleanExpressionTypeIssue>,
 ) -> IsNullOperator {
-    if boolean_expression.is_null.enable {
+    if is_null.enable {
         let graphql =
             graphql_config
                 .query
@@ -185,7 +189,7 @@ fn resolve_is_null_operator(
 
         // If they've enabled graphql for this boolean expression, but the logical operator names
         // have been omitted from the GraphqlConfig, raise an issue because this is probably a mistake
-        if boolean_expression.graphql.is_some() && graphql.is_none() {
+        if boolean_expression_graphql.is_some() && graphql.is_none() {
             issues.push(
                 ScalarBooleanExpressionTypeIssue::MissingIsNullOperatorNameInGraphqlConfig {
                     type_name: boolean_expression_type_name.clone(),

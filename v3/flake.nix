@@ -53,6 +53,9 @@
           "engine" = {
             ExposedPorts = { "3000/tcp" = { }; };
           };
+          "ddn-engine-local-dev" = {
+            ExposedPorts = { "3000/tcp" = { }; };
+          };
           "custom-connector" = {
             ExposedPorts = { "8102/tcp" = { }; };
           };
@@ -64,6 +67,7 @@
         # for adding extra packages inside the Docker container
         dockerExtraContents = {
           "engine" = [ pkgs.cacert ]; # so local dev can use SSH
+          "ddn-engine-local-dev" = [ pkgs.cacert ]; # so local dev can use SSH
           "multitenant-engine" = [ pkgs.cacert pkgs.bash pkgs.coreutils ]; # to run sleep in a healthcheck, we should remove this soon
           "artifact-server" = [ pkgs.curl pkgs.bash ]; # to run healthcheck, we should remove this soon
         };
@@ -140,11 +144,19 @@
             default = self.packages.${localSystem}.${defaultBinary};
 
             # a handy script to publish Docker images
-            publish-docker-image = pkgs.writeShellApplication {
-              name = "publish-docker-image";
+            publish-multi-arch-docker-image = pkgs.writeShellApplication {
+              name = "publish-multi-arch-docker-image";
               runtimeInputs = with pkgs; [ coreutils skopeo ];
-              text = builtins.readFile ./.github/scripts/deploy.sh;
+              text = builtins.readFile ./.github/scripts/deploy-multi-arch.sh;
             };
+
+            # a handy script to publish Docker images
+            publish-single-arch-docker-image = pkgs.writeShellApplication {
+              name = "publish-single-arch-docker-image";
+              runtimeInputs = with pkgs; [ coreutils skopeo ];
+              text = builtins.readFile ./.github/scripts/deploy-single-arch.sh;
+            };
+
           };
 
         # build an app per binary

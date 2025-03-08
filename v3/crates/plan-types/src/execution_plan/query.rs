@@ -1,7 +1,10 @@
 use super::{aggregates, arguments, field, filter, relationships};
 use crate::NdcFieldAlias;
 use crate::OrderByElement;
-use crate::{ExecutionTree, NdcRelationshipName, RelationshipColumnMapping, VariableName};
+use crate::{
+    AggregateFieldSelection, NdcRelationshipName, QueryExecutionTree, RelationshipColumnMapping,
+    VariableName,
+};
 use indexmap::IndexMap;
 use metadata_resolve::Qualified;
 use open_dds::{
@@ -33,7 +36,7 @@ pub struct QueryExecutionPlan {
 pub struct PredicateQueryTree {
     pub ndc_column_mapping: Vec<RelationshipColumnMapping>,
     pub target_model_name: Qualified<ModelName>,
-    pub query: ExecutionTree,
+    pub query: QueryExecutionTree,
     pub children: PredicateQueryTrees,
 }
 
@@ -102,9 +105,16 @@ pub struct QueryNodeNew {
     pub aggregates: Option<aggregates::AggregateSelectionSet>,
     /// Fields of the query
     pub fields: Option<FieldsSelection>,
+
+    pub group_by: Option<aggregates::Grouping>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FieldsSelection {
     pub fields: IndexMap<NdcFieldAlias, field::Field>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AggregateFieldsSelection {
+    pub aggregate_fields: IndexMap<NdcFieldAlias, AggregateFieldSelection>,
 }

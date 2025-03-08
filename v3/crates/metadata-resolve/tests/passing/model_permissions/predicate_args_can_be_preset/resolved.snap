@@ -150,13 +150,49 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -179,13 +215,49 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -208,13 +280,49 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -237,7 +345,7 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                         "Albums",
                     ),
                 ),
-            }: ModelWithArgumentPresets {
+            }: ModelWithPermissions {
                 model: Model {
                     path: JSONPath(
                         [
@@ -275,6 +383,28 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                             ),
                         ),
                     },
+                    data_type_path: JSONPath(
+                        [
+                            Key(
+                                "subgraphs",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "objects",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "definition",
+                            ),
+                            Key(
+                                "objectType",
+                            ),
+                        ],
+                    ),
                     type_fields: {
                         FieldName(
                             Identifier(
@@ -420,10 +550,14 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: true,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: false,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: None,
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: true,
@@ -480,13 +614,49 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -509,13 +679,49 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -538,13 +744,49 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -577,20 +819,6 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                     ),
                     global_id_source: None,
                     apollo_federation_key_source: None,
-                    order_by_expression: Some(
-                        Qualified {
-                            subgraph: SubgraphName(
-                                "subgraphs",
-                            ),
-                            name: FromModel(
-                                ModelName(
-                                    Identifier(
-                                        "Albums",
-                                    ),
-                                ),
-                            ),
-                        },
-                    ),
                     aggregate_expression: None,
                     raw: ModelRaw {
                         filter_expression_type: Some(
@@ -625,81 +853,40 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                             },
                         ),
                         description: None,
-                    },
-                },
-                argument_presets: {
-                    Role(
-                        "user",
-                    ): ArgumentPresets {
-                        argument_presets: {
-                            ArgumentNameAndPath {
-                                ndc_argument_name: Some(
-                                    DataConnectorArgumentName(
-                                        "special_where",
-                                    ),
-                                ),
-                                field_path: [],
-                            }: (
-                                QualifiedTypeReference {
-                                    underlying_type: Named(
-                                        Custom(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "subgraphs",
-                                                ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "Album_bool_exp",
-                                                    ),
-                                                ),
-                                            },
-                                        ),
-                                    ),
-                                    nullable: false,
-                                },
-                                BooleanExpression(
-                                    BinaryFieldComparison {
-                                        field: FieldName(
-                                            Identifier(
-                                                "AlbumId",
-                                            ),
-                                        ),
-                                        field_parent_type: Qualified {
-                                            subgraph: SubgraphName(
-                                                "subgraphs",
-                                            ),
-                                            name: CustomTypeName(
-                                                Identifier(
-                                                    "Album_bool_exp",
-                                                ),
-                                            ),
-                                        },
-                                        ndc_column: DataConnectorColumnName(
+                        order_by: ModelV1 {
+                            graphql_type_name: None,
+                            orderable_fields: [
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
                                             "AlbumId",
                                         ),
-                                        operator: DataConnectorOperatorName(
-                                            "eq",
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "ArtistId",
                                         ),
-                                        argument_type: QualifiedTypeReference {
-                                            underlying_type: Named(
-                                                Inbuilt(
-                                                    Int,
-                                                ),
-                                            ),
-                                            nullable: false,
-                                        },
-                                        value: SessionVariable(
-                                            SessionVariableReference {
-                                                name: SessionVariableName(
-                                                    "x-hasura-album-id",
-                                                ),
-                                                passed_as_json: true,
-                                            },
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "Title",
                                         ),
-                                        deprecated: None,
-                                    },
-                                ),
-                            ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                            ],
                         },
                     },
                 },
@@ -744,7 +931,7 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                             ),
                                             name: CustomTypeName(
                                                 Identifier(
-                                                    "Album_bool_exp",
+                                                    "Album",
                                                 ),
                                             ),
                                         },
@@ -768,6 +955,7 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                                     "x-hasura-album-id",
                                                 ),
                                                 passed_as_json: true,
+                                                disallow_unknown_fields: false,
                                             },
                                         ),
                                         deprecated: None,
@@ -779,266 +967,268 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                     },
                 },
                 filter_expression_type: Some(
-                    BooleanExpressionType(
-                        ResolvedObjectBooleanExpressionType {
-                            name: Qualified {
-                                subgraph: SubgraphName(
-                                    "subgraphs",
+                    ResolvedObjectBooleanExpressionType {
+                        name: Qualified {
+                            subgraph: SubgraphName(
+                                "subgraphs",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "Album_bool_exp",
                                 ),
-                                name: CustomTypeName(
-                                    Identifier(
+                            ),
+                        },
+                        object_type: Qualified {
+                            subgraph: SubgraphName(
+                                "subgraphs",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "Album",
+                                ),
+                            ),
+                        },
+                        graphql: Some(
+                            BooleanExpressionGraphqlConfig {
+                                type_name: TypeName(
+                                    Name(
                                         "Album_bool_exp",
                                     ),
                                 ),
-                            },
-                            object_type: Qualified {
-                                subgraph: SubgraphName(
-                                    "subgraphs",
-                                ),
-                                name: CustomTypeName(
-                                    Identifier(
-                                        "Album",
-                                    ),
-                                ),
-                            },
-                            graphql: Some(
-                                BooleanExpressionGraphqlConfig {
-                                    type_name: TypeName(
-                                        Name(
-                                            "Album_bool_exp",
-                                        ),
-                                    ),
-                                    object_fields: {},
-                                    scalar_fields: {
-                                        FieldName(
-                                            Identifier(
-                                                "AlbumId",
-                                            ),
-                                        ): ScalarBooleanExpressionGraphqlConfig {
-                                            type_name: TypeName(
-                                                Name(
-                                                    "Int_bool_exp",
-                                                ),
-                                            ),
-                                            is_null_operator_name: Some(
-                                                Name(
-                                                    "_is_null",
-                                                ),
-                                            ),
-                                        },
-                                        FieldName(
-                                            Identifier(
-                                                "ArtistId",
-                                            ),
-                                        ): ScalarBooleanExpressionGraphqlConfig {
-                                            type_name: TypeName(
-                                                Name(
-                                                    "Int_bool_exp",
-                                                ),
-                                            ),
-                                            is_null_operator_name: Some(
-                                                Name(
-                                                    "_is_null",
-                                                ),
-                                            ),
-                                        },
-                                        FieldName(
-                                            Identifier(
-                                                "Title",
-                                            ),
-                                        ): ScalarBooleanExpressionGraphqlConfig {
-                                            type_name: TypeName(
-                                                Name(
-                                                    "String_bool_exp",
-                                                ),
-                                            ),
-                                            is_null_operator_name: Some(
-                                                Name(
-                                                    "_is_null",
-                                                ),
-                                            ),
-                                        },
-                                    },
-                                    field_config: BooleanExpressionGraphqlFieldConfig {
-                                        where_field_name: Name(
-                                            "where",
-                                        ),
-                                        logical_operators: LogicalOperatorsGraphqlConfig {
-                                            and_operator_name: Name(
-                                                "_and",
-                                            ),
-                                            or_operator_name: Name(
-                                                "_or",
-                                            ),
-                                            not_operator_name: Name(
-                                                "_not",
-                                            ),
-                                        },
-                                    },
-                                },
-                            ),
-                            fields: ResolvedObjectBooleanExpressionTypeFields {
                                 object_fields: {},
                                 scalar_fields: {
                                     FieldName(
                                         Identifier(
                                             "AlbumId",
                                         ),
-                                    ): ComparisonExpressionInfo {
-                                        object_type_name: Some(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "subgraphs",
-                                                ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "Int_bool_exp",
-                                                    ),
-                                                ),
-                                            },
-                                        ),
-                                        operators: {
-                                            OperatorName(
-                                                "_eq",
-                                            ): QualifiedTypeReference {
-                                                underlying_type: Named(
-                                                    Inbuilt(
-                                                        Int,
-                                                    ),
-                                                ),
-                                                nullable: false,
-                                            },
-                                        },
-                                        operator_mapping: {
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "subgraphs",
-                                                ),
-                                                name: DataConnectorName(
-                                                    Identifier(
-                                                        "myconnector",
-                                                    ),
-                                                ),
-                                            }: OperatorMapping(
-                                                {
-                                                    OperatorName(
-                                                        "_eq",
-                                                    ): DataConnectorOperatorName(
-                                                        "eq",
-                                                    ),
-                                                },
+                                    ): ScalarBooleanExpressionGraphqlConfig {
+                                        type_name: TypeName(
+                                            Name(
+                                                "Int_bool_exp",
                                             ),
-                                        },
-                                        logical_operators: Exclude,
+                                        ),
+                                        is_null_operator_name: Some(
+                                            Name(
+                                                "_is_null",
+                                            ),
+                                        ),
                                     },
                                     FieldName(
                                         Identifier(
                                             "ArtistId",
                                         ),
-                                    ): ComparisonExpressionInfo {
-                                        object_type_name: Some(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "subgraphs",
-                                                ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "Int_bool_exp",
-                                                    ),
-                                                ),
-                                            },
-                                        ),
-                                        operators: {
-                                            OperatorName(
-                                                "_eq",
-                                            ): QualifiedTypeReference {
-                                                underlying_type: Named(
-                                                    Inbuilt(
-                                                        Int,
-                                                    ),
-                                                ),
-                                                nullable: false,
-                                            },
-                                        },
-                                        operator_mapping: {
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "subgraphs",
-                                                ),
-                                                name: DataConnectorName(
-                                                    Identifier(
-                                                        "myconnector",
-                                                    ),
-                                                ),
-                                            }: OperatorMapping(
-                                                {
-                                                    OperatorName(
-                                                        "_eq",
-                                                    ): DataConnectorOperatorName(
-                                                        "eq",
-                                                    ),
-                                                },
+                                    ): ScalarBooleanExpressionGraphqlConfig {
+                                        type_name: TypeName(
+                                            Name(
+                                                "Int_bool_exp",
                                             ),
-                                        },
-                                        logical_operators: Exclude,
+                                        ),
+                                        is_null_operator_name: Some(
+                                            Name(
+                                                "_is_null",
+                                            ),
+                                        ),
                                     },
                                     FieldName(
                                         Identifier(
                                             "Title",
                                         ),
-                                    ): ComparisonExpressionInfo {
-                                        object_type_name: Some(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "subgraphs",
+                                    ): ScalarBooleanExpressionGraphqlConfig {
+                                        type_name: TypeName(
+                                            Name(
+                                                "String_bool_exp",
+                                            ),
+                                        ),
+                                        is_null_operator_name: Some(
+                                            Name(
+                                                "_is_null",
+                                            ),
+                                        ),
+                                    },
+                                },
+                                field_config: BooleanExpressionGraphqlFieldConfig {
+                                    where_field_name: Name(
+                                        "where",
+                                    ),
+                                    logical_operators: LogicalOperatorsGraphqlConfig {
+                                        and_operator_name: Name(
+                                            "_and",
+                                        ),
+                                        or_operator_name: Name(
+                                            "_or",
+                                        ),
+                                        not_operator_name: Name(
+                                            "_not",
+                                        ),
+                                    },
+                                },
+                            },
+                        ),
+                        fields: ResolvedObjectBooleanExpressionTypeFields {
+                            object_fields: {},
+                            scalar_fields: {
+                                FieldName(
+                                    Identifier(
+                                        "AlbumId",
+                                    ),
+                                ): ComparisonExpressionInfo {
+                                    boolean_expression_type_name: FromBooleanExpressionType(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "subgraphs",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "Int_bool_exp",
                                                 ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "String_bool_exp",
-                                                    ),
+                                            ),
+                                        },
+                                    ),
+                                    operators: {
+                                        OperatorName(
+                                            "_eq",
+                                        ): QualifiedTypeReference {
+                                            underlying_type: Named(
+                                                Inbuilt(
+                                                    Int,
+                                                ),
+                                            ),
+                                            nullable: false,
+                                        },
+                                    },
+                                    operator_mapping: {
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "subgraphs",
+                                            ),
+                                            name: DataConnectorName(
+                                                Identifier(
+                                                    "myconnector",
+                                                ),
+                                            ),
+                                        }: OperatorMapping(
+                                            {
+                                                OperatorName(
+                                                    "_eq",
+                                                ): DataConnectorOperatorName(
+                                                    "eq",
                                                 ),
                                             },
                                         ),
-                                        operators: {
-                                            OperatorName(
-                                                "_eq",
-                                            ): QualifiedTypeReference {
-                                                underlying_type: Named(
-                                                    Inbuilt(
-                                                        String,
-                                                    ),
+                                    },
+                                    logical_operators: Exclude,
+                                    field_kind: Scalar,
+                                },
+                                FieldName(
+                                    Identifier(
+                                        "ArtistId",
+                                    ),
+                                ): ComparisonExpressionInfo {
+                                    boolean_expression_type_name: FromBooleanExpressionType(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "subgraphs",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "Int_bool_exp",
                                                 ),
-                                                nullable: false,
-                                            },
-                                        },
-                                        operator_mapping: {
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "subgraphs",
-                                                ),
-                                                name: DataConnectorName(
-                                                    Identifier(
-                                                        "myconnector",
-                                                    ),
-                                                ),
-                                            }: OperatorMapping(
-                                                {
-                                                    OperatorName(
-                                                        "_eq",
-                                                    ): DataConnectorOperatorName(
-                                                        "eq",
-                                                    ),
-                                                },
                                             ),
                                         },
-                                        logical_operators: Exclude,
+                                    ),
+                                    operators: {
+                                        OperatorName(
+                                            "_eq",
+                                        ): QualifiedTypeReference {
+                                            underlying_type: Named(
+                                                Inbuilt(
+                                                    Int,
+                                                ),
+                                            ),
+                                            nullable: false,
+                                        },
                                     },
+                                    operator_mapping: {
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "subgraphs",
+                                            ),
+                                            name: DataConnectorName(
+                                                Identifier(
+                                                    "myconnector",
+                                                ),
+                                            ),
+                                        }: OperatorMapping(
+                                            {
+                                                OperatorName(
+                                                    "_eq",
+                                                ): DataConnectorOperatorName(
+                                                    "eq",
+                                                ),
+                                            },
+                                        ),
+                                    },
+                                    logical_operators: Exclude,
+                                    field_kind: Scalar,
                                 },
-                                relationship_fields: {},
+                                FieldName(
+                                    Identifier(
+                                        "Title",
+                                    ),
+                                ): ComparisonExpressionInfo {
+                                    boolean_expression_type_name: FromBooleanExpressionType(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "subgraphs",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "String_bool_exp",
+                                                ),
+                                            ),
+                                        },
+                                    ),
+                                    operators: {
+                                        OperatorName(
+                                            "_eq",
+                                        ): QualifiedTypeReference {
+                                            underlying_type: Named(
+                                                Inbuilt(
+                                                    String,
+                                                ),
+                                            ),
+                                            nullable: false,
+                                        },
+                                    },
+                                    operator_mapping: {
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "subgraphs",
+                                            ),
+                                            name: DataConnectorName(
+                                                Identifier(
+                                                    "myconnector",
+                                                ),
+                                            ),
+                                        }: OperatorMapping(
+                                            {
+                                                OperatorName(
+                                                    "_eq",
+                                                ): DataConnectorOperatorName(
+                                                    "eq",
+                                                ),
+                                            },
+                                        ),
+                                    },
+                                    logical_operators: Exclude,
+                                    field_kind: Scalar,
+                                },
                             },
-                            include_logical_operators: Yes,
+                            relationship_fields: {},
                         },
-                    ),
+                        include_logical_operators: Yes,
+                        data_connector: None,
+                    },
                 ),
                 graphql_api: ModelGraphQlApi {
                     arguments_input_config: None,
@@ -1074,7 +1264,6 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
             },
         },
         commands: {},
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {
                 Qualified {
@@ -1191,7 +1380,7 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                     "AlbumId",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "subgraphs",
@@ -1236,13 +1425,14 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "ArtistId",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "subgraphs",
@@ -1287,13 +1477,14 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "Title",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "subgraphs",
@@ -1338,25 +1529,18 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                         },
                         relationship_fields: {},
                     },
                     include_logical_operators: Yes,
+                    data_connector: None,
                 },
             },
             scalars: {
-                Qualified {
-                    subgraph: SubgraphName(
-                        "subgraphs",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "Int_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "subgraphs",
                         ),
@@ -1366,6 +1550,7 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         Int,
                     ),
@@ -1425,17 +1610,8 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                         ),
                     },
                 },
-                Qualified {
-                    subgraph: SubgraphName(
-                        "subgraphs",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "String_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "subgraphs",
                         ),
@@ -1445,6 +1621,7 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         String,
                     ),
@@ -1621,7 +1798,7 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
                             },
                         ),
                     },
-                    orderable_relationships: ModelV1AllowAll,
+                    orderable_relationships: {},
                     graphql: None,
                     description: Some(
                         "OrderByExpression for Model Albums (in subgraph subgraphs)",
@@ -1666,6 +1843,7 @@ input_file: crates/metadata-resolve/tests/passing/model_permissions/predicate_ar
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {
             Role(

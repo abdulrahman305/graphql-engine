@@ -2,10 +2,27 @@ use crate::NdcFieldAlias;
 use indexmap::IndexMap;
 use nonempty::NonEmpty;
 use open_dds::{
-    aggregates::DataConnectorAggregationFunctionName, data_connector::DataConnectorColumnName,
+    aggregates::{DataConnectorAggregationFunctionName, DataConnectorExtractionFunctionName},
+    data_connector::DataConnectorColumnName,
 };
 use serde::Serialize;
 use std::hash::Hash;
+
+#[derive(Debug, Serialize, Default, PartialEq, Clone, Eq)]
+pub struct Grouping {
+    pub aggregates: IndexMap<NdcFieldAlias, AggregateFieldSelection>,
+    pub dimensions: IndexMap<NdcFieldAlias, Dimension>,
+    pub limit: Option<u32>,
+    pub offset: Option<u32>,
+}
+
+#[derive(Debug, Serialize, PartialEq, Clone, Eq, Hash)]
+pub enum Dimension {
+    Column {
+        column_path: NonEmpty<DataConnectorColumnName>,
+        extraction: Option<DataConnectorExtractionFunctionName>,
+    },
+}
 
 /// IR that represents the selected fields of an output type.
 #[derive(Debug, Serialize, Default, PartialEq, Clone, Eq)]

@@ -1,27 +1,26 @@
 mod filter;
 mod graphql;
+mod order_by;
 mod types;
 
 use crate::Warning;
 use indexmap::IndexMap;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
-use lang_graphql::ast::common as ast;
-use open_dds::{data_connector::DataConnectorName, models::ModelName, types::CustomTypeName};
+use open_dds::{commands::CommandName, models::ModelName, types::CustomTypeName};
 
 use crate::helpers::types::TrackGraphQLRootFields;
 use crate::stages::{
-    boolean_expressions, data_connector_scalar_types, graphql_config, models,
-    object_boolean_expressions, object_relationships,
+    boolean_expressions, commands, graphql_config, models, object_relationships, scalar_types,
 };
 use crate::types::error::Error;
 use crate::types::subgraph::Qualified;
 
 pub(crate) use types::ModelWithGraphql;
 pub use types::{
-    ModelExpressionType, ModelGraphQlApi, ModelGraphqlIssue, ModelOrderByExpression,
-    ModelsWithGraphqlOutput, SelectAggregateGraphQlDefinition, SelectManyGraphQlDefinition,
-    SelectUniqueGraphQlDefinition, SubscriptionGraphQlDefinition, UniqueIdentifierField,
+    ModelGraphQlApi, ModelGraphqlIssue, ModelOrderByExpression, ModelsWithGraphqlOutput,
+    SelectAggregateGraphQlDefinition, SelectManyGraphQlDefinition, SelectUniqueGraphQlDefinition,
+    SubscriptionGraphQlDefinition, UniqueIdentifierField,
 };
 
 use super::order_by_expressions;
@@ -29,32 +28,22 @@ use super::order_by_expressions;
 pub fn resolve(
     metadata_accessor: &open_dds::accessor::MetadataAccessor,
     models: &IndexMap<Qualified<ModelName>, models::Model>,
-    data_connector_scalars: &BTreeMap<
-        Qualified<DataConnectorName>,
-        data_connector_scalar_types::DataConnectorScalars,
-    >,
+    commands: &IndexMap<Qualified<CommandName>, commands::Command>,
     object_types: &BTreeMap<
         Qualified<CustomTypeName>,
         object_relationships::ObjectTypeWithRelationships,
     >,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
-    order_by_expressions: &order_by_expressions::OrderByExpressions,
-    existing_graphql_types: &BTreeSet<ast::TypeName>,
     track_root_fields: &mut TrackGraphQLRootFields,
     graphql_config: &graphql_config::GraphqlConfig,
-    flags: &open_dds::flags::Flags,
+    scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
+    order_by_expressions: &mut order_by_expressions::OrderByExpressions,
+    graphql_types: &mut graphql_config::GraphqlTypeNames,
 ) -> Result<ModelsWithGraphqlOutput, Error> {
     let mut output = ModelsWithGraphqlOutput {
         models_with_graphql: IndexMap::new(),
         issues: vec![],
     };
-
-    // Used to ensure we don't resolve the same type twice.
-    let mut existing_graphql_types = existing_graphql_types.clone();
 
     for (model_name, model) in models.clone() {
         let filter_expression_type = match &model.raw.filter_expression_type {
@@ -63,22 +52,21 @@ pub fn resolve(
                 // throw an error if this is not the case
                 let model_source = match model.source {
                     Some(ref source) => Ok(source),
-                    None => Err(Error::CannotUseFilterExpressionsWithoutSource {
+                    None => Err(Error::from(boolean_expressions::BooleanExpressionError::CannotUseFilterExpressionsWithoutSource {
                         model: model.name.clone(),
-                    }),
+                    })),
                 }?;
 
                 let (filter_expression_type, filter_issues) =
                     filter::resolve_filter_expression_type(
                         &model.name,
-                        model_source,
                         &model.data_type,
+                        model_source,
                         filter_expression_type_name,
-                        object_boolean_expression_types,
                         boolean_expression_types,
                         object_types,
                         models,
-                        flags,
+                        &metadata_accessor.flags,
                     )?;
 
                 output
@@ -90,18 +78,32 @@ pub fn resolve(
             None => None,
         };
 
+        // we don't need this outside graphql resolve for now, but I imagine
+        // we will need it in future
+        let order_by_expression = order_by::resolve_order_by_expression(
+            &model,
+            model.source.as_ref().map(AsRef::as_ref),
+            object_types,
+            models,
+            commands,
+            scalar_types,
+            order_by_expressions,
+            graphql_types,
+            &mut output.issues,
+        )?;
+
         let graphql_api = match model.raw.graphql {
             Some(ref model_graphql_definition) => graphql::resolve_model_graphql_api(
                 metadata_accessor,
                 model_graphql_definition,
                 &model,
-                &mut existing_graphql_types,
                 track_root_fields,
-                data_connector_scalars,
                 model.raw.description.as_ref(),
                 model.aggregate_expression.as_ref(),
+                order_by_expression.as_ref(),
                 order_by_expressions,
                 graphql_config,
+                graphql_types,
                 &mut output.issues,
             )?,
             None => types::ModelGraphQlApi::default(),

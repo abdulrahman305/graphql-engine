@@ -14,7 +14,7 @@ mod types;
 
 pub use helpers::http;
 pub use helpers::ndc_validation::NDCValidationError;
-pub use helpers::type_mappings::{get_field_mapping_of_field_name, RelationshipFieldMappingError};
+pub use helpers::to_fancy_error;
 pub use helpers::types::{
     get_type_representation, mk_name, object_type_exists, unwrap_custom_type_name,
     NdcColumnForComparison, TypeRepresentation,
@@ -23,17 +23,17 @@ pub use stages::aggregates::{
     AggregatableFieldInfo, AggregateExpression, AggregateExpressionGraphqlConfig, AggregateOperand,
     AggregationFunctionInfo, DataConnectorAggregationFunctionInfo,
 };
-pub use stages::argument_presets::{
-    ArgumentNameAndPath, ArgumentPresets, CommandWithArgumentPresets, ModelWithArgumentPresets,
-};
 pub use stages::boolean_expressions::{
-    BooleanExpressionComparableRelationship, BooleanExpressionError,
-    BooleanExpressionGraphqlConfig, BooleanExpressionGraphqlFieldConfig, ComparisonExpressionInfo,
-    IncludeLogicalOperators, ObjectBooleanExpressionGraphqlConfig, ObjectComparisonExpressionInfo,
-    ObjectComparisonKind, OperatorMapping, ResolvedObjectBooleanExpressionType,
-    ScalarBooleanExpressionGraphqlConfig,
+    get_comparable_relationship_execution_strategy, BooleanExpressionComparableRelationship,
+    BooleanExpressionError, BooleanExpressionGraphqlConfig, BooleanExpressionGraphqlFieldConfig,
+    ComparableRelationshipExecutionStrategy, ComparisonExpressionInfo, IncludeLogicalOperators,
+    ObjectBooleanExpressionGraphqlConfig, ObjectComparisonExpressionInfo, ObjectComparisonKind,
+    OperatorMapping, ResolvedObjectBooleanExpressionType, ScalarBooleanExpressionGraphqlConfig,
+    ScalarComparisonKind,
 };
-pub use stages::data_connectors::{ArgumentPresetValue, DataConnectorLink, HttpHeadersPreset};
+pub use stages::data_connectors::{
+    ArgumentPresetValue, DataConnectorLink, HttpHeadersPreset, NdcVersion,
+};
 pub use stages::graphql_config::{GlobalGraphqlConfig, MultipleOrderByInputObjectFields};
 pub use stages::model_permissions::{
     FilterPermission, ModelPredicate, ModelTargetSource, ModelWithPermissions, SelectPermission,
@@ -41,27 +41,24 @@ pub use stages::model_permissions::{
 };
 pub use stages::models::{Model, ModelSource, ModelsError};
 pub use stages::models_graphql::{
-    ModelExpressionType, ModelOrderByExpression, SelectAggregateGraphQlDefinition,
-    SelectManyGraphQlDefinition, SelectUniqueGraphQlDefinition, SubscriptionGraphQlDefinition,
-    UniqueIdentifierField,
-};
-pub use stages::object_boolean_expressions::{
-    ObjectBooleanExpressionDataConnector, ObjectBooleanExpressionType,
+    ModelOrderByExpression, SelectAggregateGraphQlDefinition, SelectManyGraphQlDefinition,
+    SelectUniqueGraphQlDefinition, SubscriptionGraphQlDefinition, UniqueIdentifierField,
 };
 pub use stages::object_relationships::{
-    relationship_execution_category, CommandRelationshipTarget, FieldNestedness,
-    ModelAggregateRelationshipTarget, ModelRelationshipTarget, ObjectTypeWithRelationships,
-    RelationshipCapabilities, RelationshipCommandMapping, RelationshipExecutionCategory,
-    RelationshipField, RelationshipModelMapping, RelationshipTarget,
+    field_selection_relationship_execution_category, AggregateRelationship,
+    CommandRelationshipTarget, FieldNestedness, ModelRelationshipTarget,
+    ObjectTypeWithRelationships, RelationshipCapabilities, RelationshipCommandMapping,
+    RelationshipExecutionCategory, RelationshipField, RelationshipModelMapping,
+    RelationshipModelMappingFieldTarget, RelationshipModelMappingTarget, RelationshipTarget,
 };
 pub use stages::object_types::{
-    FieldArgumentInfo, FieldMapping, ObjectTypeRepresentation,
-    ResolvedObjectApolloFederationConfig, TypeMapping,
+    AggregateFunctions, ComparisonOperators, ExtractionFunctions, FieldArgumentInfo, FieldMapping,
+    ObjectTypeRepresentation, ResolvedObjectApolloFederationConfig, TypeMapping,
 };
 pub use stages::order_by_expressions::{
-    ObjectOrderByExpression, OrderByExpressionGraphqlConfig, OrderByExpressionIdentifier,
-    OrderByExpressions, OrderableField, OrderableObjectField, OrderableRelationship,
-    OrderableRelationships, OrderableScalarField,
+    validate_orderable_relationship, ObjectOrderByExpression, OrderByExpressionGraphqlConfig,
+    OrderByExpressionIdentifier, OrderByExpressions, OrderableField, OrderableFieldNestedness,
+    OrderableObjectField, OrderableRelationship, OrderableRelationshipError, OrderableScalarField,
 };
 pub use stages::plugins::LifecyclePluginConfigs;
 pub use stages::scalar_boolean_expressions::{

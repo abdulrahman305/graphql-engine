@@ -82,9 +82,45 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [],
-                                                in_operators: [],
+                                                eq_operator: None,
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -141,7 +177,7 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                         "collection_with_args",
                     ),
                 ),
-            }: ModelWithArgumentPresets {
+            }: ModelWithPermissions {
                 model: Model {
                     path: JSONPath(
                         [
@@ -179,6 +215,28 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                             ),
                         ),
                     },
+                    data_type_path: JSONPath(
+                        [
+                            Key(
+                                "subgraphs",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "objects",
+                            ),
+                            Index(
+                                1,
+                            ),
+                            Key(
+                                "definition",
+                            ),
+                            Key(
+                                "objectType",
+                            ),
+                        ],
+                    ),
                     type_fields: {
                         FieldName(
                             Identifier(
@@ -211,7 +269,7 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             argument_kind: Other,
@@ -227,7 +285,7 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                                         Int,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             argument_kind: Other,
@@ -297,10 +355,14 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: true,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: false,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: None,
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: true,
@@ -357,9 +419,45 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [],
-                                                    in_operators: [],
+                                                    eq_operator: None,
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -430,20 +528,6 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                     ),
                     global_id_source: None,
                     apollo_federation_key_source: None,
-                    order_by_expression: Some(
-                        Qualified {
-                            subgraph: SubgraphName(
-                                "default",
-                            ),
-                            name: FromModel(
-                                ModelName(
-                                    Identifier(
-                                        "collection_with_args",
-                                    ),
-                                ),
-                            ),
-                        },
-                    ),
                     aggregate_expression: None,
                     raw: ModelRaw {
                         filter_expression_type: None,
@@ -471,9 +555,27 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                             },
                         ),
                         description: None,
+                        order_by: ModelV1 {
+                            graphql_type_name: Some(
+                                GraphQlTypeName(
+                                    "collection_with_args_order_by",
+                                ),
+                            ),
+                            orderable_fields: [
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "test",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                            ],
+                        },
                     },
                 },
-                argument_presets: {},
                 select_permissions: {},
                 filter_expression_type: None,
                 graphql_api: ModelGraphQlApi {
@@ -554,7 +656,6 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
             },
         },
         commands: {},
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {},
             scalars: {},
@@ -624,7 +725,7 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
                             },
                         ),
                     },
-                    orderable_relationships: ModelV1AllowAll,
+                    orderable_relationships: {},
                     graphql: Some(
                         OrderByExpressionGraphqlConfig {
                             expression_type_name: TypeName(
@@ -677,6 +778,7 @@ input_file: crates/metadata-resolve/tests/passing/models/all_args_are_set_includ
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {},
     },

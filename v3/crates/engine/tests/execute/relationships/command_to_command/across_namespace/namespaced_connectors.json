@@ -24,7 +24,8 @@
                       "type": "string"
                     },
                     "aggregate_functions": {},
-                    "comparison_operators": {}
+                    "comparison_operators": {},
+                    "extraction_functions": {}
                   },
                   "Bool": {
                     "representation": {
@@ -39,6 +40,32 @@
                           "name": "Bool"
                         }
                       }
+                    },
+                    "extraction_functions": {}
+                  },
+                  "Date": {
+                    "representation": {
+                      "type": "date"
+                    },
+                    "aggregate_functions": {},
+                    "comparison_operators": {
+                      "_eq": {
+                        "type": "equal"
+                      }
+                    },
+                    "extraction_functions": {
+                      "day": {
+                        "type": "day",
+                        "result_type": "Int"
+                      },
+                      "month": {
+                        "type": "month",
+                        "result_type": "Int"
+                      },
+                      "year": {
+                        "type": "year",
+                        "result_type": "Int"
+                      }
                     }
                   },
                   "HeaderMap": {
@@ -46,7 +73,8 @@
                       "type": "json"
                     },
                     "aggregate_functions": {},
-                    "comparison_operators": {}
+                    "comparison_operators": {},
+                    "extraction_functions": {}
                   },
                   "Int": {
                     "representation": {
@@ -64,7 +92,8 @@
                       "_eq": {
                         "type": "equal"
                       }
-                    }
+                    },
+                    "extraction_functions": {}
                   },
                   "String": {
                     "representation": {
@@ -79,8 +108,43 @@
                       }
                     },
                     "comparison_operators": {
+                      "_contains": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
+                      },
                       "_eq": {
                         "type": "equal"
+                      },
+                      "_icontains": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
+                      },
+                      "ends_with": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
+                      },
+                      "iends_with": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
+                      },
+                      "istarts_with": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
                       },
                       "like": {
                         "type": "custom",
@@ -88,8 +152,16 @@
                           "type": "named",
                           "name": "String"
                         }
+                      },
+                      "starts_with": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
                       }
-                    }
+                    },
+                    "extraction_functions": {}
                   }
                 },
                 "object_types": {
@@ -229,6 +301,26 @@
                         "type": {
                           "type": "named",
                           "name": "String"
+                        }
+                      }
+                    },
+                    "foreign_keys": {}
+                  },
+                  "evaluated_institution": {
+                    "description": "An institution and its evaluation result",
+                    "fields": {
+                      "evaluation_result": {
+                        "description": "The institution's evaluation result",
+                        "type": {
+                          "type": "named",
+                          "name": "Boolean"
+                        }
+                      },
+                      "institution": {
+                        "description": "The institution",
+                        "type": {
+                          "type": "named",
+                          "name": "institution"
                         }
                       }
                     },
@@ -551,6 +643,13 @@
                           }
                         }
                       },
+                      "release_date": {
+                        "description": "The movie's release date",
+                        "type": {
+                          "type": "named",
+                          "name": "Date"
+                        }
+                      },
                       "title": {
                         "description": "The movie's title",
                         "type": {
@@ -871,6 +970,15 @@
                     "name": "actors_by_movie",
                     "description": "Actors parameterized by movie",
                     "arguments": {
+                      "ignore_me": {
+                        "type": {
+                          "type": "nullable",
+                          "underlying_type": {
+                            "type": "named",
+                            "name": "Int"
+                          }
+                        }
+                      },
                       "movie_id": {
                         "type": {
                           "type": "named",
@@ -905,6 +1013,36 @@
                   }
                 ],
                 "functions": [
+                  {
+                    "name": "eval_institutions",
+                    "description": "Evaluates submitted institution objects against the provided boolean expression",
+                    "arguments": {
+                      "check": {
+                        "description": "The boolean expression to evaluate the institutions against",
+                        "type": {
+                          "type": "predicate",
+                          "object_type_name": "institution"
+                        }
+                      },
+                      "institutions": {
+                        "description": "The institutions to evaluate",
+                        "type": {
+                          "type": "array",
+                          "element_type": {
+                            "type": "named",
+                            "name": "institution"
+                          }
+                        }
+                      }
+                    },
+                    "result_type": {
+                      "type": "array",
+                      "element_type": {
+                        "type": "named",
+                        "name": "evaluated_institution"
+                      }
+                    }
+                  },
                   {
                     "name": "latest_actor_id",
                     "description": "Get the ID of the most recent actor",
@@ -1177,6 +1315,16 @@
                           "type": "named",
                           "name": "actor"
                         }
+                      },
+                      "pre_check": {
+                        "description": "Validate if the actor can be upserted",
+                        "type": {
+                          "type": "nullable",
+                          "underlying_type": {
+                            "type": "predicate",
+                            "object_type_name": "actor"
+                          }
+                        }
                       }
                     },
                     "result_type": {
@@ -1328,9 +1476,7 @@
                 "capabilities": {
                   "query": {
                     "aggregates": {
-                      "filter_by": {
-                        "count_scalar_type": "Int"
-                      }
+                      "count_scalar_type": "Int"
                     }
                   }
                 }
@@ -1339,7 +1485,13 @@
                 "version": "0.2.0",
                 "capabilities": {
                   "query": {
-                    "aggregates": {},
+                    "aggregates": {
+                      "group_by": {
+                        "filter": {},
+                        "order": {},
+                        "paginate": {}
+                      }
+                    },
                     "variables": {},
                     "nested_fields": {
                       "filter_by": {},
@@ -1347,7 +1499,9 @@
                       "aggregates": {}
                     },
                     "exists": {
-                      "unrelated": {}
+                      "unrelated": {},
+                      "nested_collections": {},
+                      "nested_scalar_collections": {}
                     }
                   },
                   "mutation": {},
@@ -1355,7 +1509,9 @@
                     "relation_comparisons": {},
                     "order_by_aggregate": {},
                     "nested": {
-                      "array": {}
+                      "array": {},
+                      "filtering": {},
+                      "ordering": {}
                     }
                   }
                 }
@@ -1388,7 +1544,8 @@
                       "type": "string"
                     },
                     "aggregate_functions": {},
-                    "comparison_operators": {}
+                    "comparison_operators": {},
+                    "extraction_functions": {}
                   },
                   "Bool": {
                     "representation": {
@@ -1403,6 +1560,32 @@
                           "name": "Bool"
                         }
                       }
+                    },
+                    "extraction_functions": {}
+                  },
+                  "Date": {
+                    "representation": {
+                      "type": "date"
+                    },
+                    "aggregate_functions": {},
+                    "comparison_operators": {
+                      "_eq": {
+                        "type": "equal"
+                      }
+                    },
+                    "extraction_functions": {
+                      "day": {
+                        "type": "day",
+                        "result_type": "Int"
+                      },
+                      "month": {
+                        "type": "month",
+                        "result_type": "Int"
+                      },
+                      "year": {
+                        "type": "year",
+                        "result_type": "Int"
+                      }
                     }
                   },
                   "HeaderMap": {
@@ -1410,7 +1593,8 @@
                       "type": "json"
                     },
                     "aggregate_functions": {},
-                    "comparison_operators": {}
+                    "comparison_operators": {},
+                    "extraction_functions": {}
                   },
                   "Int": {
                     "representation": {
@@ -1428,7 +1612,8 @@
                       "_eq": {
                         "type": "equal"
                       }
-                    }
+                    },
+                    "extraction_functions": {}
                   },
                   "String": {
                     "representation": {
@@ -1443,8 +1628,43 @@
                       }
                     },
                     "comparison_operators": {
+                      "_contains": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
+                      },
                       "_eq": {
                         "type": "equal"
+                      },
+                      "_icontains": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
+                      },
+                      "ends_with": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
+                      },
+                      "iends_with": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
+                      },
+                      "istarts_with": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
                       },
                       "like": {
                         "type": "custom",
@@ -1452,8 +1672,16 @@
                           "type": "named",
                           "name": "String"
                         }
+                      },
+                      "starts_with": {
+                        "type": "custom",
+                        "argument_type": {
+                          "type": "named",
+                          "name": "String"
+                        }
                       }
-                    }
+                    },
+                    "extraction_functions": {}
                   }
                 },
                 "object_types": {
@@ -1593,6 +1821,26 @@
                         "type": {
                           "type": "named",
                           "name": "String"
+                        }
+                      }
+                    },
+                    "foreign_keys": {}
+                  },
+                  "evaluated_institution": {
+                    "description": "An institution and its evaluation result",
+                    "fields": {
+                      "evaluation_result": {
+                        "description": "The institution's evaluation result",
+                        "type": {
+                          "type": "named",
+                          "name": "Boolean"
+                        }
+                      },
+                      "institution": {
+                        "description": "The institution",
+                        "type": {
+                          "type": "named",
+                          "name": "institution"
                         }
                       }
                     },
@@ -1915,6 +2163,13 @@
                           }
                         }
                       },
+                      "release_date": {
+                        "description": "The movie's release date",
+                        "type": {
+                          "type": "named",
+                          "name": "Date"
+                        }
+                      },
                       "title": {
                         "description": "The movie's title",
                         "type": {
@@ -2235,6 +2490,15 @@
                     "name": "actors_by_movie",
                     "description": "Actors parameterized by movie",
                     "arguments": {
+                      "ignore_me": {
+                        "type": {
+                          "type": "nullable",
+                          "underlying_type": {
+                            "type": "named",
+                            "name": "Int"
+                          }
+                        }
+                      },
                       "movie_id": {
                         "type": {
                           "type": "named",
@@ -2269,6 +2533,36 @@
                   }
                 ],
                 "functions": [
+                  {
+                    "name": "eval_institutions",
+                    "description": "Evaluates submitted institution objects against the provided boolean expression",
+                    "arguments": {
+                      "check": {
+                        "description": "The boolean expression to evaluate the institutions against",
+                        "type": {
+                          "type": "predicate",
+                          "object_type_name": "institution"
+                        }
+                      },
+                      "institutions": {
+                        "description": "The institutions to evaluate",
+                        "type": {
+                          "type": "array",
+                          "element_type": {
+                            "type": "named",
+                            "name": "institution"
+                          }
+                        }
+                      }
+                    },
+                    "result_type": {
+                      "type": "array",
+                      "element_type": {
+                        "type": "named",
+                        "name": "evaluated_institution"
+                      }
+                    }
+                  },
                   {
                     "name": "latest_actor_id",
                     "description": "Get the ID of the most recent actor",
@@ -2541,6 +2835,16 @@
                           "type": "named",
                           "name": "actor"
                         }
+                      },
+                      "pre_check": {
+                        "description": "Validate if the actor can be upserted",
+                        "type": {
+                          "type": "nullable",
+                          "underlying_type": {
+                            "type": "predicate",
+                            "object_type_name": "actor"
+                          }
+                        }
                       }
                     },
                     "result_type": {
@@ -2692,9 +2996,7 @@
                 "capabilities": {
                   "query": {
                     "aggregates": {
-                      "filter_by": {
-                        "count_scalar_type": "Int"
-                      }
+                      "count_scalar_type": "Int"
                     }
                   }
                 }
@@ -2703,7 +3005,13 @@
                 "version": "0.2.0",
                 "capabilities": {
                   "query": {
-                    "aggregates": {},
+                    "aggregates": {
+                      "group_by": {
+                        "filter": {},
+                        "order": {},
+                        "paginate": {}
+                      }
+                    },
                     "variables": {},
                     "nested_fields": {
                       "filter_by": {},
@@ -2711,7 +3019,9 @@
                       "aggregates": {}
                     },
                     "exists": {
-                      "unrelated": {}
+                      "unrelated": {},
+                      "nested_collections": {},
+                      "nested_scalar_collections": {}
                     }
                   },
                   "mutation": {},
@@ -2719,7 +3029,9 @@
                     "relation_comparisons": {},
                     "order_by_aggregate": {},
                     "nested": {
-                      "array": {}
+                      "array": {},
+                      "filtering": {},
+                      "ordering": {}
                     }
                   }
                 }

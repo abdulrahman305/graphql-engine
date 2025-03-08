@@ -8,9 +8,12 @@ use super::relationships;
 use super::selection_set;
 use crate::plan::Plan;
 use crate::ModelSelection;
+use hasura_authn_core::Session;
+use metadata_resolve::Metadata;
+use plan_types::Argument;
 use plan_types::{
-    ExecutionTree, FieldsSelection, JoinLocations, NdcRelationshipName, PredicateQueryTrees,
-    QueryExecutionPlan, QueryNodeNew, Relationship, UniqueNumber,
+    FieldsSelection, JoinLocations, NdcRelationshipName, PredicateQueryTrees, QueryExecutionPlan,
+    QueryExecutionTree, QueryNodeNew, Relationship, UniqueNumber,
 };
 use std::collections::BTreeMap;
 
@@ -19,6 +22,9 @@ use std::collections::BTreeMap;
 pub(crate) fn plan_query_node(
     ir: &ModelSelection<'_>,
     relationships: &mut BTreeMap<NdcRelationshipName, Relationship>,
+    metadata: &'_ Metadata,
+    session: &Session,
+    request_headers: &reqwest::header::HeaderMap,
     unique_number: &mut UniqueNumber,
 ) -> Result<Plan<QueryNodeNew>, error::Error> {
     let mut query_fields = None;
@@ -33,6 +39,9 @@ pub(crate) fn plan_query_node(
             selection,
             ir.data_connector.capabilities.supported_ndc_version,
             relationships,
+            metadata,
+            session,
+            request_headers,
             unique_number,
         )?;
 
@@ -65,6 +74,7 @@ pub(crate) fn plan_query_node(
         predicate,
         aggregates: ir.aggregate_selection.clone(),
         fields: query_fields.map(|fields| FieldsSelection { fields }),
+        group_by: None,
     };
 
     Ok(Plan {
@@ -77,20 +87,40 @@ pub(crate) fn plan_query_node(
 /// Generate query execution plan from internal IR (`ModelSelection`)
 pub(crate) fn plan_query_execution(
     ir: &ModelSelection<'_>,
+    metadata: &'_ Metadata,
+    session: &Session,
+    request_headers: &reqwest::header::HeaderMap,
     unique_number: &mut UniqueNumber,
-) -> Result<ExecutionTree, error::Error> {
+) -> Result<QueryExecutionTree, error::Error> {
     let mut collection_relationships = BTreeMap::new();
     let Plan {
         inner: query,
         join_locations: remote_join_executions,
         mut remote_predicates,
-    } = plan_query_node(ir, &mut collection_relationships, unique_number)?;
+    } = plan_query_node(
+        ir,
+        &mut collection_relationships,
+        metadata,
+        session,
+        request_headers,
+        unique_number,
+    )?;
 
     // collection relationships from order_by clause
     relationships::collect_relationships_from_order_by(ir, &mut collection_relationships)?;
 
-    let (arguments, argument_remote_predicates) =
+    let (mut arguments, argument_remote_predicates) =
         arguments::plan_arguments(&ir.arguments, &mut collection_relationships, unique_number)?;
+
+    // Add the variable arguments which are used for remote joins
+    for (variable_name, variable_argument) in &ir.variable_arguments {
+        arguments.insert(
+            variable_name.clone(),
+            Argument::Variable {
+                name: variable_argument.clone(),
+            },
+        );
+    }
 
     remote_predicates.0.extend(argument_remote_predicates.0);
 
@@ -102,7 +132,7 @@ pub(crate) fn plan_query_execution(
         variables: None,
         data_connector: ir.data_connector.clone(),
     };
-    Ok(ExecutionTree {
+    Ok(QueryExecutionTree {
         query_execution_plan,
         remote_join_executions,
         remote_predicates,

@@ -6,115 +6,182 @@ mod common;
 
 #[test]
 fn test_model_select_one_simple_select() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_one/simple_select";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_one/simple_select",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_one_with_type_permission() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_one/type_permission";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_one/type_permission",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_one_simple_select_introspection() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_one/simple_select/introspection/introspection";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_one/simple_select/introspection/introspection",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_one_filter() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_one/simple_select/filter";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_one/simple_select/filter",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_one_custom_scalar() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_one/custom_scalar";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_one/custom_scalar",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // Select Many Tests
 #[test]
 fn test_model_select_many_simple_select() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/simple_select";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/simple_select",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_simple_select_introspection() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/simple_select/introspection/introspection";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/simple_select/introspection/introspection",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_simple_select_introspection_user_1() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/simple_select/introspection/introspection_user_1";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/simple_select/introspection/introspection_user_1",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_simple_select_introspection_with_graphql_config() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/simple_select/introspection/with_graphql_config";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let metadata_graphql_json = "execute/models/select_many/common_metadata/graphql_config.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string, metadata_graphql_json],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/simple_select/introspection/with_graphql_config",
+        &["execute/models/select_many/common_metadata/graphql_config.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_filter() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/simple_select/filter";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/simple_select/filter",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -122,11 +189,7 @@ fn test_model_select_many_filter() -> anyhow::Result<()> {
 fn test_model_select_many_empty_select() -> anyhow::Result<()> {
     let test_path_string = "execute/models/select_many/empty_select";
     let common_metadata_path_string = "execute/common_metadata/custom_connector_v02_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
-    )
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
 }
 
 #[test]
@@ -144,7 +207,6 @@ fn test_model_select_many_field_arguments() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -163,7 +225,6 @@ fn test_model_select_many_multiple_field_arguments() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -172,11 +233,7 @@ fn test_model_select_many_multiple_field_arguments() -> anyhow::Result<()> {
 fn test_model_select_many_nested_select() -> anyhow::Result<()> {
     let test_path_string = "execute/models/select_many/nested_select";
     let common_metadata_path_string = "execute/common_metadata/custom_connector_v02_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
-    )
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
 }
 
 // Same test as above, but with no type mappings defined in the metadata.
@@ -186,11 +243,7 @@ fn test_model_select_many_nested_select() -> anyhow::Result<()> {
 fn test_model_select_many_nested_select_no_explicit_type_mapping() -> anyhow::Result<()> {
     let test_path_string = "execute/models/select_many/nested_select/no_explicit_type_mapping";
     let common_metadata_path_string = "execute/common_metadata/custom_connector_v02_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
-    )
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
 }
 
 // Same test as the nested selection
@@ -201,45 +254,62 @@ fn test_model_select_many_nested_select_with_relationship() -> anyhow::Result<()
         "execute/common_metadata/custom_connector_v02_schema.json",
         "execute/models/select_many/nested_select/metadata.json",
     ];
-    common::test_execution_expectation(
-        test_path_string,
-        &common_metadata_paths,
-        common::TestOpenDDPipeline::TestNDCResponses,
-    )
+    common::test_execution_expectation(test_path_string, &common_metadata_paths)
 }
 
 // nested selection tests, using Postgres
 #[test]
 fn test_model_select_many_nested_select_postgres() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/nested_select/postgres";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/nested_select/postgres",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // Order By Tests
 #[test]
 fn test_model_select_many_order_by() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/order_by";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_order_by_with_model_v2() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/order_by/with_model_v2";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by/with_model_v2",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -247,44 +317,56 @@ fn test_model_select_many_order_by_with_model_v2() -> anyhow::Result<()> {
 fn test_model_select_many_order_by_nested() -> anyhow::Result<()> {
     let test_path_string = "execute/models/select_many/order_by/nested";
     let common_metadata_path_string = "execute/common_metadata/custom_connector_v02_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
-    )
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
+}
+
+#[test]
+fn test_model_select_many_order_by_nested_relationships() -> anyhow::Result<()> {
+    let test_path_string = "execute/models/select_many/order_by/nested_relationships";
+    let common_metadata_path_string = "execute/common_metadata/custom_connector_v02_schema.json";
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
 }
 
 #[test]
 fn test_model_select_many_order_by_nested_legacy() -> anyhow::Result<()> {
     let test_path_string = "execute/models/select_many/order_by/nested_legacy";
     let common_metadata_path_string = "execute/common_metadata/custom_connector_v02_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
-    )
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
 }
 
 #[test]
 fn test_model_select_many_order_by_filter() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/order_by/filter";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by/filter",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_order_by_with_graphql_config() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/order_by/with_graphql_config";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let metadata_graphql_json = "execute/models/select_many/common_metadata/graphql_config.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string, metadata_graphql_json],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by/with_graphql_config",
+        &["execute/models/select_many/common_metadata/graphql_config.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -297,23 +379,37 @@ fn test_model_select_many_order_by_with_graphql_config() -> anyhow::Result<()> {
 // rows by `TrackId`
 #[test]
 fn test_model_select_many_order_by_multiple_columns() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/order_by/multiple_columns";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by/multiple_columns",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_order_by_multiple_columns_validation_check() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/order_by/multiple_columns_validation_check";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by/multiple_columns_validation_check",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -323,22 +419,25 @@ fn test_model_select_many_order_by_multiple_nested_columns_validation_check() ->
     let test_path_string =
         "execute/models/select_many/order_by/multiple_nested_columns_validation_check";
     let common_metadata_path_string = "execute/common_metadata/custom_connector_v02_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
-    )
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
 }
 
 // Type Permissions
 #[test]
 fn test_model_select_many_type_permission_order_by() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/type_permission/order_by";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/type_permission/order_by",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -348,56 +447,119 @@ fn test_model_select_many_type_permission_order_by() -> anyhow::Result<()> {
 
 #[test]
 fn test_model_select_many_order_by_object_relationship_simple() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/order_by/relationships/object/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/order_by/relationships/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by/relationships/object/simple",
+        &["execute/models/select_many/order_by/relationships/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_order_by_object_relationship_nested() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/order_by/relationships/object/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/order_by/relationships/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by/relationships/object/nested",
+        &["execute/models/select_many/order_by/relationships/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_model_select_many_order_by_remote_relationship() -> anyhow::Result<()> {
+    let test_path_string = "execute/models/select_many/order_by/remote_relationship";
+    let common_metadata_path_string =
+        "execute/models/select_many/order_by/remote_relationship/combined_metadata.json";
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
+}
+
+#[test]
+fn test_model_select_many_order_by_reuse_order_by_expression() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/order_by/reuse_order_by_expression",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_type_permission_where() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/type_permission/where";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/type_permission/where",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // Where Tests
 #[test]
 fn test_model_select_many_where() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/simple",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
+    )
+}
+
+// With null input
+#[test]
+fn test_model_select_many_where_null_input() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/null_input",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -405,47 +567,73 @@ fn test_model_select_many_where() -> anyhow::Result<()> {
 // errors
 #[test]
 fn test_model_select_many_shared_boolean_expression() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/shared_boolean_expression";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/shared_boolean_expression",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_boolean_expression_type() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/boolean_expression_type";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/boolean_expression_type",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_nested_select_object() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/nested_select/object";
-    let shared_metadata = "execute/models/select_many/where/nested_select/common-metadata.json";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[shared_metadata, common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/nested_select/object",
+        &["execute/models/select_many/where/nested_select/common-metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_nested_select_array() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/nested_select/array";
-    let shared_metadata = "execute/models/select_many/where/nested_select/common-metadata.json";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[shared_metadata, common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/nested_select/array",
+        &["execute/models/select_many/where/nested_select/common-metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -454,25 +642,38 @@ fn test_model_select_many_where_nested_select_array() -> anyhow::Result<()> {
 // old boolean expressions
 #[test]
 fn test_model_select_many_where_is_null_object_boolean_expression_type() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/where/is_null/object_boolean_expression_type";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/is_null/object_boolean_expression_type",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // new boolean expressions
 #[test]
 fn test_model_select_many_where_is_null_boolean_expression_type() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/is_null/boolean_expression_type";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/is_null/boolean_expression_type",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -480,80 +681,127 @@ fn test_model_select_many_where_is_null_boolean_expression_type() -> anyhow::Res
 
 #[test]
 fn test_model_select_many_where_filter() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/filter";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/filter",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_with_grapqhl_config() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/with_graphql_config";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let metadata_graphql_json = "execute/models/select_many/common_metadata/graphql_config.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string, metadata_graphql_json],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/with_graphql_config",
+        &["execute/models/select_many/common_metadata/graphql_config.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_multiple_fields() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/multiple_fields";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/multiple_fields",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_select_with_args() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/select_with_args";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/select_with_args",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_select_with_args_filter() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/select_with_args/filter";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/select_with_args/filter",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_select_with_args_with_graphql_config() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/select_with_args/with_graphql_config";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let metadata_graphql_json = "execute/models/select_many/common_metadata/graphql_config.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string, metadata_graphql_json],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/select_with_args/with_graphql_config",
+        &["execute/models/select_many/common_metadata/graphql_config.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_ndc_operators() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/ndc_operators";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/ndc_operators",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -566,66 +814,74 @@ fn test_model_select_many_where_ndc_operators() -> anyhow::Result<()> {
 
 #[test]
 fn test_model_select_many_where_object_boolean_array_relationship_simple() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/relationships/object_boolean_expression_type/array/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/relationships/object_boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/relationships/object_boolean_expression_type/array/simple",
+        &["execute/models/select_many/where/relationships/object_boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_object_boolean_array_relationship_nested() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/relationships/object_boolean_expression_type/array/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/relationships/object_boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/relationships/object_boolean_expression_type/array/nested",
+        &["execute/models/select_many/where/relationships/object_boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // Object relationships in boolean expressions (Simple, Nested object relationships). We also test multi column boolean expressions
 #[test]
 fn test_model_select_many_where_object_boolean_object_relationship_simple() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/relationships/object_boolean_expression_type/object/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/relationships/object_boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/relationships/object_boolean_expression_type/object/simple",
+        &["execute/models/select_many/where/relationships/object_boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_object_boolean_object_relationship_nested() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/relationships/object_boolean_expression_type/object/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/relationships/object_boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/relationships/object_boolean_expression_type/object/nested",
+        &["execute/models/select_many/where/relationships/object_boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -636,70 +892,74 @@ fn test_model_select_many_where_object_boolean_object_relationship_nested() -> a
 
 #[test]
 fn test_model_select_many_where_array_relationship_simple() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/where/relationships/boolean_expression_type/array/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/relationships/boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/relationships/boolean_expression_type/array/simple",
+        &["execute/models/select_many/where/relationships/boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_array_relationship_nested() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/where/relationships/boolean_expression_type/array/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/relationships/boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/relationships/boolean_expression_type/array/nested",
+        &["execute/models/select_many/where/relationships/boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // Object relationships in boolean expressions (Simple, Nested object relationships). We also test multi column boolean expressions
 #[test]
 fn test_model_select_many_where_object_relationship_simple() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/where/relationships/boolean_expression_type/object/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/relationships/boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/relationships/boolean_expression_type/object/simple",
+        &["execute/models/select_many/where/relationships/boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_object_relationship_nested() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/where/relationships/boolean_expression_type/object/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/relationships/boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/relationships/boolean_expression_type/object/nested",
+        &["execute/models/select_many/where/relationships/boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -710,33 +970,37 @@ fn test_model_select_many_where_object_relationship_nested() -> anyhow::Result<(
 
 #[test]
 fn test_model_select_many_where_remote_array_relationship_simple() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/remote_relationships/boolean_expression_type/array/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/remote_relationships/boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/remote_relationships/boolean_expression_type/array/simple",
+        &["execute/models/select_many/where/remote_relationships/boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/where/remote_relationships/boolean_expression_type/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/where/remote_relationships/boolean_expression_type/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_remote_array_relationship_nested() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/remote_relationships/boolean_expression_type/array/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/remote_relationships/boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/remote_relationships/boolean_expression_type/array/nested",
+        &["execute/models/select_many/where/remote_relationships/boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/where/remote_relationships/boolean_expression_type/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/where/remote_relationships/boolean_expression_type/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -744,45 +1008,56 @@ fn test_model_select_many_where_remote_array_relationship_nested() -> anyhow::Re
 
 #[test]
 fn test_model_select_many_where_remote_object_relationship_simple() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/remote_relationships/boolean_expression_type/object/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/remote_relationships/boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/remote_relationships/boolean_expression_type/object/simple",
+        &["execute/models/select_many/where/remote_relationships/boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/where/remote_relationships/boolean_expression_type/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/where/remote_relationships/boolean_expression_type/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_remote_object_relationship_nested() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/remote_relationships/boolean_expression_type/object/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/where/remote_relationships/boolean_expression_type/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/remote_relationships/boolean_expression_type/object/nested",
+        &["execute/models/select_many/where/remote_relationships/boolean_expression_type/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/where/remote_relationships/boolean_expression_type/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/where/remote_relationships/boolean_expression_type/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_model_select_many_where_remote_object_relationship_simple_across_subgraphs(
 ) -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/where/remote_relationships/boolean_expression_type/object/simple_across_subgraphs";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/remote_relationships/boolean_expression_type/object/simple_across_subgraphs",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -802,7 +1077,6 @@ fn test_model_select_many_where_no_capability_array_relationship_simple() -> any
             common_metadata_path_string,
             test_common_metadata_path_string,
         ],
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -818,7 +1092,6 @@ fn test_model_select_many_where_no_capability_array_relationship_nested() -> any
             common_metadata_path_string,
             test_common_metadata_path_string,
         ],
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -836,7 +1109,6 @@ fn test_model_select_many_where_no_capability_object_relationship_simple() -> an
             common_metadata_path_string,
             test_common_metadata_path_string,
         ],
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -852,7 +1124,6 @@ fn test_model_select_many_where_no_capability_object_relationship_nested() -> an
             common_metadata_path_string,
             test_common_metadata_path_string,
         ],
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -872,7 +1143,63 @@ fn test_model_select_many_where_nested_relationships() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
+    )
+}
+
+#[test]
+fn test_model_select_many_where_nested_remote_relationships() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/nested_remote_relationships",
+        &[],
+        BTreeMap::from([
+            // This test can't use the old NDC v0.1.x connector, it does not support nested relationships in predicates
+            // (
+            //     NdcVersion::V01,
+            //     vec!["execute/common_metadata/custom_connector_v01_schema.json"],
+            // ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_model_select_many_where_nested_relationships_different_names() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/nested_relationships_different_names",
+        &[],
+        BTreeMap::from([
+            // This test can't use the old NDC v0.1.x connector, it does not support nested relationships in predicates
+            // (
+            //     NdcVersion::V01,
+            //     vec!["execute/common_metadata/custom_connector_v01_schema.json"],
+            // ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_model_select_many_where_nested_scalar_array() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/where/nested_scalar_array",
+        &[],
+        BTreeMap::from([
+            // This test can't use the old NDC v0.1.x connector, it does not support nested scalar arrays in predicates
+            // (
+            //     NdcVersion::V01,
+            //     vec!["execute/common_metadata/custom_connector_v01_schema.json"],
+            // ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -880,106 +1207,204 @@ fn test_model_select_many_where_nested_relationships() -> anyhow::Result<()> {
 fn test_model_select_many_object_type_input_arguments() -> anyhow::Result<()> {
     let test_path_string = "execute/models/select_many/object_type_input_arguments";
     let common_metadata_path_string = "execute/common_metadata/custom_connector_v02_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
-    )
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
 }
 
 // Limit Tests
 #[test]
 fn test_model_select_many_limit() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/limit_offset/limit";
-    let ndc_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let common_metadata_path_string =
-        "execute/models/select_many/limit_offset/common_metadata/metadata.json";
-
-    common::test_execution_expectation(
-        test_path_string,
-        &[ndc_metadata_path_string, common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/limit_offset/limit",
+        &["execute/models/select_many/limit_offset/common_metadata/metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // Test is_null in model select permissions
 #[test]
 fn test_model_select_many_predicate_is_null() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/predicate/is_null";
-    let ndc_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-
-    common::test_execution_expectation(
-        test_path_string,
-        &[ndc_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/predicate/is_null",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // ---------- Offset Tests
 #[test]
 fn test_model_select_many_offset() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/limit_offset/offset";
-    let ndc_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let common_metadata_path_string =
-        "execute/models/select_many/limit_offset/common_metadata/metadata.json";
-
-    common::test_execution_expectation(
-        test_path_string,
-        &[ndc_metadata_path_string, common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/limit_offset/offset",
+        &["execute/models/select_many/limit_offset/common_metadata/metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
+}
+
+#[test]
+fn test_model_select_many_limit_offset_null_values() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/limit_offset/null_values",
+        &["execute/models/select_many/limit_offset/common_metadata/metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
+    )
+}
+
+// ---------- Model Permission Tests
+#[test]
+fn test_model_select_many_permission_filter_simple() -> anyhow::Result<()> {
+    let test_path_string = "execute/models/select_many/permission_filter/simple";
+    let common_metadata_path_string =
+        "execute/common_metadata/postgres_connector_ndc_v01_schema.json";
+
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
+}
+
+#[test]
+fn test_model_select_many_permission_filter_relationships_object() -> anyhow::Result<()> {
+    let test_path_string = "execute/models/select_many/permission_filter/relationships/object";
+    let common_metadata_path_string =
+        "execute/common_metadata/postgres_connector_ndc_v01_schema.json";
+
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
+}
+
+#[test]
+fn test_model_select_many_permission_filter_relationships_array() -> anyhow::Result<()> {
+    let test_path_string = "execute/models/select_many/permission_filter/relationships/array";
+    let common_metadata_path_string =
+        "execute/common_metadata/postgres_connector_ndc_v01_schema.json";
+
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
+}
+
+#[test]
+fn test_model_select_many_permission_filter_remote_relationships_object() -> anyhow::Result<()> {
+    let test_path_string =
+        "execute/models/select_many/permission_filter/remote_relationships/object";
+    let common_metadata_path_string =
+        "execute/common_metadata/postgres_connector_ndc_v01_schema.json";
+
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
+}
+
+#[test]
+fn test_model_select_many_permission_filter_remote_relationships_array() -> anyhow::Result<()> {
+    let test_path_string =
+        "execute/models/select_many/permission_filter/remote_relationships/array";
+    let common_metadata_path_string =
+        "execute/common_metadata/postgres_connector_ndc_v01_schema.json";
+
+    common::test_execution_expectation(test_path_string, &[common_metadata_path_string])
 }
 
 // ---------- Limit and Offset Tests
 #[test]
 fn test_model_select_many_limit_offset() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/limit_offset/limit_offset";
-    let ndc_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let common_metadata_path_string =
-        "execute/models/select_many/limit_offset/common_metadata/metadata.json";
-
-    common::test_execution_expectation(
-        test_path_string,
-        &[ndc_metadata_path_string, common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/limit_offset/limit_offset",
+        &["execute/models/select_many/limit_offset/common_metadata/metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // ----------- Limit and Offset negative value test
 #[test]
 fn test_model_select_many_negative_limit_offset() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/limit_offset/unexpected_value";
-    let ndc_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let common_metadata_path_string =
-        "execute/models/select_many/limit_offset/common_metadata/metadata.json";
-
-    common::test_execution_expectation(
-        test_path_string,
-        &[ndc_metadata_path_string, common_metadata_path_string],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/limit_offset/unexpected_value",
+        &["execute/models/select_many/limit_offset/common_metadata/metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_relay() -> anyhow::Result<()> {
-    let test_path_string = "execute/relay/relay";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 /// Tests the generation of the `id` field in select queries including relationships.
 fn test_relay_id_in_select() -> anyhow::Result<()> {
-    let test_path_string = "execute/relay/relay_id_in_select";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay_id_in_select",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -987,49 +1412,73 @@ fn test_relay_id_in_select() -> anyhow::Result<()> {
 /// Test querying the relay global ID with a role that doesn't have access to
 /// all the global ID fields.
 fn test_relay_global_id_permission() -> anyhow::Result<()> {
-    let test_path_string = "execute/relay/relay_global_id_permission";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay_global_id_permission",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_relay_node_field() -> anyhow::Result<()> {
-    let test_path_string = "execute/relay/relay_node_field";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let common_articles_metadata_path_string = "execute/relay/article_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            common_articles_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay_node_field",
+        &["execute/relay/article_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_relay_node_type_permissions() -> anyhow::Result<()> {
-    let test_path_string = "execute/relay/relay_node_type_permissions";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay_node_type_permissions",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_relay_node_field_permission() -> anyhow::Result<()> {
-    let test_path_string = "execute/relay/relay_node_field_permissions";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay_node_field_permissions",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1037,12 +1486,19 @@ fn test_relay_node_field_permission() -> anyhow::Result<()> {
 /// Tests a role should not be able to access the relay `node` field,
 /// if the Node interface doesn't implement any objects for that role.
 fn test_relay_node_interface_permissions() -> anyhow::Result<()> {
-    let test_path_string = "execute/relay/relay_node_interface_permission";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay_node_interface_permission",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1050,37 +1506,56 @@ fn test_relay_node_interface_permissions() -> anyhow::Result<()> {
 /// Tests the `node` root field with a role that has no model select permissions.
 fn test_relay_node_model_select_permissions_with_role_without_model_select_permission(
 ) -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/relay/relay_node_model_select_permissions/no_select_permission_exists_for_role";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay_node_model_select_permissions/no_select_permission_exists_for_role",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 /// Test the `node` root field with a role that has model select permissions.
 fn test_relay_node_model_select_permissions() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/relay/relay_node_model_select_permissions/successful_model_select_permissions";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relay/relay_node_model_select_permissions/successful_model_select_permissions",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_typename() -> anyhow::Result<()> {
-    let test_path_string = "execute/typename";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/typename",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1097,7 +1572,6 @@ fn test_command_functions() -> anyhow::Result<()> {
             common_metadata_path_string,
             common_command_metadata_path_string,
         ],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
     )
 }
 
@@ -1112,7 +1586,6 @@ fn test_command_object_type_input_arguments() -> anyhow::Result<()> {
             common_metadata_path_string,
             common_command_metadata_path_string,
         ],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
     )
 }
 
@@ -1127,7 +1600,6 @@ fn test_command_custom_scalar_inputs() -> anyhow::Result<()> {
             common_metadata_path_string,
             common_command_metadata_path_string,
         ],
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
     )
 }
 
@@ -1147,7 +1619,6 @@ fn test_command_functions_scalar_output_type() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
     )
 }
 
@@ -1167,7 +1638,6 @@ fn test_command_functions_object_output_type_command_permissions() -> anyhow::Re
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -1188,7 +1658,6 @@ fn test_command_functions_object_output_type_output_permissions() -> anyhow::Res
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -1208,7 +1677,6 @@ fn test_command_functions_scalar_array_output_type() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
     )
 }
 
@@ -1229,7 +1697,6 @@ fn test_command_functions_object_array_output_type_command_permissions() -> anyh
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -1251,7 +1718,6 @@ fn test_command_functions_object_array_output_type_output_permissions() -> anyho
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -1274,7 +1740,6 @@ fn test_command_functions_multiple_arguments() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -1297,7 +1762,6 @@ fn test_command_procedures_scalar_output_type_command_permissions() -> anyhow::R
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1317,7 +1781,6 @@ fn test_command_procedures_object_output_type_command_permissions() -> anyhow::R
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1338,7 +1801,6 @@ fn test_command_procedures_object_output_type_output_permissions() -> anyhow::Re
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1359,7 +1821,6 @@ fn test_command_procedures_scalar_array_output_type() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1380,7 +1841,6 @@ fn test_command_procedures_object_array_output_type_command_permissions() -> any
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1402,7 +1862,6 @@ fn test_command_procedures_object_array_output_type_output_permissions() -> anyh
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1422,7 +1881,6 @@ fn test_command_procedures_input_object_type() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1445,7 +1903,22 @@ fn test_command_procedures_multiple_arguments() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
+    )
+}
+
+// Tests a mutation command that uses a preset boolean expression as an argument
+#[test]
+fn test_command_procedures_boolean_expression_argument() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/commands/procedures/boolean_expression_argument",
+        &["execute/common_metadata/command_metadata.json"],
+        BTreeMap::from([
+            // Not supported in v0.1.x because the old custom connector doesn't support the new boolean expression argument to upsert_actor
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1468,7 +1941,6 @@ fn test_command_argument_presets() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
     )
 }
 
@@ -1494,7 +1966,6 @@ fn test_boolean_expression_command_argument_presets_object_boolean_expression_ty
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
 
     )
 }
@@ -1516,7 +1987,6 @@ fn test_boolean_expression_command_argument_presets_boolean_expression_type() ->
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
     )
 }
 
@@ -1536,7 +2006,73 @@ fn test_boolean_expression_command_argument_from_user() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
+    )
+}
+
+#[test]
+fn test_boolean_expression_command_argument_combined_with_type_permissions() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/commands/functions/boolean_expression_command_argument/combined_with_type_permissions",
+        &[],
+        BTreeMap::from([
+            // EvalInstitutions function not supported in v0.1.x connector
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
+
+    )
+}
+
+#[test]
+fn test_boolean_expression_command_argument_combined_with_type_permissions_more_presets(
+) -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/commands/functions/boolean_expression_command_argument/combined_with_type_permissions_more_presets",
+        &[],
+        BTreeMap::from([
+            // EvalInstitutions function not supported in v0.1.x connector
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
+
+    )
+}
+
+#[test]
+fn test_boolean_expression_command_argument_combined_with_type_permissions_more_presets_flag_off(
+) -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/commands/functions/boolean_expression_command_argument/combined_with_type_permissions_more_presets_flag_off",
+        &[],
+        BTreeMap::from([
+            // EvalInstitutions function not supported in v0.1.x connector
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
+
+    )
+}
+
+#[test]
+fn test_boolean_expression_command_argument_combined_with_type_permissions_disallow_bad_values(
+) -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/commands/functions/boolean_expression_command_argument/combined_with_type_permissions_disallow_bad_values",
+        &[],
+        BTreeMap::from([
+            // EvalInstitutions function not supported in v0.1.x connector
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
+
     )
 }
 
@@ -1557,7 +2093,22 @@ fn test_model_argument_presets_select_many() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
+    )
+}
+
+// Also check that when all fields are nullable or preset, we can omit the 'args' in GraphQL
+#[test]
+fn test_model_argument_presets_select_many_2() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/commands/functions/model_argument_presets_select_many_nullable_arguments",
+        &["execute/common_metadata/command_metadata.json"],
+        BTreeMap::from([
+            // `actors_by_movie` not supported in v0.1.x connector
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1578,7 +2129,6 @@ fn test_model_argument_presets_select_one() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::GenerateOpenDDQuery,
     )
 }
 
@@ -1598,7 +2148,6 @@ fn test_input_type_field_presets_on_command() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1618,7 +2167,6 @@ fn test_input_type_field_presets_on_model_arguments() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -1626,17 +2174,19 @@ fn test_input_type_field_presets_on_model_arguments() -> anyhow::Result<()> {
 // Array relationship
 #[test]
 fn test_model_select_many_relationship_predicate_array_simple() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/relationship_predicates/array/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/relationship_predicates/array/simple",
+        &["execute/models/select_many/relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1645,17 +2195,19 @@ fn test_model_select_many_relationship_predicate_array_simple() -> anyhow::Resul
 // Nested Array relationship
 #[test]
 fn test_model_select_many_relationship_predicate_array_nested() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/relationship_predicates/array/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/relationship_predicates/array/nested",
+        &["execute/models/select_many/relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1663,18 +2215,19 @@ fn test_model_select_many_relationship_predicate_array_nested() -> anyhow::Resul
 #[test]
 fn test_model_select_many_relationship_predicate_array_nested_multiple_fields() -> anyhow::Result<()>
 {
-    let test_path_string =
-        "execute/models/select_many/relationship_predicates/array/nested_multiple_fields";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/relationship_predicates/array/nested_multiple_fields",
+        &["execute/models/select_many/relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1682,35 +2235,39 @@ fn test_model_select_many_relationship_predicate_array_nested_multiple_fields() 
 // Object relationship
 #[test]
 fn test_model_select_many_relationship_predicate_object_simple() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/relationship_predicates/object/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/relationship_predicates/object/simple",
+        &["execute/models/select_many/relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 // Tests using relationships in predicates
-// Nested bject relationship
+// Nested object relationship
 #[test]
 fn test_model_select_many_relationship_predicate_object_nested() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/relationship_predicates/object/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/relationship_predicates/object/nested",
+        &["execute/models/select_many/relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1743,17 +2300,19 @@ fn test_model_select_many_relationship_predicate_object_nested() -> anyhow::Resu
 //      filter those tracks based on the "x-hasura-album-title" value.
 #[test]
 fn test_model_select_many_relationship_predicate_on_two_fields() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/relationship_predicates/on_two_fields";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/relationship_predicates/on_two_fields",
+        &["execute/models/select_many/relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1769,18 +2328,19 @@ fn test_model_select_many_relationship_predicate_on_two_fields() -> anyhow::Resu
 #[test]
 fn test_model_select_many_relationship_predicate_object_two_relationship_fields(
 ) -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/relationship_predicates/object/two_relationship_fields";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/relationship_predicates/object/two_relationship_fields",
+        &["execute/models/select_many/relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1788,17 +2348,19 @@ fn test_model_select_many_relationship_predicate_object_two_relationship_fields(
 // Array relationship
 #[test]
 fn test_model_select_many_remote_relationship_predicate_array_simple() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/remote_relationship_predicates/array/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/remote_relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/remote_relationship_predicates/array/simple",
+        &["execute/models/select_many/remote_relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1807,17 +2369,19 @@ fn test_model_select_many_remote_relationship_predicate_array_simple() -> anyhow
 // Nested Array relationship
 #[test]
 fn test_model_select_many_remote_relationship_predicate_array_nested() -> anyhow::Result<()> {
-    let test_path_string = "execute/models/select_many/remote_relationship_predicates/array/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/remote_relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/remote_relationship_predicates/array/nested",
+        &["execute/models/select_many/remote_relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1825,18 +2389,19 @@ fn test_model_select_many_remote_relationship_predicate_array_nested() -> anyhow
 #[test]
 fn test_model_select_many_remote_relationship_predicate_array_nested_multiple_fields(
 ) -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/remote_relationship_predicates/array/nested_multiple_fields";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/remote_relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/remote_relationship_predicates/array/nested_multiple_fields",
+        &["execute/models/select_many/remote_relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1844,18 +2409,19 @@ fn test_model_select_many_remote_relationship_predicate_array_nested_multiple_fi
 // Object relationship
 #[test]
 fn test_model_select_many_remote_relationship_predicate_object_simple() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/remote_relationship_predicates/object/simple";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/remote_relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/remote_relationship_predicates/object/simple",
+        &["execute/models/select_many/remote_relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1863,18 +2429,19 @@ fn test_model_select_many_remote_relationship_predicate_object_simple() -> anyho
 // Nested object relationship
 #[test]
 fn test_model_select_many_remote_relationship_predicate_object_nested() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/remote_relationship_predicates/object/nested";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/remote_relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/remote_relationship_predicates/object/nested",
+        &["execute/models/select_many/remote_relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1907,18 +2474,19 @@ fn test_model_select_many_remote_relationship_predicate_object_nested() -> anyho
 //      filter those tracks based on the "x-hasura-album-title" value.
 #[test]
 fn test_model_select_many_remote_relationship_predicate_on_two_fields() -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/remote_relationship_predicates/on_two_fields";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/remote_relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/remote_relationship_predicates/on_two_fields",
+        &["execute/models/select_many/remote_relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1934,18 +2502,19 @@ fn test_model_select_many_remote_relationship_predicate_on_two_fields() -> anyho
 #[test]
 fn test_model_select_many_remote_relationship_predicate_object_two_relationship_fields(
 ) -> anyhow::Result<()> {
-    let test_path_string =
-        "execute/models/select_many/remote_relationship_predicates/object/two_relationship_fields";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    let boolean_exp_rel_metadata_path_string =
-        "execute/models/select_many/remote_relationship_predicates/common_metadata.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            common_metadata_path_string,
-            boolean_exp_rel_metadata_path_string,
-        ],
-        common::TestOpenDDPipeline::Skip,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/models/select_many/remote_relationship_predicates/object/two_relationship_fields",
+        &["execute/models/select_many/remote_relationship_predicates/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v01.json", "execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/models/select_many/remote_relationship_predicates/pg_connector_ndc_v02.json", "execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
@@ -1953,9 +2522,151 @@ fn test_model_select_many_remote_relationship_predicate_object_two_relationship_
 fn test_graphql_descriptions() -> anyhow::Result<()> {
     common::test_execution_expectation_for_multiple_ndc_versions(
         "execute/description",
+        &["execute/common_metadata/command_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v01_schema.json",
+                    "execute/common_metadata/custom_connector_v01_schema.json",
+                ],
+            ),
+            (
+                NdcVersion::V02,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v02_schema.json",
+                    "execute/common_metadata/custom_connector_v02_schema.json",
+                ],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_apollo_federation_service_sdl() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/apollo_federation_fields/service_sdl",
+        &["execute/apollo_federation_fields/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_apollo_federation_entities() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/apollo_federation_fields/entities",
+        &["execute/apollo_federation_fields/common_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_aggregates_root_field_simple_select() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/root_field/simple_select",
         &[
-            "execute/common_metadata/postgres_connector_schema.json",
-            "execute/common_metadata/command_metadata.json",
+            "execute/aggregates/common_metadata/pg_types.json",
+            "execute/aggregates/common_metadata/supergraph.json",
+        ],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v01_schema.json",
+                    "execute/aggregates/root_field/simple_select/metadata_ndc_v01.json",
+                ],
+            ),
+            (
+                NdcVersion::V02,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v02_schema.json",
+                    "execute/aggregates/root_field/simple_select/metadata_ndc_v02.json",
+                ],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_aggregates_root_field_filtering() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/root_field/filtering",
+        &[
+            "execute/aggregates/common_metadata/pg_types.json",
+            "execute/aggregates/common_metadata/supergraph.json",
+        ],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v01_schema.json",
+                    "execute/aggregates/root_field/filtering/metadata_ndc_v01.json",
+                ],
+            ),
+            (
+                NdcVersion::V02,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v02_schema.json",
+                    "execute/aggregates/root_field/filtering/metadata_ndc_v02.json",
+                ],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_aggregates_root_field_filtering_null_inputs() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/root_field/filtering_null_inputs",
+        &[
+            "execute/aggregates/common_metadata/pg_types.json",
+            "execute/aggregates/common_metadata/supergraph.json",
+        ],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v01_schema.json",
+                    "execute/aggregates/root_field/filtering_null_inputs/metadata_ndc_v01.json",
+                ],
+            ),
+            (
+                NdcVersion::V02,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v02_schema.json",
+                    "execute/aggregates/root_field/filtering_null_inputs/metadata_ndc_v02.json",
+                ],
+            ),
+        ]),
+    )
+}
+
+#[test]
+fn test_aggregates_root_field_nested_object() -> anyhow::Result<()> {
+    let test_path_string = "execute/aggregates/root_field/nested_object";
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        test_path_string,
+        &[
+            "execute/aggregates/common_metadata/custom_connector_vBoth_types.json",
+            "execute/aggregates/common_metadata/supergraph.json",
         ],
         BTreeMap::from([
             (
@@ -1967,124 +2678,139 @@ fn test_graphql_descriptions() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
 #[test]
-fn test_apollo_federation_service_sdl() -> anyhow::Result<()> {
-    let test_path_string = "execute/apollo_federation_fields/service_sdl";
-    let common_apollo_metadata = "execute/apollo_federation_fields/common_metadata.json";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string, common_apollo_metadata],
-        common::TestOpenDDPipeline::Skip,
-    )
-}
-
-#[test]
-fn test_apollo_federation_entities() -> anyhow::Result<()> {
-    let test_path_string = "execute/apollo_federation_fields/entities";
-    let common_apollo_metadata = "execute/apollo_federation_fields/common_metadata.json";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string, common_apollo_metadata],
-        common::TestOpenDDPipeline::Skip,
-    )
-}
-
-#[test]
-fn test_aggregates_root_field_simple_select() -> anyhow::Result<()> {
-    let test_path_string = "execute/aggregates/root_field/simple_select";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            "execute/aggregates/common_metadata/postgres_connector_schema.json",
-            "execute/aggregates/common_metadata/pg_types.json",
-            "execute/aggregates/common_metadata/supergraph.json",
-        ],
-        common::TestOpenDDPipeline::Skip,
-    )
-}
-
-#[test]
-fn test_aggregates_root_field_filtering() -> anyhow::Result<()> {
-    let test_path_string = "execute/aggregates/root_field/filtering";
-    common::test_execution_expectation(
-        test_path_string,
-        &[
-            "execute/aggregates/common_metadata/postgres_connector_schema.json",
-            "execute/aggregates/common_metadata/pg_types.json",
-            "execute/aggregates/common_metadata/supergraph.json",
-        ],
-        common::TestOpenDDPipeline::Skip,
-    )
-}
-
-#[test]
-fn test_aggregates_root_field_nested_object() -> anyhow::Result<()> {
-    let test_path_string = "execute/aggregates/root_field/nested_object";
+fn test_aggregates_root_field_custom_count_return_type() -> anyhow::Result<()> {
+    let test_path_string = "execute/aggregates/root_field/custom_count_return_type";
     common::test_execution_expectation_for_multiple_ndc_versions(
         test_path_string,
         &[
-            "execute/aggregates/common_metadata/custom_connector_types.json",
+            "execute/aggregates/common_metadata/custom_connector_v02_types.json",
             "execute/aggregates/common_metadata/supergraph.json",
         ],
         BTreeMap::from([
-            (
-                NdcVersion::V01,
-                vec!["execute/aggregates/common_metadata/custom_connector_v01_schema.json"],
-            ),
+            // This test can't use the old NDC v0.1.x connector, it does not support custom count return types
             (
                 NdcVersion::V02,
-                vec!["execute/aggregates/common_metadata/custom_connector_v02_schema.json"],
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
 #[test]
 fn test_aggregates_root_field_typename() -> anyhow::Result<()> {
-    let test_path_string = "execute/aggregates/root_field/typename";
-    common::test_execution_expectation(
-        test_path_string,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/root_field/typename",
         &[
-            "execute/aggregates/common_metadata/postgres_connector_schema.json",
             "execute/aggregates/common_metadata/pg_types.json",
             "execute/aggregates/common_metadata/supergraph.json",
         ],
-        common::TestOpenDDPipeline::Skip,
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v01_schema.json",
+                    "execute/aggregates/root_field/typename/metadata_ndc_v01.json",
+                ],
+            ),
+            (
+                NdcVersion::V02,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v02_schema.json",
+                    "execute/aggregates/root_field/typename/metadata_ndc_v02.json",
+                ],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_aggregates_relationship_field_simple_select() -> anyhow::Result<()> {
-    let test_path_string = "execute/aggregates/relationship_field/simple_select";
-    common::test_execution_expectation(
-        test_path_string,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/relationship_field/simple_select",
         &[
-            "execute/aggregates/common_metadata/postgres_connector_schema.json",
             "execute/aggregates/common_metadata/pg_types.json",
             "execute/aggregates/common_metadata/supergraph.json",
         ],
-        common::TestOpenDDPipeline::Skip,
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v01_schema.json",
+                    "execute/aggregates/relationship_field/simple_select/metadata_ndc_v01.json",
+                ],
+            ),
+            (
+                NdcVersion::V02,
+                vec![
+                    "execute/common_metadata/postgres_connector_ndc_v02_schema.json",
+                    "execute/aggregates/relationship_field/simple_select/metadata_ndc_v02.json",
+                ],
+            ),
+        ]),
     )
 }
 
 #[test]
-fn test_aggregates_relationship_field_filtering() -> anyhow::Result<()> {
-    let test_path_string = "execute/aggregates/relationship_field/filtering";
-    common::test_execution_expectation(
-        test_path_string,
+fn test_aggregates_relationship_field_filtering_ndc_v01() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/relationship_field/filtering_ndc_v01",
         &[
-            "execute/aggregates/common_metadata/postgres_connector_schema.json",
             "execute/aggregates/common_metadata/pg_types.json",
             "execute/aggregates/common_metadata/supergraph.json",
         ],
-        common::TestOpenDDPipeline::Skip,
+        BTreeMap::from([(
+            NdcVersion::V01,
+            vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+        )]),
+    )
+}
+
+#[test]
+fn test_aggregates_relationship_field_filtering_ndc_v02() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/relationship_field/filtering_ndc_v02",
+        &[
+            "execute/aggregates/common_metadata/pg_types.json",
+            "execute/aggregates/common_metadata/supergraph.json",
+        ],
+        BTreeMap::from([(
+            NdcVersion::V01,
+            vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+        )]),
+    )
+}
+
+#[test]
+fn test_aggregates_relationship_field_filtering_null_inputs_ndc_v01() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/relationship_field/filtering_null_inputs_ndc_v01",
+        &[
+            "execute/aggregates/common_metadata/pg_types.json",
+            "execute/aggregates/common_metadata/supergraph.json",
+        ],
+        BTreeMap::from([(
+            NdcVersion::V01,
+            vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+        )]),
+    )
+}
+
+#[test]
+fn test_aggregates_relationship_field_filtering_null_inputs_ndc_v02() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/aggregates/relationship_field/filtering_null_inputs_ndc_v02",
+        &[
+            "execute/aggregates/common_metadata/pg_types.json",
+            "execute/aggregates/common_metadata/supergraph.json",
+        ],
+        BTreeMap::from([(
+            NdcVersion::V02,
+            vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+        )]),
     )
 }
 
@@ -2106,7 +2832,6 @@ fn test_command_mutation_forwarded_headers() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::Skip,
     )
 }
 
@@ -2126,7 +2851,6 @@ fn test_command_query_forwarded_headers() -> anyhow::Result<()> {
                 vec!["execute/common_metadata/custom_connector_v02_schema.json"],
             ),
         ]),
-        common::TestOpenDDPipeline::TestNDCResponses,
     )
 }
 
@@ -2134,33 +2858,73 @@ fn test_command_query_forwarded_headers() -> anyhow::Result<()> {
 
 #[test]
 fn test_session_variables_json_enabled_array_session_variable() -> anyhow::Result<()> {
-    let test_path_string = "execute/session_variables/json_enabled/array_session_variable";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/session_variables/json_enabled/array_session_variable",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_session_variables_json_enabled_integer_session_variable() -> anyhow::Result<()> {
-    let test_path_string = "execute/session_variables/json_enabled/integer_session_variable";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/session_variables/json_enabled/integer_session_variable",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
     )
 }
 
 #[test]
 fn test_session_variables_json_disabled_integer_session_variable() -> anyhow::Result<()> {
-    let test_path_string = "execute/session_variables/json_disabled/integer_session_variable";
-    let common_metadata_path_string = "execute/common_metadata/postgres_connector_schema.json";
-    common::test_execution_expectation(
-        test_path_string,
-        &[common_metadata_path_string],
-        common::TestOpenDDPipeline::TestNDCResponses,
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/session_variables/json_disabled/integer_session_variable",
+        &[],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/postgres_connector_ndc_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/postgres_connector_ndc_v02_schema.json"],
+            ),
+        ]),
+    )
+}
+
+// Test a join with an object on RHS, where that object is joined on an argument
+#[test]
+fn test_relationships_array_target_model_with_arguments() -> anyhow::Result<()> {
+    common::test_execution_expectation_for_multiple_ndc_versions(
+        "execute/relationships/array/target_model_with_arguments",
+        &["execute/common_metadata/command_metadata.json"],
+        BTreeMap::from([
+            (
+                NdcVersion::V01,
+                vec!["execute/common_metadata/custom_connector_v01_schema.json"],
+            ),
+            (
+                NdcVersion::V02,
+                vec!["execute/common_metadata/custom_connector_v02_schema.json"],
+            ),
+        ]),
     )
 }

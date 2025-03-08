@@ -1,3 +1,4 @@
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -11,19 +12,24 @@ use open_dds::{
     types::{CustomTypeName, Deprecated, FieldName},
 };
 
-use crate::stages::{
-    argument_presets, data_connectors, models, models_graphql, object_relationships, object_types,
-};
 use crate::types::error::{Error, RelationshipError};
 use crate::types::permission::{ValueExpression, ValueExpressionOrPredicate};
 use crate::types::subgraph::{deserialize_qualified_btreemap, serialize_qualified_btreemap};
 use crate::types::subgraph::{Qualified, QualifiedTypeReference};
+use crate::{
+    helpers::typecheck,
+    stages::{
+        boolean_expressions, data_connectors, model_permissions, models, models_graphql,
+        object_relationships, object_types,
+    },
+    types::error::ShouldBeAnError,
+};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
 pub struct ModelWithPermissions {
     pub model: models::Model,
     pub select_permissions: BTreeMap<Role, SelectPermission>,
-    pub filter_expression_type: Option<models_graphql::ModelExpressionType>,
+    pub filter_expression_type: Option<boolean_expressions::ResolvedObjectBooleanExpressionType>,
     pub graphql_api: models_graphql::ModelGraphQlApi,
 }
 
@@ -101,7 +107,7 @@ pub struct ModelTargetSource {
 
 impl ModelTargetSource {
     pub fn new(
-        model: &argument_presets::ModelWithArgumentPresets,
+        model: &model_permissions::ModelWithPermissions,
         relationship: &object_relationships::RelationshipField,
     ) -> Result<Option<Self>, Error> {
         model
@@ -131,4 +137,31 @@ impl ModelTargetSource {
                 .clone(),
         })
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ModelPermissionIssue {
+    #[error("Type error in preset argument {argument_name:} for role {role:} in model {model_name:}: {typecheck_issue:}")]
+    ModelArgumentPresetTypecheckIssue {
+        role: Role,
+        model_name: Qualified<ModelName>,
+        argument_name: ArgumentName,
+        typecheck_issue: typecheck::TypecheckIssue,
+    },
+}
+
+impl ShouldBeAnError for ModelPermissionIssue {
+    fn should_be_an_error(&self, flags: &open_dds::flags::OpenDdFlags) -> bool {
+        match self {
+            ModelPermissionIssue::ModelArgumentPresetTypecheckIssue {
+                typecheck_issue, ..
+            } => typecheck_issue.should_be_an_error(flags),
+        }
+    }
+}
+
+/// The output of the model permissions stage.
+pub struct ModelPermissionsOutput {
+    pub permissions: IndexMap<Qualified<ModelName>, ModelWithPermissions>,
+    pub issues: Vec<ModelPermissionIssue>,
 }

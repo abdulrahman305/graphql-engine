@@ -13,7 +13,7 @@ use open_dds::{
 use crate::types::subgraph::Qualified;
 
 use crate::stages::{
-    aggregates, argument_presets, boolean_expressions, graphql_config, object_boolean_expressions,
+    aggregates, boolean_expressions, command_permissions, graphql_config, model_permissions,
     object_relationships, order_by_expressions, scalar_type_representations,
 };
 
@@ -30,14 +30,9 @@ pub struct Metadata {
     pub scalar_types:
         BTreeMap<Qualified<CustomTypeName>, scalar_type_representations::ScalarTypeRepresentation>,
     #[serde_as(as = "Vec<(_, _)>")]
-    pub models: IndexMap<Qualified<ModelName>, argument_presets::ModelWithArgumentPresets>,
+    pub models: IndexMap<Qualified<ModelName>, model_permissions::ModelWithPermissions>,
     #[serde_as(as = "Vec<(_, _)>")]
-    pub commands: IndexMap<Qualified<CommandName>, argument_presets::CommandWithArgumentPresets>,
-    #[serde_as(as = "Vec<(_, _)>")]
-    pub object_boolean_expression_types: BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
+    pub commands: IndexMap<Qualified<CommandName>, command_permissions::CommandWithPermissions>,
     pub boolean_expression_types: boolean_expressions::BooleanExpressionTypes,
     pub order_by_expressions: order_by_expressions::OrderByExpressions,
     #[serde_as(as = "Vec<(_, _)>")]

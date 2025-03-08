@@ -5,7 +5,6 @@ mod process_response;
 mod query;
 mod query_usage;
 mod steps;
-mod to_opendd_ir;
 mod types;
 
 pub use error::RequestError;
@@ -17,7 +16,6 @@ pub use query::{
     execute_query, execute_query_internal, set_request_metadata_attributes, set_usage_attributes,
 };
 pub use steps::{build_ir, build_request_plan, generate_ir, normalize_request, parse_query};
-pub use to_opendd_ir::to_opendd_ir;
 pub use types::{GraphQLErrors, GraphQLResponse};
 
 #[cfg(test)]
@@ -28,6 +26,7 @@ mod tests {
     use lang_graphql::{parser::Parser, validation::normalize_request};
     use open_dds::session_variables::{SessionVariableName, SESSION_VARIABLE_ROLE};
     use serde_json as json;
+    use std::collections::BTreeMap;
     use std::{
         collections::HashMap,
         fs::{self, File},
@@ -70,7 +69,7 @@ mod tests {
             let request = Request {
                 operation_name: None,
                 query,
-                variables: HashMap::new(),
+                variables: BTreeMap::new(),
             };
 
             let normalized_request = normalize_request(
@@ -81,7 +80,14 @@ mod tests {
                 &request,
             )?;
 
-            let ir = generate_ir(&schema, &session, &request_headers, &normalized_request)?;
+            let ir = generate_ir(
+                graphql_ir::GraphqlRequestPipeline::Old,
+                &schema,
+                &gds.metadata,
+                &session,
+                &request_headers,
+                &normalized_request,
+            )?;
             let mut expected = mint.new_goldenfile_with_differ(
                 expected_path,
                 Box::new(|file1, file2| {
@@ -133,7 +139,7 @@ mod tests {
             let request = Request {
                 operation_name: None,
                 query,
-                variables: HashMap::new(),
+                variables: BTreeMap::new(),
             };
 
             let normalized_request = normalize_request(

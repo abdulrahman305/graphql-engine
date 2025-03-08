@@ -1,7 +1,10 @@
+use std::collections::BTreeMap;
+
 use graphql_schema::GDS;
 use lang_graphql::ast::common as ast;
 use lang_graphql::normalized_ast::{self, Operation};
 use metadata_resolve::{FieldPresetInfo, FilterPermission, ModelPredicate};
+use open_dds::arguments::ArgumentName;
 use open_dds::relationships::RelationshipType;
 use open_dds::types::Deprecated;
 use query_usage_analytics::{
@@ -195,7 +198,7 @@ fn analyze_input_annotation(annotation: &graphql_schema::InputAnnotation) -> Vec
         )
         | graphql_schema::InputAnnotation::CommandArgument { .. }
         | graphql_schema::InputAnnotation::Relay(_)
-        | graphql_schema::InputAnnotation::FieldArgument
+        | graphql_schema::InputAnnotation::FieldArgument { argument_name: _ }
         | graphql_schema::InputAnnotation::ApolloFederationRepresentationsInput(_) => {}
     }
     result
@@ -302,7 +305,7 @@ fn analyze_output_annotation(annotation: &graphql_schema::OutputAnnotation) -> V
                 name: relationship.relationship_name.clone(),
                 source: relationship.source_type.clone(),
                 target: RelationshipTarget::Model {
-                    model_name: relationship.model_name.clone(),
+                    model_name: relationship.target_model_name.clone(),
                     relationship_type: relationship.relationship_type.clone(),
                     opendd_type: relationship.target_type.clone(),
                     mapping: get_relationship_model_mappings(&relationship.mappings),
@@ -340,7 +343,7 @@ fn analyze_output_annotation(annotation: &graphql_schema::OutputAnnotation) -> V
                 name: relationship.relationship_name.clone(),
                 source: relationship.source_type.clone(),
                 target: RelationshipTarget::Model {
-                    model_name: relationship.model_name.clone(),
+                    model_name: relationship.target_model_name.clone(),
                     relationship_type: RelationshipType::Array,
                     opendd_type: relationship.target_type.clone(),
                     mapping: get_relationship_model_mappings(&relationship.mappings),
@@ -410,23 +413,21 @@ fn analyze_namespace_annotation(
 }
 
 fn analyze_argument_presets(
-    argument_presets: &metadata_resolve::ArgumentPresets,
+    argument_presets: &BTreeMap<
+        ArgumentName,
+        (
+            metadata_resolve::QualifiedTypeReference,
+            metadata_resolve::ValueExpressionOrPredicate,
+        ),
+    >,
 ) -> Option<OpenddObject> {
-    let mut arguments = Vec::new();
-    for argument in argument_presets.argument_presets.keys() {
-        if let Some(connector_argument) = &argument.ndc_argument_name {
-            // Only top level arguments are collected
-            if argument.field_path.is_empty() {
-                arguments.push(connector_argument.to_owned());
-            }
-        }
-    }
-
-    if arguments.is_empty() {
+    if argument_presets.is_empty() {
         None
     } else {
         Some(OpenddObject::Permission(PermissionUsage::ArgumentPresets(
-            ArgumentPresetsUsage { arguments },
+            ArgumentPresetsUsage {
+                arguments: argument_presets.keys().cloned().collect(),
+            },
         )))
     }
 }
@@ -535,7 +536,18 @@ fn get_relationship_model_mappings(
     for mapping in mappings {
         result.push(query_usage_analytics::RelationshipModelMapping {
             source_field: mapping.source_field.field_name.clone(),
-            target_field: mapping.target_field.field_name.clone(),
+            target: match &mapping.target {
+                metadata_resolve::RelationshipModelMappingTarget::ModelField(field_target) => {
+                    query_usage_analytics::RelationshipModelMappingTarget::Field(
+                        field_target.target_field.field_name.clone(),
+                    )
+                }
+                metadata_resolve::RelationshipModelMappingTarget::Argument(argument_name) => {
+                    query_usage_analytics::RelationshipModelMappingTarget::Argument(
+                        argument_name.clone(),
+                    )
+                }
+            },
         });
     }
     result

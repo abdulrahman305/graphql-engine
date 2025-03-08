@@ -8,7 +8,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
         object_types: {
             Qualified {
                 subgraph: SubgraphName(
-                    "__unknown_namespace",
+                    "default",
                 ),
                 name: CustomTypeName(
                     Identifier(
@@ -62,7 +62,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     Custom(
                                         Qualified {
                                             subgraph: SubgraphName(
-                                                "__unknown_namespace",
+                                                "default",
                                             ),
                                             name: CustomTypeName(
                                                 Identifier(
@@ -72,7 +72,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         },
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -90,7 +90,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             Custom(
                                                 Qualified {
                                                     subgraph: SubgraphName(
-                                                        "__unknown_namespace",
+                                                        "default",
                                                     ),
                                                     name: CustomTypeName(
                                                         Identifier(
@@ -100,10 +100,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                                 },
                                             ),
                                         ),
-                                        nullable: true,
+                                        nullable: false,
                                     },
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -122,10 +122,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                                 String,
                                             ),
                                         ),
-                                        nullable: true,
+                                        nullable: false,
                                     },
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -183,7 +183,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     mappings: {
                         Qualified {
                             subgraph: SubgraphName(
-                                "__unknown_namespace",
+                                "default",
                             ),
                             name: DataConnectorName(
                                 Identifier(
@@ -218,17 +218,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -251,13 +287,56 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -277,6 +356,8 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         },
                                         column_type_representation: None,
                                         comparison_operators: None,
+                                        aggregate_functions: None,
+                                        extraction_functions: None,
                                         argument_mappings: {},
                                     },
                                     FieldName(
@@ -297,17 +378,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -329,6 +446,8 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         },
                                         column_type_representation: None,
                                         comparison_operators: None,
+                                        aggregate_functions: None,
+                                        extraction_functions: None,
                                         argument_mappings: {},
                                     },
                                 },
@@ -339,7 +458,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
             },
             Qualified {
                 subgraph: SubgraphName(
-                    "__unknown_namespace",
+                    "default",
                 ),
                 name: CustomTypeName(
                     Identifier(
@@ -360,7 +479,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -377,7 +496,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -396,10 +515,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                                 String,
                                             ),
                                         ),
-                                        nullable: true,
+                                        nullable: false,
                                     },
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -447,7 +566,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     mappings: {
                         Qualified {
                             subgraph: SubgraphName(
-                                "__unknown_namespace",
+                                "default",
                             ),
                             name: DataConnectorName(
                                 Identifier(
@@ -482,17 +601,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -515,17 +670,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -548,17 +739,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -571,7 +798,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
             },
             Qualified {
                 subgraph: SubgraphName(
-                    "__unknown_namespace",
+                    "default",
                 ),
                 name: CustomTypeName(
                     Identifier(
@@ -592,7 +819,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -609,7 +836,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -628,10 +855,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                                 String,
                                             ),
                                         ),
-                                        nullable: true,
+                                        nullable: false,
                                     },
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -679,7 +906,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     mappings: {
                         Qualified {
                             subgraph: SubgraphName(
-                                "__unknown_namespace",
+                                "default",
                             ),
                             name: DataConnectorName(
                                 Identifier(
@@ -712,17 +939,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -745,17 +1008,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -780,17 +1079,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -806,17 +1141,26 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
         models: {
             Qualified {
                 subgraph: SubgraphName(
-                    "__unknown_namespace",
+                    "default",
                 ),
                 name: ModelName(
                     Identifier(
                         "institutions",
                     ),
                 ),
-            }: ModelWithArgumentPresets {
+            }: ModelWithPermissions {
                 model: Model {
                     path: JSONPath(
                         [
+                            Key(
+                                "subgraphs",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "objects",
+                            ),
                             Index(
                                 10,
                             ),
@@ -824,7 +1168,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     ),
                     name: Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: ModelName(
                             Identifier(
@@ -834,7 +1178,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     },
                     data_type: Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: CustomTypeName(
                             Identifier(
@@ -842,6 +1186,28 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             ),
                         ),
                     },
+                    data_type_path: JSONPath(
+                        [
+                            Key(
+                                "subgraphs",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "objects",
+                            ),
+                            Index(
+                                10,
+                            ),
+                            Key(
+                                "definition",
+                            ),
+                            Key(
+                                "objectType",
+                            ),
+                        ],
+                    ),
                     type_fields: {
                         FieldName(
                             Identifier(
@@ -887,7 +1253,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     Custom(
                                         Qualified {
                                             subgraph: SubgraphName(
-                                                "__unknown_namespace",
+                                                "default",
                                             ),
                                             name: CustomTypeName(
                                                 Identifier(
@@ -897,7 +1263,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                         },
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -915,7 +1281,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             Custom(
                                                 Qualified {
                                                     subgraph: SubgraphName(
-                                                        "__unknown_namespace",
+                                                        "default",
                                                     ),
                                                     name: CustomTypeName(
                                                         Identifier(
@@ -925,10 +1291,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                                 },
                                             ),
                                         ),
-                                        nullable: true,
+                                        nullable: false,
                                     },
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -947,10 +1313,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                                 String,
                                             ),
                                         ),
-                                        nullable: true,
+                                        nullable: false,
                                     },
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: None,
                             deprecated: None,
@@ -964,7 +1330,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             data_connector: DataConnectorLink {
                                 name: Qualified {
                                     subgraph: SubgraphName(
-                                        "__unknown_namespace",
+                                        "default",
                                     ),
                                     name: DataConnectorName(
                                         Identifier(
@@ -1002,10 +1368,14 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: false,
                                     supports_nested_object_filtering: true,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: true,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: None,
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: true,
@@ -1032,7 +1402,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             type_mappings: {
                                 Qualified {
                                     subgraph: SubgraphName(
-                                        "__unknown_namespace",
+                                        "default",
                                     ),
                                     name: CustomTypeName(
                                         Identifier(
@@ -1064,17 +1434,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "like",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1097,13 +1503,56 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1123,6 +1572,8 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             },
                                             column_type_representation: None,
                                             comparison_operators: None,
+                                            aggregate_functions: None,
+                                            extraction_functions: None,
                                             argument_mappings: {},
                                         },
                                         FieldName(
@@ -1143,17 +1594,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "like",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1175,13 +1662,15 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             },
                                             column_type_representation: None,
                                             comparison_operators: None,
+                                            aggregate_functions: None,
+                                            extraction_functions: None,
                                             argument_mappings: {},
                                         },
                                     },
                                 },
                                 Qualified {
                                     subgraph: SubgraphName(
-                                        "__unknown_namespace",
+                                        "default",
                                     ),
                                     name: CustomTypeName(
                                         Identifier(
@@ -1213,17 +1702,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "like",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1246,17 +1771,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "like",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1279,17 +1840,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "like",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1298,7 +1895,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                 },
                                 Qualified {
                                     subgraph: SubgraphName(
-                                        "__unknown_namespace",
+                                        "default",
                                     ),
                                     name: CustomTypeName(
                                         Identifier(
@@ -1328,17 +1925,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "like",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1361,17 +1994,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "like",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1396,17 +2065,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "like",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1421,23 +2126,20 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     ),
                     global_id_source: None,
                     apollo_federation_key_source: None,
-                    order_by_expression: Some(
-                        Qualified {
-                            subgraph: SubgraphName(
-                                "__unknown_namespace",
-                            ),
-                            name: FromModel(
-                                ModelName(
-                                    Identifier(
-                                        "institutions",
-                                    ),
-                                ),
-                            ),
-                        },
-                    ),
                     aggregate_expression: None,
                     raw: ModelRaw {
-                        filter_expression_type: None,
+                        filter_expression_type: Some(
+                            Qualified {
+                                subgraph: SubgraphName(
+                                    "default",
+                                ),
+                                name: CustomTypeName(
+                                    Identifier(
+                                        "institution_bool_exp",
+                                    ),
+                                ),
+                            },
+                        ),
                         graphql: Some(
                             ModelGraphQlDefinitionV2 {
                                 select_uniques: [],
@@ -1458,13 +2160,31 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             },
                         ),
                         description: None,
-                    },
-                },
-                argument_presets: {
-                    Role(
-                        "admin",
-                    ): ArgumentPresets {
-                        argument_presets: {},
+                        order_by: ModelV1 {
+                            graphql_type_name: None,
+                            orderable_fields: [
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "id",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "name",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                            ],
+                        },
                     },
                 },
                 select_permissions: {
@@ -1476,7 +2196,208 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                         allow_subscriptions: false,
                     },
                 },
-                filter_expression_type: None,
+                filter_expression_type: Some(
+                    ResolvedObjectBooleanExpressionType {
+                        name: Qualified {
+                            subgraph: SubgraphName(
+                                "default",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "institution_bool_exp",
+                                ),
+                            ),
+                        },
+                        object_type: Qualified {
+                            subgraph: SubgraphName(
+                                "default",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "institution",
+                                ),
+                            ),
+                        },
+                        graphql: Some(
+                            BooleanExpressionGraphqlConfig {
+                                type_name: TypeName(
+                                    Name(
+                                        "InstitutionBoolExp",
+                                    ),
+                                ),
+                                object_fields: {
+                                    FieldName(
+                                        Identifier(
+                                            "location",
+                                        ),
+                                    ): ObjectBooleanExpressionGraphqlConfig {
+                                        graphql_type_name: TypeName(
+                                            Name(
+                                                "LocationBoolExp",
+                                            ),
+                                        ),
+                                    },
+                                },
+                                scalar_fields: {
+                                    FieldName(
+                                        Identifier(
+                                            "id",
+                                        ),
+                                    ): ScalarBooleanExpressionGraphqlConfig {
+                                        type_name: TypeName(
+                                            Name(
+                                                "Int_Comparison_Exp",
+                                            ),
+                                        ),
+                                        is_null_operator_name: Some(
+                                            Name(
+                                                "_is_null",
+                                            ),
+                                        ),
+                                    },
+                                    FieldName(
+                                        Identifier(
+                                            "name",
+                                        ),
+                                    ): ScalarBooleanExpressionGraphqlConfig {
+                                        type_name: TypeName(
+                                            Name(
+                                                "String_Comparison_Exp",
+                                            ),
+                                        ),
+                                        is_null_operator_name: Some(
+                                            Name(
+                                                "_is_null",
+                                            ),
+                                        ),
+                                    },
+                                },
+                                field_config: BooleanExpressionGraphqlFieldConfig {
+                                    where_field_name: Name(
+                                        "where",
+                                    ),
+                                    logical_operators: LogicalOperatorsGraphqlConfig {
+                                        and_operator_name: Name(
+                                            "_and",
+                                        ),
+                                        or_operator_name: Name(
+                                            "_or",
+                                        ),
+                                        not_operator_name: Name(
+                                            "_not",
+                                        ),
+                                    },
+                                },
+                            },
+                        ),
+                        fields: ResolvedObjectBooleanExpressionTypeFields {
+                            object_fields: {
+                                FieldName(
+                                    Identifier(
+                                        "location",
+                                    ),
+                                ): ObjectComparisonExpressionInfo {
+                                    boolean_expression_type_name: Qualified {
+                                        subgraph: SubgraphName(
+                                            "default",
+                                        ),
+                                        name: CustomTypeName(
+                                            Identifier(
+                                                "location_bool_exp",
+                                            ),
+                                        ),
+                                    },
+                                    underlying_object_type_name: Qualified {
+                                        subgraph: SubgraphName(
+                                            "default",
+                                        ),
+                                        name: CustomTypeName(
+                                            Identifier(
+                                                "location",
+                                            ),
+                                        ),
+                                    },
+                                    field_kind: Object,
+                                },
+                            },
+                            scalar_fields: {
+                                FieldName(
+                                    Identifier(
+                                        "id",
+                                    ),
+                                ): ComparisonExpressionInfo {
+                                    boolean_expression_type_name: FromBooleanExpressionType(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "default",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "int_bool_exp",
+                                                ),
+                                            ),
+                                        },
+                                    ),
+                                    operators: {},
+                                    operator_mapping: {
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "default",
+                                            ),
+                                            name: DataConnectorName(
+                                                Identifier(
+                                                    "custom",
+                                                ),
+                                            ),
+                                        }: OperatorMapping(
+                                            {},
+                                        ),
+                                    },
+                                    logical_operators: Exclude,
+                                    field_kind: Scalar,
+                                },
+                                FieldName(
+                                    Identifier(
+                                        "name",
+                                    ),
+                                ): ComparisonExpressionInfo {
+                                    boolean_expression_type_name: FromBooleanExpressionType(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "default",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "string_bool_exp",
+                                                ),
+                                            ),
+                                        },
+                                    ),
+                                    operators: {},
+                                    operator_mapping: {
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "default",
+                                            ),
+                                            name: DataConnectorName(
+                                                Identifier(
+                                                    "custom",
+                                                ),
+                                            ),
+                                        }: OperatorMapping(
+                                            {},
+                                        ),
+                                    },
+                                    logical_operators: Exclude,
+                                    field_kind: Scalar,
+                                },
+                            },
+                            relationship_fields: {},
+                        },
+                        include_logical_operators: Yes,
+                        data_connector: None,
+                    },
+                ),
                 graphql_api: ModelGraphQlApi {
                     arguments_input_config: None,
                     select_uniques: [],
@@ -1511,12 +2432,11 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
             },
         },
         commands: {},
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {
                 Qualified {
                     subgraph: SubgraphName(
-                        "__unknown_namespace",
+                        "default",
                     ),
                     name: CustomTypeName(
                         Identifier(
@@ -1526,7 +2446,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                 }: ResolvedObjectBooleanExpressionType {
                     name: Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: CustomTypeName(
                             Identifier(
@@ -1536,7 +2456,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     },
                     object_type: Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: CustomTypeName(
                             Identifier(
@@ -1623,9 +2543,9 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     "location",
                                 ),
                             ): ObjectComparisonExpressionInfo {
-                                object_type_name: Qualified {
+                                boolean_expression_type_name: Qualified {
                                     subgraph: SubgraphName(
-                                        "__unknown_namespace",
+                                        "default",
                                     ),
                                     name: CustomTypeName(
                                         Identifier(
@@ -1635,7 +2555,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                 },
                                 underlying_object_type_name: Qualified {
                                     subgraph: SubgraphName(
-                                        "__unknown_namespace",
+                                        "default",
                                     ),
                                     name: CustomTypeName(
                                         Identifier(
@@ -1652,10 +2572,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     "id",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
-                                            "__unknown_namespace",
+                                            "default",
                                         ),
                                         name: CustomTypeName(
                                             Identifier(
@@ -1668,7 +2588,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                 operator_mapping: {
                                     Qualified {
                                         subgraph: SubgraphName(
-                                            "__unknown_namespace",
+                                            "default",
                                         ),
                                         name: DataConnectorName(
                                             Identifier(
@@ -1680,16 +2600,17 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "name",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
-                                            "__unknown_namespace",
+                                            "default",
                                         ),
                                         name: CustomTypeName(
                                             Identifier(
@@ -1702,7 +2623,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                 operator_mapping: {
                                     Qualified {
                                         subgraph: SubgraphName(
-                                            "__unknown_namespace",
+                                            "default",
                                         ),
                                         name: DataConnectorName(
                                             Identifier(
@@ -1714,15 +2635,17 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                         },
                         relationship_fields: {},
                     },
                     include_logical_operators: Yes,
+                    data_connector: None,
                 },
                 Qualified {
                     subgraph: SubgraphName(
-                        "__unknown_namespace",
+                        "default",
                     ),
                     name: CustomTypeName(
                         Identifier(
@@ -1732,7 +2655,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                 }: ResolvedObjectBooleanExpressionType {
                     name: Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: CustomTypeName(
                             Identifier(
@@ -1742,7 +2665,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     },
                     object_type: Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: CustomTypeName(
                             Identifier(
@@ -1818,10 +2741,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     "city",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
-                                            "__unknown_namespace",
+                                            "default",
                                         ),
                                         name: CustomTypeName(
                                             Identifier(
@@ -1834,7 +2757,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                 operator_mapping: {
                                     Qualified {
                                         subgraph: SubgraphName(
-                                            "__unknown_namespace",
+                                            "default",
                                         ),
                                         name: DataConnectorName(
                                             Identifier(
@@ -1846,16 +2769,17 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "country",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
-                                            "__unknown_namespace",
+                                            "default",
                                         ),
                                         name: CustomTypeName(
                                             Identifier(
@@ -1868,7 +2792,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                 operator_mapping: {
                                     Qualified {
                                         subgraph: SubgraphName(
-                                            "__unknown_namespace",
+                                            "default",
                                         ),
                                         name: DataConnectorName(
                                             Identifier(
@@ -1880,27 +2804,20 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                         },
                         relationship_fields: {},
                     },
                     include_logical_operators: Yes,
+                    data_connector: None,
                 },
             },
             scalars: {
-                Qualified {
-                    subgraph: SubgraphName(
-                        "__unknown_namespace",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "int_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: CustomTypeName(
                             Identifier(
@@ -1908,6 +2825,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         Int,
                     ),
@@ -1915,7 +2833,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     data_connector_operator_mappings: {
                         Qualified {
                             subgraph: SubgraphName(
-                                "__unknown_namespace",
+                                "default",
                             ),
                             name: DataConnectorName(
                                 Identifier(
@@ -1950,19 +2868,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                         ),
                     },
                 },
-                Qualified {
-                    subgraph: SubgraphName(
-                        "__unknown_namespace",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "string_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: CustomTypeName(
                             Identifier(
@@ -1970,6 +2879,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         String,
                     ),
@@ -1977,7 +2887,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     data_connector_operator_mappings: {
                         Qualified {
                             subgraph: SubgraphName(
-                                "__unknown_namespace",
+                                "default",
                             ),
                             name: DataConnectorName(
                                 Identifier(
@@ -2020,7 +2930,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
             objects: {
                 Qualified {
                     subgraph: SubgraphName(
-                        "__unknown_namespace",
+                        "default",
                     ),
                     name: FromModel(
                         ModelName(
@@ -2032,7 +2942,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                 }: ObjectOrderByExpression {
                     identifier: Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: FromModel(
                             ModelName(
@@ -2044,7 +2954,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     },
                     ordered_type: Qualified {
                         subgraph: SubgraphName(
-                            "__unknown_namespace",
+                            "default",
                         ),
                         name: CustomTypeName(
                             Identifier(
@@ -2055,38 +2965,13 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     orderable_fields: {
                         FieldName(
                             Identifier(
-                                "departments",
-                            ),
-                        ): Scalar(
-                            OrderableScalarField {
-                                order_by_expression_identifier: Qualified {
-                                    subgraph: SubgraphName(
-                                        "__unknown_namespace",
-                                    ),
-                                    name: FromModelField(
-                                        ModelName(
-                                            Identifier(
-                                                "institutions",
-                                            ),
-                                        ),
-                                        FieldName(
-                                            Identifier(
-                                                "departments",
-                                            ),
-                                        ),
-                                    ),
-                                },
-                            },
-                        ),
-                        FieldName(
-                            Identifier(
                                 "id",
                             ),
                         ): Scalar(
                             OrderableScalarField {
                                 order_by_expression_identifier: Qualified {
                                     subgraph: SubgraphName(
-                                        "__unknown_namespace",
+                                        "default",
                                     ),
                                     name: FromModelField(
                                         ModelName(
@@ -2105,38 +2990,13 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                         ),
                         FieldName(
                             Identifier(
-                                "location",
-                            ),
-                        ): Scalar(
-                            OrderableScalarField {
-                                order_by_expression_identifier: Qualified {
-                                    subgraph: SubgraphName(
-                                        "__unknown_namespace",
-                                    ),
-                                    name: FromModelField(
-                                        ModelName(
-                                            Identifier(
-                                                "institutions",
-                                            ),
-                                        ),
-                                        FieldName(
-                                            Identifier(
-                                                "location",
-                                            ),
-                                        ),
-                                    ),
-                                },
-                            },
-                        ),
-                        FieldName(
-                            Identifier(
                                 "name",
                             ),
                         ): Scalar(
                             OrderableScalarField {
                                 order_by_expression_identifier: Qualified {
                                     subgraph: SubgraphName(
-                                        "__unknown_namespace",
+                                        "default",
                                     ),
                                     name: FromModelField(
                                         ModelName(
@@ -2153,36 +3013,11 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                 },
                             },
                         ),
-                        FieldName(
-                            Identifier(
-                                "staff",
-                            ),
-                        ): Scalar(
-                            OrderableScalarField {
-                                order_by_expression_identifier: Qualified {
-                                    subgraph: SubgraphName(
-                                        "__unknown_namespace",
-                                    ),
-                                    name: FromModelField(
-                                        ModelName(
-                                            Identifier(
-                                                "institutions",
-                                            ),
-                                        ),
-                                        FieldName(
-                                            Identifier(
-                                                "staff",
-                                            ),
-                                        ),
-                                    ),
-                                },
-                            },
-                        ),
                     },
-                    orderable_relationships: ModelV1AllowAll,
+                    orderable_relationships: {},
                     graphql: None,
                     description: Some(
-                        "OrderByExpression for Model institutions (in subgraph __unknown_namespace)",
+                        "OrderByExpression for Model institutions (in subgraph default)",
                     ),
                 },
             },
@@ -2224,6 +3059,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {
             Role(
@@ -2236,7 +3072,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
             LogicalOperatorsUnavailable {
                 type_name: Qualified {
                     subgraph: SubgraphName(
-                        "__unknown_namespace",
+                        "default",
                     ),
                     name: CustomTypeName(
                         Identifier(
@@ -2250,7 +3086,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
             LogicalOperatorsUnavailable {
                 type_name: Qualified {
                     subgraph: SubgraphName(
-                        "__unknown_namespace",
+                        "default",
                     ),
                     name: CustomTypeName(
                         Identifier(

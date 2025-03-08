@@ -9,12 +9,13 @@ use open_dds::{
         Alias, ObjectSubSelection, RelationshipSelection,
         RelationshipTarget as OpenDdRelationshipTarget,
     },
-    relationships::{RelationshipName, RelationshipType},
+    relationships::RelationshipName,
     types::{CustomTypeName, FieldName},
 };
 use serde::{Deserialize, Serialize};
 mod filter;
 mod include;
+use super::helpers::get_object_type;
 use crate::catalog::{Model, ObjectType, RelationshipTarget, Type};
 use metadata_resolve::{unwrap_custom_type_name, Qualified};
 use std::collections::BTreeMap;
@@ -29,13 +30,9 @@ pub enum ParseError {
     CannotFindObjectType(Qualified<CustomTypeName>),
 }
 
-fn get_object_type<'a>(
-    object_types: &'a BTreeMap<Qualified<CustomTypeName>, ObjectType>,
-    object_type_name: &Qualified<CustomTypeName>,
-) -> Result<&'a ObjectType, ParseError> {
-    object_types
-        .get(object_type_name)
-        .ok_or_else(|| ParseError::CannotFindObjectType(object_type_name.clone()))
+pub struct QueryIR {
+    pub query_request: open_dds::query::QueryRequest,
+    pub root_type_name: Qualified<CustomTypeName>,
 }
 
 pub fn create_query_ir(
@@ -45,7 +42,7 @@ pub fn create_query_ir(
     uri: &Uri,
     relationship_tree: &mut RelationshipTree,
     query_string: &jsonapi_library::query::Query,
-) -> Result<open_dds::query::QueryRequest, RequestError> {
+) -> Result<QueryIR, RequestError> {
     // get model info from parsing URI
     let ModelInfo {
         subgraph,
@@ -122,9 +119,12 @@ pub fn create_query_ir(
         open_dds::query::Alias::new(identifier!("jsonapi_model_query")),
         open_dds::query::Query::Model(model_selection),
     )]);
-    Ok(open_dds::query::QueryRequest::V1(
-        open_dds::query::QueryRequestV1 { queries },
-    ))
+    Ok(QueryIR {
+        query_request: open_dds::query::QueryRequest::V1(open_dds::query::QueryRequestV1 {
+            queries,
+        }),
+        root_type_name: model.data_type.clone(),
+    })
 }
 
 fn resolve_field_selection(
@@ -260,19 +260,19 @@ fn resolve_include_relationships(
             };
             let field_name_ident = Identifier::new(relationship)
                 .map_err(|e| RequestError::BadRequest(format!("Invalid relationship name: {e}")))?;
+
+            let mut is_command_relationship = false;
             let (target_type, relationship_type) = match &target {
                 RelationshipTarget::Model {
                     object_type,
                     relationship_type,
                 } => (object_type, relationship_type.clone()),
-                RelationshipTarget::ModelAggregate(model_type) => {
-                    (model_type, RelationshipType::Object)
-                }
                 RelationshipTarget::Command { type_reference } => {
+                    is_command_relationship = true;
                     match unwrap_custom_type_name(type_reference) {
                         Some(object_type) => (
                             object_type,
-                            crate::type_reference_to_relationship_type(type_reference),
+                            crate::helpers::type_reference_to_relationship_type(type_reference),
                         ),
                         None => {
                             return Err(RequestError::BadRequest(
@@ -294,6 +294,7 @@ fn resolve_include_relationships(
             let relationship_node = RelationshipNode {
                 object_type: target_type.clone(),
                 relationship_type: relationship_type.clone(),
+                is_command_relationship,
                 nested: nested_relationships,
             };
             relationship_tree

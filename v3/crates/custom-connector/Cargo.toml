@@ -19,6 +19,8 @@ anyhow = { workspace = true }
 axum = { workspace = true }
 env_logger = { workspace = true }
 indexmap = { workspace = true }
+iso8601 = { workspace = true }
+itertools = { workspace = true }
 ndc-models = { workspace = true }
 regex = { workspace = true }
 serde_json = { workspace = true }

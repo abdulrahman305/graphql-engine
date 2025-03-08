@@ -1,8 +1,8 @@
 //! IR of the query root type
 
-use std::sync::Arc;
+use std::collections::BTreeMap;
 
-use hasura_authn_core::{Session, SessionVariables};
+use hasura_authn_core::Session;
 use indexmap::IndexMap;
 use lang_graphql as gql;
 use lang_graphql::ast::common as ast;
@@ -14,8 +14,8 @@ use std::collections::HashMap;
 use super::commands;
 use super::error;
 use super::root_field;
+use crate::GraphqlRequestPipeline;
 use graphql_schema::ApolloFederationRootFields;
-use graphql_schema::CommandSourceDetail;
 use graphql_schema::EntityFieldTypeNameMapping;
 use graphql_schema::RootFieldKind;
 use graphql_schema::TypeKind;
@@ -30,7 +30,9 @@ pub mod select_one;
 
 /// Generates IR for the selection set of type 'query root'
 pub fn generate_ir<'n, 's>(
+    request_pipeline: GraphqlRequestPipeline,
     schema: &'s gql::schema::Schema<GDS>,
+    metadata: &'s metadata_resolve::Metadata,
     session: &Session,
     request_headers: &reqwest::header::HeaderMap,
     selection_set: &'s gql::normalized_ast::SelectionSet<'s, GDS>,
@@ -60,13 +62,21 @@ pub fn generate_ir<'n, 's>(
                     OutputAnnotation::RootField(root_field) => match root_field {
                         RootFieldAnnotation::Model {
                             data_type,
-                            source,
                             kind,
                             name: model_name,
                         } => {
+                            let model = metadata.models.get(model_name).ok_or_else(|| {
+                                error::InternalEngineError::InternalGeneric {
+                                    description: format!("Model {model_name} not found"),
+                                }
+                            })?;
                             let ir = generate_model_rootfield_ir(
+                                request_pipeline,
                                 &type_name,
-                                source.as_ref(),
+                                model,
+                                &metadata.models,
+                                &metadata.commands,
+                                &metadata.object_types,
                                 data_type,
                                 kind,
                                 field,
@@ -79,30 +89,42 @@ pub fn generate_ir<'n, 's>(
                         }
                         RootFieldAnnotation::FunctionCommand {
                             name,
-                            source,
                             function_name,
                             result_type,
                             result_base_type_kind,
                         } => {
+                            let command = metadata.commands.get(name).ok_or_else(|| {
+                                error::InternalEngineError::InternalGeneric {
+                                    description: format!("Command {name} not found"),
+                                }
+                            })?;
                             let ir = generate_command_rootfield_ir(
+                                request_pipeline,
                                 name,
                                 &type_name,
                                 function_name.as_ref(),
-                                source.as_ref(),
+                                command,
                                 result_type,
                                 result_base_type_kind,
                                 field,
                                 field_call,
-                                &session.variables,
+                                &metadata.models,
+                                &metadata.commands,
+                                &metadata.object_types,
+                                session,
                                 request_headers,
                             )?;
                             Ok(ir)
                         }
                         RootFieldAnnotation::RelayNode { typename_mappings } => {
                             let ir = generate_nodefield_ir(
+                                request_pipeline,
                                 field,
                                 field_call,
                                 typename_mappings,
+                                &metadata.models,
+                                &metadata.commands,
+                                &metadata.object_types,
                                 session,
                                 request_headers,
                             )?;
@@ -112,9 +134,13 @@ pub fn generate_ir<'n, 's>(
                             ApolloFederationRootFields::Entities { typename_mappings },
                         ) => {
                             let ir = generate_entities_ir(
+                                request_pipeline,
                                 field,
                                 field_call,
                                 typename_mappings,
+                                &metadata.models,
+                                &metadata.commands,
+                                &metadata.object_types,
                                 session,
                                 request_headers,
                             )?;
@@ -176,8 +202,21 @@ fn generate_type_field_ir<'n, 's>(
 
 #[allow(clippy::too_many_arguments)]
 pub fn generate_model_rootfield_ir<'n, 's>(
+    request_pipeline: GraphqlRequestPipeline,
     type_name: &ast::TypeName,
-    source: Option<&'s Arc<metadata_resolve::ModelSource>>,
+    model: &'s metadata_resolve::ModelWithPermissions,
+    models: &'s IndexMap<
+        metadata_resolve::Qualified<open_dds::models::ModelName>,
+        metadata_resolve::ModelWithPermissions,
+    >,
+    commands: &'s IndexMap<
+        metadata_resolve::Qualified<open_dds::commands::CommandName>,
+        metadata_resolve::CommandWithPermissions,
+    >,
+    object_types: &'s BTreeMap<
+        metadata_resolve::Qualified<open_dds::types::CustomTypeName>,
+        metadata_resolve::ObjectTypeWithRelationships,
+    >,
     data_type: &metadata_resolve::Qualified<CustomTypeName>,
     kind: &RootFieldKind,
     field: &'n gql::normalized_ast::Field<'s, GDS>,
@@ -186,22 +225,26 @@ pub fn generate_model_rootfield_ir<'n, 's>(
     request_headers: &reqwest::header::HeaderMap,
     model_name: &'s metadata_resolve::Qualified<models::ModelName>,
 ) -> Result<root_field::QueryRootField<'n, 's>, error::Error> {
-    let source =
-        source
-            .as_ref()
-            .ok_or_else(|| error::InternalDeveloperError::NoSourceDataConnector {
-                type_name: type_name.clone(),
-                field_name: field_call.name.clone(),
-            })?;
+    let source = model.model.source.as_deref().ok_or_else(|| {
+        error::InternalDeveloperError::NoSourceDataConnector {
+            type_name: type_name.clone(),
+            field_name: field_call.name.clone(),
+        }
+    })?;
     let ir = match kind {
         RootFieldKind::SelectOne => root_field::QueryRootField::ModelSelectOne {
             selection_set: &field.selection_set,
             ir: select_one::select_one_generate_ir(
+                request_pipeline,
                 field,
                 field_call,
                 data_type,
+                model,
                 source,
-                &session.variables,
+                models,
+                commands,
+                object_types,
+                session,
                 request_headers,
                 model_name,
             )?,
@@ -209,11 +252,16 @@ pub fn generate_model_rootfield_ir<'n, 's>(
         RootFieldKind::SelectMany => root_field::QueryRootField::ModelSelectMany {
             selection_set: &field.selection_set,
             ir: select_many::select_many_generate_ir(
+                request_pipeline,
                 field,
                 field_call,
                 data_type,
+                model,
                 source,
-                &session.variables,
+                models,
+                commands,
+                object_types,
+                session,
                 request_headers,
                 model_name,
             )?,
@@ -221,11 +269,14 @@ pub fn generate_model_rootfield_ir<'n, 's>(
         RootFieldKind::SelectAggregate => root_field::QueryRootField::ModelSelectAggregate {
             selection_set: &field.selection_set,
             ir: select_aggregate::select_aggregate_generate_ir(
+                request_pipeline,
                 field,
                 field_call,
                 data_type,
+                model,
                 source,
-                &session.variables,
+                object_types,
+                session,
                 request_headers,
                 model_name,
             )?,
@@ -235,25 +286,37 @@ pub fn generate_model_rootfield_ir<'n, 's>(
 }
 
 fn generate_command_rootfield_ir<'n, 's>(
+    request_pipeline: GraphqlRequestPipeline,
     name: &'s metadata_resolve::Qualified<CommandName>,
     type_name: &ast::TypeName,
     function_name: Option<&'s open_dds::commands::FunctionName>,
-    source: Option<&'s CommandSourceDetail>,
+    command: &'s metadata_resolve::CommandWithPermissions,
     result_type: &'s metadata_resolve::QualifiedTypeReference,
     result_base_type_kind: &'s TypeKind,
     field: &'n gql::normalized_ast::Field<'s, GDS>,
     field_call: &'s gql::normalized_ast::FieldCall<'s, GDS>,
-    session_variables: &SessionVariables,
+    models: &'s IndexMap<
+        metadata_resolve::Qualified<open_dds::models::ModelName>,
+        metadata_resolve::ModelWithPermissions,
+    >,
+    commands: &'s IndexMap<
+        metadata_resolve::Qualified<open_dds::commands::CommandName>,
+        metadata_resolve::CommandWithPermissions,
+    >,
+    object_types: &'s BTreeMap<
+        metadata_resolve::Qualified<open_dds::types::CustomTypeName>,
+        metadata_resolve::ObjectTypeWithRelationships,
+    >,
+    session: &Session,
     request_headers: &reqwest::header::HeaderMap,
 ) -> Result<root_field::QueryRootField<'n, 's>, error::Error> {
     let mut usage_counts = UsagesCounts::new();
-    let source =
-        source
-            .as_ref()
-            .ok_or_else(|| error::InternalDeveloperError::NoSourceDataConnector {
-                type_name: type_name.clone(),
-                field_name: field_call.name.clone(),
-            })?;
+    let source = command.command.source.as_deref().ok_or_else(|| {
+        error::InternalDeveloperError::NoSourceDataConnector {
+            type_name: type_name.clone(),
+            field_name: field_call.name.clone(),
+        }
+    })?;
 
     let function_name = function_name.as_ref().ok_or_else(|| {
         error::InternalDeveloperError::NoFunctionOrProcedure {
@@ -264,52 +327,106 @@ fn generate_command_rootfield_ir<'n, 's>(
 
     let ir = root_field::QueryRootField::FunctionBasedCommand {
         selection_set: &field.selection_set,
-        ir: commands::generate_function_based_command(
-            name,
-            function_name,
-            field,
-            field_call,
-            result_type,
-            *result_base_type_kind,
-            source,
-            session_variables,
-            request_headers,
-            &mut usage_counts,
-        )?,
+        ir: match request_pipeline {
+            GraphqlRequestPipeline::Old => commands::generate_function_based_command(
+                name,
+                function_name,
+                field,
+                field_call,
+                result_type,
+                *result_base_type_kind,
+                command,
+                source,
+                models,
+                commands,
+                object_types,
+                session,
+                request_headers,
+                &mut usage_counts,
+            )?,
+            GraphqlRequestPipeline::OpenDd => commands::generate_function_based_command_open_dd(
+                models,
+                object_types,
+                name,
+                function_name,
+                field,
+                field_call,
+                result_type,
+                *result_base_type_kind,
+                source,
+                &session.variables,
+                request_headers,
+                &mut usage_counts,
+            )?,
+        },
     };
     Ok(ir)
 }
 
 fn generate_nodefield_ir<'n, 's>(
+    request_pipeline: GraphqlRequestPipeline,
     field: &'n gql::normalized_ast::Field<'s, GDS>,
     field_call: &'n gql::normalized_ast::FieldCall<'s, GDS>,
     typename_mappings: &'s HashMap<ast::TypeName, NodeFieldTypeNameMapping>,
+    models: &'s IndexMap<
+        metadata_resolve::Qualified<open_dds::models::ModelName>,
+        metadata_resolve::ModelWithPermissions,
+    >,
+    commands: &'s IndexMap<
+        metadata_resolve::Qualified<open_dds::commands::CommandName>,
+        metadata_resolve::CommandWithPermissions,
+    >,
+    object_types: &'s BTreeMap<
+        metadata_resolve::Qualified<open_dds::types::CustomTypeName>,
+        metadata_resolve::ObjectTypeWithRelationships,
+    >,
     session: &Session,
     request_headers: &reqwest::header::HeaderMap,
 ) -> Result<root_field::QueryRootField<'n, 's>, error::Error> {
     let ir = root_field::QueryRootField::NodeSelect(node_field::relay_node_ir(
+        request_pipeline,
         field,
         field_call,
         typename_mappings,
-        &session.variables,
+        models,
+        commands,
+        object_types,
+        session,
         request_headers,
     )?);
     Ok(ir)
 }
 
 fn generate_entities_ir<'n, 's>(
+    request_pipeline: GraphqlRequestPipeline,
     field: &'n gql::normalized_ast::Field<'s, GDS>,
     field_call: &'n gql::normalized_ast::FieldCall<'s, GDS>,
     typename_mappings: &'s HashMap<ast::TypeName, EntityFieldTypeNameMapping>,
+    models: &'s IndexMap<
+        metadata_resolve::Qualified<open_dds::models::ModelName>,
+        metadata_resolve::ModelWithPermissions,
+    >,
+    commands: &'s IndexMap<
+        metadata_resolve::Qualified<open_dds::commands::CommandName>,
+        metadata_resolve::CommandWithPermissions,
+    >,
+    object_types: &'s BTreeMap<
+        metadata_resolve::Qualified<open_dds::types::CustomTypeName>,
+        metadata_resolve::ObjectTypeWithRelationships,
+    >,
     session: &Session,
     request_headers: &reqwest::header::HeaderMap,
 ) -> Result<root_field::QueryRootField<'n, 's>, error::Error> {
     let ir = root_field::QueryRootField::ApolloFederation(
         root_field::ApolloFederationRootFields::EntitiesSelect(apollo_federation::entities_ir(
+            request_pipeline,
             field,
             field_call,
             typename_mappings,
-            &session.variables,
+            models,
+            commands,
+            object_types,
+            session,
             request_headers,
         )?),
     );

@@ -1,3 +1,4 @@
+use core::{convert::From, iter::IntoIterator};
 use std::collections::BTreeMap;
 
 use indexmap::IndexMap;
@@ -96,7 +97,7 @@ fn make_query(query_node: QueryNodeNew) -> Result<ndc_models_v02::Query, FieldEr
         predicate: ndc_predicate,
         aggregates: query_node.aggregates.map(make_aggregates),
         fields: ndc_fields,
-        groups: None,
+        groups: query_node.group_by.map(make_group_by),
     })
 }
 
@@ -246,6 +247,26 @@ pub fn make_expression(
 
             Ok(ndc_models_v02::Expression::Exists {
                 in_collection: ndc_models_v02::ExistsInCollection::NestedCollection {
+                    column_name: field_name,
+                    field_path: field_path
+                        .into_iter()
+                        .map(|f| ndc_models_v02::FieldName::new(f.into_inner()))
+                        .collect(),
+                    arguments: BTreeMap::new(),
+                },
+                predicate: Some(Box::new(ndc_expression)),
+            })
+        }
+        ResolvedFilterExpression::LocalNestedScalarArray {
+            column,
+            field_path,
+            predicate,
+        } => {
+            let ndc_expression = make_expression(*predicate)?;
+            let field_name = ndc_models_v02::FieldName::new(column.into_inner());
+
+            Ok(ndc_models_v02::Expression::Exists {
+                in_collection: ndc_models_v02::ExistsInCollection::NestedScalarCollection {
                     column_name: field_name,
                     field_path: field_path
                         .into_iter()
@@ -435,6 +456,51 @@ fn make_relationship(relationship: Relationship) -> ndc_models_v02::Relationship
             relationship.target_collection.into_inner(),
         ),
         arguments: make_relationship_arguments(relationship.arguments),
+    }
+}
+
+fn make_group_by(grouping: plan_types::Grouping) -> ndc_models_v02::Grouping {
+    let aggregates = make_aggregates(plan_types::AggregateSelectionSet {
+        fields: grouping.aggregates,
+    });
+    let dimensions = grouping
+        .dimensions
+        .into_iter()
+        .map(|(_dim_name, dimension)| match dimension {
+            plan_types::Dimension::Column {
+                column_path,
+                extraction,
+            } => {
+                let column_name = ndc_models_v02::FieldName::from(column_path.head.as_str());
+                let field_path = column_path.tail();
+                let field_path = if field_path.is_empty() {
+                    None
+                } else {
+                    Some(
+                        field_path
+                            .iter()
+                            .map(|name| ndc_models_v02::FieldName::from(name.as_str()))
+                            .collect(),
+                    )
+                };
+                ndc_models_v02::Dimension::Column {
+                    arguments: BTreeMap::new(),
+                    column_name,
+                    path: vec![],
+                    field_path,
+                    extraction: extraction
+                        .map(|e| ndc_models_v02::ExtractionFunctionName::from(e.as_str())),
+                }
+            }
+        })
+        .collect();
+    ndc_models_v02::Grouping {
+        aggregates,
+        dimensions,
+        limit: None,
+        offset: None,
+        order_by: None,
+        predicate: None,
     }
 }
 

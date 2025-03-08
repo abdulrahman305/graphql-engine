@@ -88,6 +88,7 @@ fn replace_predicates_in_query_node(
             .predicate
             .map(|predicate| replace_predicates_in_filter_expression(predicate, predicates))
             .transpose()?,
+        group_by: query_node.group_by,
     })
 }
 
@@ -248,6 +249,17 @@ fn replace_predicates_in_filter_expression(
                 *predicate, predicates,
             )?),
         },
+        ResolvedFilterExpression::LocalNestedScalarArray {
+            column,
+            field_path,
+            predicate,
+        } => ResolvedFilterExpression::LocalNestedScalarArray {
+            column,
+            field_path,
+            predicate: Box::new(replace_predicates_in_filter_expression(
+                *predicate, predicates,
+            )?),
+        },
         ResolvedFilterExpression::LocalRelationshipComparison {
             field_path,
             relationship,
@@ -318,8 +330,15 @@ pub fn build_source_column_comparisons(
             column_comparisons.push(ResolvedFilterExpression::LocalFieldComparison(
                 plan_types::LocalFieldComparison::BinaryComparison {
                     column: plan_types::ComparisonTarget::Column {
-                        name: source_column.clone(),
-                        field_path: field_path.clone(),
+                        // The column name is the root column
+                        name: field_path.first().unwrap_or(source_column).clone(),
+                        // The field path is the nesting path inside the root column, if any
+                        field_path: field_path
+                            .iter()
+                            .chain([source_column])
+                            .skip(1)
+                            .cloned()
+                            .collect(),
                     },
                     operator: eq_operator.clone(),
                     value: plan_types::ComparisonValue::Scalar {

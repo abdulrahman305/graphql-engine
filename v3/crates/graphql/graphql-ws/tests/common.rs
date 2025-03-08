@@ -1,9 +1,11 @@
+use axum::http::HeaderMap;
 use axum::{extract::State, response::IntoResponse, routing::get};
 use engine_types::{ExposeInternalErrors, HttpContext};
 use futures_util::{SinkExt, StreamExt};
+use graphql_ir::GraphqlRequestPipeline;
 use graphql_ws::Context;
 use graphql_ws::GRAPHQL_WS_PROTOCOL;
-use std::{path::PathBuf, sync::Arc};
+use std::{net, path::PathBuf, sync::Arc};
 use tokio::{net::TcpStream, task::JoinHandle};
 use tokio_tungstenite::{
     connect_async,
@@ -15,7 +17,7 @@ use tokio_tungstenite::{
 static METADATA_PATH: &str = "tests/static/metadata.json";
 
 #[allow(dead_code)]
-static AUTH_CONFIG_PATH: &str = "tests/static/auth_config_v2.json";
+static AUTH_CONFIG_PATH: &str = "tests/static/auth_config_v3.json";
 
 #[allow(dead_code)]
 pub(crate) struct ServerState<M> {
@@ -36,42 +38,58 @@ pub(crate) async fn ws_handler(
     State(state): State<Arc<ServerState<graphql_ws::NoOpWebSocketMetrics>>>,
     ws: axum::extract::ws::WebSocketUpgrade,
 ) -> impl IntoResponse {
-    let context = state.context.clone();
+    let mut context = state.context.clone();
+    context.handshake_headers = Arc::new(headers);
     state
         .ws_server
-        .upgrade_and_handle_websocket(ws, &headers, context)
+        .upgrade_and_handle_websocket("127.0.0.1:8080".parse().unwrap(), ws, context)
         .into_response()
 }
 
 #[allow(dead_code)]
 pub(crate) async fn start_websocket_server() -> TestServer {
-    start_websocket_server_expiry(graphql_ws::ConnectionExpiry::Never).await
+    start_websocket_server_inner(graphql_ws::ConnectionExpiry::Never, HeaderMap::new()).await
 }
 
 #[allow(dead_code)]
 pub(crate) async fn start_websocket_server_expiry(
     expiry: graphql_ws::ConnectionExpiry,
 ) -> TestServer {
+    start_websocket_server_inner(expiry, HeaderMap::new()).await
+}
+
+#[allow(dead_code)]
+pub(crate) async fn start_websocket_server_headers(headers: HeaderMap) -> TestServer {
+    start_websocket_server_inner(graphql_ws::ConnectionExpiry::Never, headers).await
+}
+
+#[allow(dead_code)]
+async fn start_websocket_server_inner(
+    expiry: graphql_ws::ConnectionExpiry,
+    headers: HeaderMap,
+) -> TestServer {
     // Create a TCP listener
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
-
-    // Auth Config
-    let auth_config_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(AUTH_CONFIG_PATH);
-    let raw_auth_config = std::fs::read_to_string(auth_config_path).unwrap();
-    let (auth_config, _auth_warnings) =
-        hasura_authn::resolve_auth_config(&raw_auth_config).unwrap();
 
     // Metadata
     let metadata_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(METADATA_PATH);
     let raw_metadata = std::fs::read_to_string(metadata_path).unwrap();
     let metadata = open_dds::Metadata::from_json_str(&raw_metadata).unwrap();
+    let flags = metadata.get_flags().into_owned();
     let metadata_resolve_configuration = metadata_resolve::configuration::Configuration::default();
     let (resolved_metadata, _warnings) =
         metadata_resolve::resolve(metadata, &metadata_resolve_configuration).unwrap();
 
+    // Auth Config
+    let auth_config_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join(AUTH_CONFIG_PATH);
+    let raw_auth_config = std::fs::read_to_string(auth_config_path).unwrap();
+    let auth_config = hasura_authn::parse_auth_config(&raw_auth_config).unwrap();
+    let (auth_config, _auth_warnings) =
+        hasura_authn::resolve_auth_config(auth_config, &flags).unwrap();
+
     let schema = graphql_schema::GDS {
-        metadata: resolved_metadata.into(),
+        metadata: resolved_metadata.clone().into(),
     }
     .build_schema()
     .unwrap();
@@ -84,16 +102,20 @@ pub(crate) async fn start_websocket_server_expiry(
     let plugin_configs = metadata_resolve::LifecyclePluginConfigs {
         pre_parse_plugins: Vec::new(),
         pre_response_plugins: Vec::new(),
+        pre_route_plugins: Vec::new(),
     };
     let context = Context {
         connection_expiry: expiry,
         http_context,
+        metadata: resolved_metadata.into(),
+        request_pipeline: GraphqlRequestPipeline::Old,
         expose_internal_errors: ExposeInternalErrors::Expose,
         project_id: None,
         schema: Arc::new(schema),
         auth_config: Arc::new(auth_config),
         plugin_configs: Arc::new(plugin_configs),
         metrics: graphql_ws::NoOpWebSocketMetrics,
+        handshake_headers: Arc::new(HeaderMap::new()), // Will be populated in "ws_handler"
     };
 
     let connections = graphql_ws::Connections::new();
@@ -107,9 +129,12 @@ pub(crate) async fn start_websocket_server_expiry(
             .route("/ws", get(ws_handler))
             .with_state(Arc::new(state));
 
-        axum::serve(listener, app.into_make_service())
-            .await
-            .unwrap();
+        axum::serve(
+            listener,
+            app.into_make_service_with_connect_info::<net::SocketAddr>(),
+        )
+        .await
+        .unwrap();
     });
 
     let url = format!("ws://{addr}/ws");
@@ -118,6 +143,7 @@ pub(crate) async fn start_websocket_server_expiry(
         graphql_ws::SEC_WEBSOCKET_PROTOCOL,
         GRAPHQL_WS_PROTOCOL.parse().unwrap(),
     );
+    request.headers_mut().extend(headers);
     let (socket, _response) = connect_async(request)
         .await
         .expect("Failed to connect to WebSocket server");
@@ -244,7 +270,7 @@ pub(crate) fn subscribe_article_by_id(operation_id: &str) -> serde_json::Value {
 }
 
 #[allow(dead_code)]
-pub(crate) async fn graphql_ws_connection_init(
+pub(crate) async fn assert_graphql_ws_connection_init(
     socket: &mut WebSocketStream<MaybeTlsStream<TcpStream>>,
     init_payload: serde_json::Value,
 ) {

@@ -1,9 +1,10 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::BTreeMap, str::FromStr};
 
 use axum::{
     http::{HeaderMap, HeaderName, StatusCode},
     response::IntoResponse,
 };
+use reqwest::header::HeaderValue;
 use serde::Serialize;
 
 use hasura_authn_core::Session;
@@ -29,10 +30,19 @@ pub enum Error {
 
 impl Error {
     pub fn into_graphql_error(self) -> lang_graphql::http::GraphQLError {
+        let is_internal = match &self {
+            Error::ErrorWhileMakingHTTPRequestToTheHook(_, _) | Error::UnexpectedStatusCode(_) => {
+                false
+            }
+            Error::BuildRequestError(_, _)
+            | Error::ReqwestError(_)
+            | Error::PluginRequestParseError(_) => true,
+        };
         lang_graphql::http::GraphQLError {
             message: self.to_string(),
             path: None,
             extensions: None,
+            is_internal,
         }
     }
 }
@@ -66,11 +76,13 @@ impl ErrorResponse {
                 message: format!("User error in pre-parse plugin: {plugin_name}"),
                 path: None,
                 extensions: Some(lang_graphql::http::Extensions { details: error }),
+                is_internal: false,
             },
             Self::InternalError(_error) => lang_graphql::http::GraphQLError {
                 message: format!("Internal error in pre-parse plugin: {plugin_name}"),
                 path: None,
                 extensions: None,
+                is_internal: false,
             },
         }
     }
@@ -131,7 +143,7 @@ pub enum PreExecutePluginResponse {
 #[serde(rename_all = "camelCase")]
 pub struct RawRequestBody {
     pub query: Option<String>,
-    pub variables: Option<HashMap<ast::Name, serde_json::Value>>,
+    pub variables: Option<BTreeMap<ast::Name, serde_json::Value>>,
     pub operation_name: Option<ast::Name>,
 }
 
@@ -143,6 +155,7 @@ pub struct PreExecutePluginRequestBody {
 }
 
 fn build_request(
+    client_address: std::net::SocketAddr,
     http_client: &reqwest::Client,
     config: &LifecyclePreParsePluginHook,
     client_headers: &HeaderMap,
@@ -170,8 +183,14 @@ fn build_request(
                 headers.insert(header_name, header_value.clone());
             }
         }
+
         pre_plugin_headers.extend(headers);
     }
+
+    if let Ok(header_value) = HeaderValue::from_str(&client_address.ip().to_string()) {
+        pre_plugin_headers.insert("X-Forwarded-For", header_value);
+    }
+
     let mut request_builder = http_client
         .post(config.url.value.clone())
         .headers(pre_plugin_headers);
@@ -200,6 +219,7 @@ fn build_request(
 }
 
 pub async fn execute_plugin(
+    client_address: std::net::SocketAddr,
     http_client: &reqwest::Client,
     config: &LifecyclePreParsePluginHook,
     client_headers: &HeaderMap,
@@ -214,9 +234,15 @@ pub async fn execute_plugin(
             SpanVisibility::Internal,
             || {
                 Box::pin(async {
-                    let http_request_builder =
-                        build_request(http_client, config, client_headers, session, raw_request)
-                            .map_err(|err| Error::BuildRequestError(config.name.clone(), err))?;
+                    let http_request_builder = build_request(
+                        client_address,
+                        http_client,
+                        config,
+                        client_headers,
+                        session,
+                        raw_request,
+                    )
+                    .map_err(|err| Error::BuildRequestError(config.name.clone(), err))?;
                     let req = http_request_builder.build().map_err(Error::ReqwestError)?;
                     http_client.execute(req).await.map_err(|e| {
                         Error::ErrorWhileMakingHTTPRequestToTheHook(config.name.clone(), e)
@@ -252,6 +278,7 @@ pub async fn execute_plugin(
 }
 
 pub async fn pre_parse_plugins_handler(
+    client_address: std::net::SocketAddr,
     pre_parse_plugins_config: &nonempty::NonEmpty<LifecyclePreParsePluginHook>,
     http_client: &reqwest::Client,
     session: Session,
@@ -270,6 +297,7 @@ pub async fn pre_parse_plugins_handler(
             || {
                 Box::pin(async {
                     execute_pre_parse_plugins(
+                        client_address,
                         pre_parse_plugins_config,
                         http_client,
                         &session,
@@ -284,7 +312,13 @@ pub async fn pre_parse_plugins_handler(
 
     match result {
         PreExecutePluginResponse::Return(value) => {
-            response = Some(value.into_response());
+            let plugin_response = axum::response::Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "application/json")
+                .body(axum::body::Body::from(value))
+                .unwrap();
+
+            response = Some(plugin_response);
         }
         PreExecutePluginResponse::Continue => {}
         PreExecutePluginResponse::ReturnError { plugin_name, error } => {
@@ -302,6 +336,7 @@ pub async fn pre_parse_plugins_handler(
 /// Execute all the pre-parse plugins in sequence.
 /// If any plugin returns an error, the execution stops and the error is returned.
 pub async fn execute_pre_parse_plugins(
+    client_address: std::net::SocketAddr,
     pre_parse_plugins_config: &nonempty::NonEmpty<LifecyclePreParsePluginHook>,
     http_client: &reqwest::Client,
     session: &Session,
@@ -323,6 +358,7 @@ pub async fn execute_pre_parse_plugins(
                             plugin_config.name.clone(),
                         );
                         let plugin_response = execute_plugin(
+                            client_address,
                             http_client,
                             plugin_config,
                             headers_map,

@@ -1,8 +1,11 @@
 use metadata_resolve::{self, serialize_qualified_btreemap, Qualified};
 use open_dds::{
+    arguments::ArgumentName,
+    commands::{CommandName, FunctionName},
     data_connector::DataConnectorColumnName,
+    models::ModelName,
     relationships::{RelationshipName, RelationshipType},
-    types::CustomTypeName,
+    types::{CustomTypeName, DataConnectorArgumentName},
 };
 use serde::Serialize;
 use std::collections::BTreeMap;
@@ -18,7 +21,8 @@ pub struct LocalModelRelationshipInfo<'s> {
     #[serde(serialize_with = "serialize_qualified_btreemap")]
     pub source_type_mappings:
         &'s BTreeMap<Qualified<CustomTypeName>, metadata_resolve::TypeMapping>,
-    pub target_source: &'s metadata_resolve::ModelTargetSource,
+    pub target_model_name: &'s Qualified<ModelName>,
+    pub target_source: &'s metadata_resolve::ModelSource,
     pub target_type: &'s Qualified<CustomTypeName>,
     pub mappings: &'s Vec<metadata_resolve::RelationshipModelMapping>,
 }
@@ -28,4 +32,16 @@ pub struct RelationshipPathElement<TExpression> {
     pub field_path: Vec<DataConnectorColumnName>,
     pub relationship_name: NdcRelationshipName,
     pub filter_predicate: Option<TExpression>,
+}
+
+#[derive(Debug, Serialize, Clone, PartialEq)]
+pub struct LocalCommandRelationshipInfo<'s> {
+    pub relationship_name: &'s RelationshipName,
+    pub source_type: &'s Qualified<CustomTypeName>,
+    pub source_type_mappings:
+        &'s BTreeMap<Qualified<CustomTypeName>, metadata_resolve::TypeMapping>,
+    pub command_name: &'s Qualified<CommandName>,
+    pub argument_mappings: &'s BTreeMap<ArgumentName, DataConnectorArgumentName>,
+    pub function_name: &'s FunctionName,
+    pub mappings: &'s Vec<metadata_resolve::RelationshipCommandMapping>,
 }

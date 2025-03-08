@@ -313,16 +313,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -370,6 +380,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                         "ts_match_tt",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -394,16 +437,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -451,6 +504,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                         "ts_match_tt",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -475,16 +561,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -532,6 +628,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                         "ts_match_tt",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -556,16 +685,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -613,6 +752,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                         "ts_match_tt",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -637,16 +809,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -696,6 +878,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                 ],
                                             },
                                         ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
                                         argument_mappings: {},
                                     },
                                     FieldName(
@@ -716,16 +931,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -743,6 +968,72 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                         "_neq",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_and",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_or",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_xor",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "sum",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "variance",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -765,16 +1056,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -792,6 +1093,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                         "_neq",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -814,16 +1148,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -841,6 +1185,72 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                         "_neq",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_and",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_or",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_xor",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "sum",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "variance",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -863,16 +1273,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [
+                                                ),
+                                                in_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_in",
                                                     ),
-                                                ],
+                                                ),
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -890,6 +1310,63 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                         "_neq",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "sum",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "variance",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -961,8 +1438,68 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                 "mypg",
                             ),
                         ),
-                    }: JSON,
+                    }: Int64,
                 },
+            },
+            Qualified {
+                subgraph: SubgraphName(
+                    "default",
+                ),
+                name: CustomTypeName(
+                    Identifier(
+                        "Numeric",
+                    ),
+                ),
+            }: ScalarTypeRepresentation {
+                graphql_type_name: Some(
+                    TypeName(
+                        Name(
+                            "App_Numeric",
+                        ),
+                    ),
+                ),
+                description: None,
+                representations: {},
+            },
+            Qualified {
+                subgraph: SubgraphName(
+                    "default",
+                ),
+                name: CustomTypeName(
+                    Identifier(
+                        "Timestamp",
+                    ),
+                ),
+            }: ScalarTypeRepresentation {
+                graphql_type_name: Some(
+                    TypeName(
+                        Name(
+                            "App_Timestamp",
+                        ),
+                    ),
+                ),
+                description: None,
+                representations: {},
+            },
+            Qualified {
+                subgraph: SubgraphName(
+                    "default",
+                ),
+                name: CustomTypeName(
+                    Identifier(
+                        "Varchar",
+                    ),
+                ),
+            }: ScalarTypeRepresentation {
+                graphql_type_name: Some(
+                    TypeName(
+                        Name(
+                            "App_Varchar",
+                        ),
+                    ),
+                ),
+                description: None,
+                representations: {},
             },
         },
         models: {
@@ -975,7 +1512,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                         "Invoice",
                     ),
                 ),
-            }: ModelWithArgumentPresets {
+            }: ModelWithPermissions {
                 model: Model {
                     path: JSONPath(
                         [
@@ -1013,6 +1550,28 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                             ),
                         ),
                     },
+                    data_type_path: JSONPath(
+                        [
+                            Key(
+                                "subgraphs",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "objects",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "definition",
+                            ),
+                            Key(
+                                "objectType",
+                            ),
+                        ],
+                    ),
                     type_fields: {
                         FieldName(
                             Identifier(
@@ -1311,27 +1870,29 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                 ),
                                 response_config: None,
                                 capabilities: DataConnectorCapabilities {
-                                    supported_ndc_version: V01,
+                                    supported_ndc_version: V02,
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: true,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: false,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: Some(
+                                                DataConnectorScalarType(
+                                                    "int8",
+                                                ),
+                                            ),
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: true,
                                     supports_relationships: Some(
                                         DataConnectorRelationshipCapabilities {
                                             supports_relation_comparisons: true,
-                                            supports_nested_relationships: Some(
-                                                DataConnectorNestedRelationshipCapabilities {
-                                                    supports_nested_array_selection: true,
-                                                    supports_nested_in_filtering: false,
-                                                    supports_nested_in_ordering: false,
-                                                },
-                                            ),
+                                            supports_nested_relationships: None,
                                         },
                                     ),
                                 },
@@ -1377,16 +1938,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1434,6 +2005,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                             "ts_match_tt",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1458,16 +2062,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1515,6 +2129,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                             "ts_match_tt",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1539,16 +2186,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1596,6 +2253,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                             "ts_match_tt",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1620,16 +2310,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1677,6 +2377,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                             "ts_match_tt",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1701,16 +2434,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1760,6 +2503,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                     ],
                                                 },
                                             ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
                                             argument_mappings: {},
                                         },
                                         FieldName(
@@ -1780,16 +2556,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1807,6 +2593,72 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                             "_neq",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "avg",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_and",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_or",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_xor",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "sum",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "variance",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1829,16 +2681,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1856,6 +2718,39 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                             "_neq",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1878,16 +2773,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1905,6 +2810,72 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                             "_neq",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "avg",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_and",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_or",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_xor",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "sum",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "variance",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1927,16 +2898,26 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [
+                                                    ),
+                                                    in_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_in",
                                                         ),
-                                                    ],
+                                                    ),
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -1956,6 +2937,63 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                                                     ],
                                                 },
                                             ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "avg",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "sum",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "variance",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
                                             argument_mappings: {},
                                         },
                                     },
@@ -1968,20 +3006,6 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                     ),
                     global_id_source: None,
                     apollo_federation_key_source: None,
-                    order_by_expression: Some(
-                        Qualified {
-                            subgraph: SubgraphName(
-                                "default",
-                            ),
-                            name: FromModel(
-                                ModelName(
-                                    Identifier(
-                                        "Invoice",
-                                    ),
-                                ),
-                            ),
-                        },
-                    ),
                     aggregate_expression: Some(
                         Qualified {
                             subgraph: SubgraphName(
@@ -2045,9 +3069,103 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                             },
                         ),
                         description: None,
+                        order_by: ModelV1 {
+                            graphql_type_name: None,
+                            orderable_fields: [
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "billingAddress",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "billingCity",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "billingCountry",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "billingPostalCode",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "billingState",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "customerId",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "invoiceDate",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "invoiceId",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "total",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                            ],
+                        },
                     },
                 },
-                argument_presets: {},
                 select_permissions: {},
                 filter_expression_type: None,
                 graphql_api: ModelGraphQlApi {
@@ -2156,7 +3274,6 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
             },
         },
         commands: {},
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {},
             scalars: {},
@@ -2426,7 +3543,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                             },
                         ),
                     },
-                    orderable_relationships: ModelV1AllowAll,
+                    orderable_relationships: {},
                     graphql: None,
                     description: Some(
                         "OrderByExpression for Model Invoice (in subgraph default)",
@@ -2611,10 +3728,36 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                 count: AggregateCountDefinition {
                     enable: true,
                     description: None,
+                    result_type: Custom(
+                        Qualified {
+                            subgraph: SubgraphName(
+                                "default",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "Int8",
+                                ),
+                            ),
+                        },
+                    ),
+                    result_type_defaulted: false,
                 },
                 count_distinct: AggregateCountDefinition {
                     enable: true,
                     description: None,
+                    result_type: Custom(
+                        Qualified {
+                            subgraph: SubgraphName(
+                                "default",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "Int8",
+                                ),
+                            ),
+                        },
+                    ),
+                    result_type_defaulted: false,
                 },
                 graphql: None,
                 description: None,
@@ -2677,10 +3820,36 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
                 count: AggregateCountDefinition {
                     enable: false,
                     description: None,
+                    result_type: Custom(
+                        Qualified {
+                            subgraph: SubgraphName(
+                                "default",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "Int8",
+                                ),
+                            ),
+                        },
+                    ),
+                    result_type_defaulted: false,
                 },
                 count_distinct: AggregateCountDefinition {
                     enable: false,
                     description: None,
+                    result_type: Custom(
+                        Qualified {
+                            subgraph: SubgraphName(
+                                "default",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "Int8",
+                                ),
+                            ),
+                        },
+                    ),
+                    result_type_defaulted: false,
                 },
                 graphql: None,
                 description: None,
@@ -2721,6 +3890,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_expressions/root_fie
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {},
     },

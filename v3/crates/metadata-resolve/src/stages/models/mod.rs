@@ -1,11 +1,11 @@
-use lang_graphql::ast::common as ast;
 use open_dds::identifier::SubgraphName;
 use std::sync::Arc;
-pub use types::{Model, ModelRaw, ModelSource, ModelsIssue, ModelsOutput, NDCFieldSourceMapping};
+pub use types::{
+    Model, ModelOrderBy, ModelRaw, ModelSource, ModelsIssue, ModelsOutput, NDCFieldSourceMapping,
+};
 mod aggregation;
 mod error;
 mod helpers;
-mod order_by;
 mod source;
 mod types;
 pub use error::ModelsError;
@@ -15,8 +15,8 @@ pub use aggregation::resolve_aggregate_expression;
 pub use helpers::get_ndc_column_for_comparison;
 
 use crate::stages::{
-    aggregates, apollo, boolean_expressions, data_connector_scalar_types, data_connectors,
-    object_boolean_expressions, order_by_expressions, relay, scalar_types, type_permissions,
+    aggregates, apollo, boolean_expressions, data_connector_scalar_types, data_connectors, relay,
+    scalar_types, type_permissions,
 };
 use crate::types::subgraph::{mk_qualified_type_reference, ArgumentInfo, Qualified};
 
@@ -27,9 +27,7 @@ use open_dds::{
     types::CustomTypeName,
 };
 
-use std::collections::{BTreeMap, BTreeSet};
-
-use super::order_by_expressions::{OrderByExpressionIdentifier, OrderByExpressions};
+use std::collections::BTreeMap;
 
 /// resolve models and their sources
 /// we check aggregations, filtering and graphql in the next stage (`models_graphql`)
@@ -47,18 +45,12 @@ pub fn resolve(
     >,
     object_types: &type_permissions::ObjectTypesWithPermissions,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
     aggregate_expressions: &BTreeMap<
         Qualified<AggregateExpressionName>,
         aggregates::AggregateExpression,
     >,
-    mut order_by_expressions: OrderByExpressions,
-    mut graphql_types: BTreeSet<ast::TypeName>,
-) -> Result<ModelsOutput, crate::types::error::WithContext<ModelsError>> {
+) -> Result<ModelsOutput, ModelsError> {
     // resolve models
     // TODO: validate types
     let mut models = IndexMap::new();
@@ -77,12 +69,9 @@ pub fn resolve(
             subgraph,
             model,
             object_types,
-            object_boolean_expression_types,
             boolean_expression_types,
             &mut global_id_enabled_types,
             &mut apollo_federation_entity_enabled_types,
-            &mut order_by_expressions,
-            &mut graphql_types,
         )?;
         if resolved_model.global_id_source.is_some() {
             match global_id_models.insert(
@@ -111,7 +100,6 @@ pub fn resolve(
                 data_connector_scalars,
                 object_types,
                 scalar_types,
-                object_boolean_expression_types,
                 boolean_expression_types,
             )?;
             resolved_model.source = Some(Arc::new(resolved_model_source));
@@ -129,6 +117,7 @@ pub fn resolve(
                     resolved_model.source.as_ref(),
                     aggregate_expressions,
                     object_types,
+                    data_connector_scalars,
                 )
             })
             .transpose()?;
@@ -148,8 +137,6 @@ pub fn resolve(
         models,
         global_id_enabled_types,
         apollo_federation_entity_enabled_types,
-        order_by_expressions,
-        graphql_types,
         issues,
     })
 }
@@ -159,25 +146,21 @@ fn resolve_model(
     subgraph: &SubgraphName,
     model: &open_dds::models::Model,
     object_types: &type_permissions::ObjectTypesWithPermissions,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
     global_id_enabled_types: &mut BTreeMap<Qualified<CustomTypeName>, Vec<Qualified<ModelName>>>,
     apollo_federation_entity_enabled_types: &mut BTreeMap<
         Qualified<CustomTypeName>,
         Option<Qualified<ModelName>>,
     >,
-    order_by_expressions: &mut OrderByExpressions,
-    graphql_types: &mut BTreeSet<ast::TypeName>,
-) -> Result<Model, crate::types::error::WithContext<ModelsError>> {
-    let qualified_object_type_name = Qualified::new(subgraph.clone(), model.object_type().clone());
+) -> Result<Model, ModelsError> {
+    let qualified_object_type_name =
+        Qualified::new(subgraph.clone(), model.object_type().value.clone());
     let qualified_model_name = Qualified::new(subgraph.clone(), model.name().clone());
     let object_type_representation = source::get_model_object_type_representation(
         object_types,
         &qualified_object_type_name,
         &qualified_model_name,
+        &model.object_type().path,
     )?;
     let mut global_id_source = None;
     if model.global_id_source() {
@@ -279,12 +262,8 @@ fn resolve_model(
     let mut arguments = IndexMap::new();
     for argument in model.arguments() {
         // is this an expression or not?
-        let argument_kind = get_argument_kind(
-            &argument.argument_type,
-            subgraph,
-            object_boolean_expression_types,
-            boolean_expression_types,
-        );
+        let argument_kind =
+            get_argument_kind(&argument.argument_type, subgraph, boolean_expression_types);
 
         if arguments
             .insert(
@@ -304,67 +283,35 @@ fn resolve_model(
         }
     }
 
+    // keep relevant order by information for further resolving in `models_graphql`
+    let order_by = match model {
+        open_dds::models::Model::V1(model_v1) => ModelOrderBy::ModelV1 {
+            orderable_fields: model_v1.orderable_fields.clone(),
+            graphql_type_name: model_v1
+                .graphql
+                .as_ref()
+                .and_then(|g| g.order_by_expression_type.clone()),
+        },
+        open_dds::models::Model::V2(model_v2) => {
+            ModelOrderBy::ModelV2(model_v2.order_by_expression.clone())
+        }
+    };
+
     let model_raw = ModelRaw {
         description: model.description().clone(),
         filter_expression_type: model
             .filter_expression_type()
             .as_ref()
             .map(|filter_name| Qualified::new(subgraph.clone(), filter_name.clone())),
+        order_by,
         graphql,
     };
-
-    let order_by_expression = match model {
-        open_dds::models::Model::V1(model_v1) => Ok(Some(order_by::make_order_by_expression(
-            model_v1,
-            object_type_representation,
-            subgraph,
-            graphql_types,
-            &qualified_model_name,
-            order_by_expressions,
-        )?)),
-        // Check that the order_by_expression exists and refers to the correct object type for the model
-        open_dds::models::Model::V2(model_v2) => {
-            if let Some(order_by_expression_name) = model_v2.order_by_expression.as_ref() {
-                let order_by_expression_identifier = Qualified::new(
-                    subgraph.clone(),
-                    OrderByExpressionIdentifier::FromOrderByExpression(
-                        order_by_expression_name.clone(),
-                    ),
-                );
-                if let Some(order_by_expression) = order_by_expressions
-                    .objects
-                    .get(&order_by_expression_identifier)
-                {
-                    if order_by_expression.ordered_type == qualified_object_type_name {
-                        Ok(Some(order_by_expression_identifier))
-                    } else {
-                        Err(ModelsError::OrderByExpressionTypeMismatch {
-                            model_name: qualified_model_name.clone(),
-                            model_type: qualified_object_type_name.clone(),
-                            order_by_expression_name: Qualified::new(
-                                subgraph.clone(),
-                                order_by_expression_name.clone(),
-                            ),
-                            order_by_expression_type: order_by_expression.ordered_type.clone(),
-                        })
-                    }
-                } else {
-                    Err(ModelsError::UnknownOrderByExpressionIdentifier {
-                        model_name: qualified_model_name.clone(),
-                        order_by_expression_identifier: order_by_expression_identifier.clone(),
-                    })
-                }
-            } else {
-                Ok(None)
-            }
-        }
-    }?;
 
     Ok(Model {
         path,
         name: qualified_model_name,
         data_type: qualified_object_type_name,
-        order_by_expression,
+        data_type_path: model.object_type().path.clone(),
         aggregate_expression: None, // we fill this in once we have resolved the model source
         type_fields: object_type_representation.object_type.fields.clone(),
         global_id_fields: object_type_representation

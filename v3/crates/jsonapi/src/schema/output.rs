@@ -98,14 +98,11 @@ fn jsonapi_relationships_property(object_type: &ObjectType) -> Option<ObjectSche
                 object_type,
                 relationship_type,
             } => (object_type, relationship_type),
-            RelationshipTarget::ModelAggregate(object_type) => {
-                (object_type, &RelationshipType::Object)
-            }
             RelationshipTarget::Command { type_reference } => {
                 match unwrap_custom_type_name(type_reference) {
                     Some(type_name) => (
                         type_name,
-                        &crate::type_reference_to_relationship_type(type_reference),
+                        &crate::helpers::type_reference_to_relationship_type(type_reference),
                     ),
                     None => continue, // Skip command relationships with built-in output types
                 }
@@ -207,8 +204,7 @@ fn jsonapi_included_schema(
             RelationshipTarget::Model {
                 object_type,
                 relationship_type: _,
-            }
-            | RelationshipTarget::ModelAggregate(object_type) => object_type,
+            } => object_type,
             RelationshipTarget::Command { type_reference } => {
                 match unwrap_custom_type_name(type_reference) {
                     Some(type_name) => type_name,

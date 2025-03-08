@@ -14,11 +14,14 @@ use serde::{Deserialize, Serialize};
 pub struct SessionVariableReference {
     pub name: SessionVariableName,
     pub passed_as_json: bool,
+    pub disallow_unknown_fields: bool,
 }
 
 /// Used to represent the name of a session variable, like
 /// "x-hasura-role".
-#[derive(Debug, Clone, Hash, PartialEq, Eq, JsonSchema, Serialize, Deserialize)]
+#[derive(
+    Debug, Clone, Hash, PartialEq, Eq, JsonSchema, Serialize, Deserialize, PartialOrd, Ord,
+)]
 #[schemars(rename = "OpenDdSessionVariable")]
 pub struct SessionVariableName(Cow<'static, str>);
 

@@ -1,6 +1,6 @@
 //! IR of the mutation root type
 
-use hasura_authn_core::SessionVariables;
+use hasura_authn_core::Session;
 use indexmap::IndexMap;
 use lang_graphql as gql;
 use lang_graphql::ast::common as ast;
@@ -11,12 +11,15 @@ use graphql_schema::GDS;
 
 use super::{commands, root_field};
 use crate::error;
+use crate::GraphqlRequestPipeline;
 use graphql_schema::{OutputAnnotation, RootFieldAnnotation};
 
 /// Generates IR for the selection set of type 'mutation root'
 pub fn generate_ir<'n, 's>(
+    request_pipeline: GraphqlRequestPipeline,
     selection_set: &'s gql::normalized_ast::SelectionSet<'s, GDS>,
-    session_variables: &SessionVariables,
+    metadata: &'s metadata_resolve::Metadata,
+    session: &Session,
     request_headers: &reqwest::header::HeaderMap,
 ) -> Result<IndexMap<ast::Alias, root_field::MutationRootField<'n, 's>>, error::Error> {
     let tracer = tracing_util::global_tracer();
@@ -40,13 +43,17 @@ pub fn generate_ir<'n, 's>(
                         Annotation::Output(OutputAnnotation::RootField(
                             RootFieldAnnotation::ProcedureCommand {
                                 name,
-                                source,
                                 procedure_name,
                                 result_type,
                                 result_base_type_kind,
                             },
                         )) => {
-                            let source = source.as_ref().ok_or_else(|| {
+                            let command = metadata.commands.get(name).ok_or_else(|| {
+                                error::InternalEngineError::InternalGeneric {
+                                    description: format!("Command {name} not found"),
+                                }
+                            })?;
+                            let source = command.command.source.as_deref().ok_or_else(|| {
                                 error::InternalDeveloperError::NoSourceDataConnector {
                                     type_name: type_name.clone(),
                                     field_name: field_call.name.clone(),
@@ -62,17 +69,40 @@ pub fn generate_ir<'n, 's>(
 
                             Ok(root_field::MutationRootField::ProcedureBasedCommand {
                                 selection_set: &field.selection_set,
-                                ir: commands::generate_procedure_based_command(
-                                    name,
-                                    procedure_name,
-                                    field,
-                                    field_call,
-                                    result_type,
-                                    *result_base_type_kind,
-                                    source,
-                                    session_variables,
-                                    request_headers,
-                                )?,
+                                ir: match request_pipeline {
+                                    GraphqlRequestPipeline::Old => {
+                                        commands::generate_procedure_based_command(
+                                            name,
+                                            procedure_name,
+                                            field,
+                                            field_call,
+                                            result_type,
+                                            *result_base_type_kind,
+                                            command,
+                                            source,
+                                            &metadata.models,
+                                            &metadata.commands,
+                                            &metadata.object_types,
+                                            session,
+                                            request_headers,
+                                        )?
+                                    }
+                                    GraphqlRequestPipeline::OpenDd => {
+                                        commands::generate_procedure_based_command_open_dd(
+                                            &metadata.models,
+                                            &metadata.object_types,
+                                            name,
+                                            procedure_name,
+                                            field,
+                                            field_call,
+                                            result_type,
+                                            *result_base_type_kind,
+                                            source,
+                                            &session.variables,
+                                            request_headers,
+                                        )?
+                                    }
+                                },
                             })
                         }
                         annotation => Err(error::InternalEngineError::UnexpectedAnnotation {

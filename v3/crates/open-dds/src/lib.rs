@@ -1,5 +1,7 @@
 extern crate self as open_dds;
 
+use std::borrow::Cow;
+
 use open_dds::spanned::Spanned;
 use schemars::{schema::Schema::Object as SchemaObjectVariant, JsonSchema};
 use serde::{Deserialize, Serialize};
@@ -85,44 +87,44 @@ enum EnvironmentValueImpl {
 #[opendd(as_kind)]
 pub enum OpenDdSubgraphObject {
     // Data connector
-    DataConnectorLink(data_connector::DataConnectorLink),
+    DataConnectorLink(Spanned<data_connector::DataConnectorLink>),
 
     // GraphQL "super-graph" level config
     // This is boxed because it bloats the enum's size
     // See: https://rust-lang.github.io/rust-clippy/master/index.html#large_enum_variant
-    GraphqlConfig(Box<graphql_config::GraphqlConfig>),
+    GraphqlConfig(Spanned<graphql_config::GraphqlConfig>),
 
     // Types
-    ObjectType(types::ObjectType),
-    ScalarType(types::ScalarType),
-    ObjectBooleanExpressionType(types::ObjectBooleanExpressionType),
-    BooleanExpressionType(boolean_expression::BooleanExpressionType),
+    ObjectType(Spanned<types::ObjectType>),
+    ScalarType(Spanned<types::ScalarType>),
+    ObjectBooleanExpressionType(Spanned<types::ObjectBooleanExpressionType>),
+    BooleanExpressionType(Spanned<boolean_expression::BooleanExpressionType>),
 
     // OrderBy Expressions
-    OrderByExpression(order_by_expression::OrderByExpression),
+    OrderByExpression(Spanned<order_by_expression::OrderByExpression>),
 
     // Data Connector Scalar Representation
-    DataConnectorScalarRepresentation(types::DataConnectorScalarRepresentation),
+    DataConnectorScalarRepresentation(Spanned<types::DataConnectorScalarRepresentation>),
 
     // Aggregate Expressions
-    AggregateExpression(aggregates::AggregateExpression),
+    AggregateExpression(Spanned<aggregates::AggregateExpression>),
 
     // Models
     Model(Spanned<models::Model>),
 
     // Commands
-    Command(commands::Command),
+    Command(Spanned<commands::Command>),
 
     // Relationships
-    Relationship(relationships::Relationship),
+    Relationship(Spanned<relationships::Relationship>),
 
     // Permissions
-    TypePermissions(permissions::TypePermissions),
-    ModelPermissions(permissions::ModelPermissions),
-    CommandPermissions(permissions::CommandPermissions),
+    TypePermissions(Spanned<permissions::TypePermissions>),
+    ModelPermissions(Spanned<permissions::ModelPermissions>),
+    CommandPermissions(Spanned<permissions::CommandPermissions>),
 
     // Plugin
-    LifecyclePluginHook(plugins::LifecyclePluginHook),
+    LifecyclePluginHook(Spanned<plugins::LifecyclePluginHook>),
 }
 
 /// All of the metadata required to run Hasura v3 engine.
@@ -211,6 +213,17 @@ impl Metadata {
             }),
         }
     }
+
+    pub fn get_flags(&self) -> Cow<flags::OpenDdFlags> {
+        match self {
+            Metadata::WithoutNamespaces(_) => Cow::Owned(flags::OpenDdFlags::default()),
+            Metadata::Versioned(metadata) => match metadata {
+                MetadataWithVersion::V1(metadata) => Cow::Borrowed(&metadata.flags),
+                MetadataWithVersion::V2(metadata) => Cow::Borrowed(&metadata.flags),
+                MetadataWithVersion::V3(metadata) => Cow::Borrowed(&metadata.flags),
+            },
+        }
+    }
 }
 
 /// Metadata with versioning.
@@ -237,8 +250,11 @@ pub enum MetadataWithVersion {
 #[opendd(json_schema(rename = "OpenDdMetadataV1"))]
 pub struct MetadataV1 {
     pub namespaces: Vec<NamespacedObjects>,
-    #[opendd(default, json_schema(default_exp = "flags::Flags::default_json()"))]
-    pub flags: flags::Flags,
+    #[opendd(
+        default,
+        json_schema(default_exp = "serde_json::to_value(flags::OpenDdFlags::default()).unwrap()")
+    )]
+    pub flags: flags::OpenDdFlags,
 }
 
 /// A collection of objects that are related to each other.
@@ -256,8 +272,11 @@ pub struct MetadataV2 {
     pub supergraph: Supergraph,
     #[opendd(default, json_schema(default_exp = "serde_json::json!([])"))]
     pub subgraphs: Vec<Subgraph>,
-    #[opendd(default, json_schema(default_exp = "flags::Flags::default_json()"))]
-    pub flags: flags::Flags,
+    #[opendd(
+        default,
+        json_schema(default_exp = "serde_json::to_value(flags::OpenDdFlags::default()).unwrap()")
+    )]
+    pub flags: flags::OpenDdFlags,
 }
 
 /// The v3 metadata.
@@ -266,8 +285,11 @@ pub struct MetadataV2 {
 pub struct MetadataV3 {
     #[opendd(default, json_schema(default_exp = "serde_json::json!([])"))]
     pub subgraphs: Vec<Subgraph>,
-    #[opendd(default, json_schema(default_exp = "flags::Flags::default_json()"))]
-    pub flags: flags::Flags,
+    #[opendd(
+        default,
+        json_schema(default_exp = "serde_json::to_value(flags::OpenDdFlags::default()).unwrap()")
+    )]
+    pub flags: flags::OpenDdFlags,
 }
 
 #[derive(

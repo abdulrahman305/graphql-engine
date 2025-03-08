@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::BTreeMap, str::FromStr};
 
 use axum::{
     http::{HeaderMap, HeaderName, StatusCode},
@@ -8,6 +8,7 @@ use axum::{
 use hasura_authn_core::Session;
 use lang_graphql::{ast::common as ast, http::RawRequest};
 use open_dds::plugins::LifecyclePreResponsePluginHook;
+use reqwest::header::HeaderValue;
 use serde::Serialize;
 use tracing_util::{set_attribute_on_active_span, ErrorVisibility, SpanVisibility, TraceableError};
 
@@ -33,9 +34,17 @@ impl TraceableError for Error {
 
 impl IntoResponse for Error {
     fn into_response(self) -> axum::response::Response {
+        let is_internal = match &self {
+            Error::ErrorWhileMakingHTTPRequestToTheHook(_, _) => false,
+            Error::BuildRequestError(_, _)
+            | Error::ReqwestError(_)
+            | Error::PluginRequestParseError(_)
+            | Error::EngineResponseParseError(_) => true,
+        };
         lang_graphql::http::Response::error_message_with_status(
             StatusCode::INTERNAL_SERVER_ERROR,
             self.to_string(),
+            is_internal,
         )
         .into_response()
     }
@@ -45,7 +54,7 @@ impl IntoResponse for Error {
 #[serde(rename_all = "camelCase")]
 pub struct RawRequestBody {
     pub query: Option<String>,
-    pub variables: Option<HashMap<ast::Name, serde_json::Value>>,
+    pub variables: Option<BTreeMap<ast::Name, serde_json::Value>>,
     pub operation_name: Option<ast::Name>,
 }
 
@@ -58,6 +67,7 @@ pub struct PreResponsePluginRequestBody {
 }
 
 fn build_request(
+    client_address: std::net::SocketAddr,
     http_client: &reqwest::Client,
     config: &LifecyclePreResponsePluginHook,
     client_headers: &HeaderMap,
@@ -86,6 +96,11 @@ fn build_request(
                 headers.insert(header_name, header_value.clone());
             }
         }
+
+        if let Ok(header_value) = HeaderValue::from_str(&client_address.ip().to_string()) {
+            headers.insert("X-Forwarded-For", header_value);
+        }
+
         pre_plugin_headers.extend(headers);
     }
     let mut request_builder = http_client
@@ -117,6 +132,7 @@ fn build_request(
 }
 
 pub async fn execute_plugin(
+    client_address: std::net::SocketAddr,
     http_client: &reqwest::Client,
     config: &LifecyclePreResponsePluginHook,
     client_headers: &HeaderMap,
@@ -133,6 +149,7 @@ pub async fn execute_plugin(
             || {
                 Box::pin(async {
                     let http_request_builder = build_request(
+                        client_address,
                         http_client,
                         config,
                         client_headers,
@@ -153,6 +170,7 @@ pub async fn execute_plugin(
 }
 
 pub fn pre_response_plugins_handler(
+    client_address: std::net::SocketAddr,
     pre_response_plugins_config: &nonempty::NonEmpty<LifecyclePreResponsePluginHook>,
     http_client: &reqwest::Client,
     session: Session,
@@ -166,6 +184,7 @@ pub fn pre_response_plugins_handler(
         .map_err(Error::EngineResponseParseError)?;
     // Execute the pre-response plugins in a separate task
     execute_pre_response_plugins_in_task(
+        client_address,
         pre_response_plugins_config.clone(),
         http_client.clone(),
         session,
@@ -200,6 +219,7 @@ pub enum ExecutePluginsTracing {
 
 /// Execute the pre-response plugins in a separate task
 pub fn execute_pre_response_plugins_in_task(
+    client_address: std::net::SocketAddr,
     pre_response_plugins_config: nonempty::NonEmpty<LifecyclePreResponsePluginHook>,
     http_client: reqwest::Client,
     session: Session,
@@ -227,6 +247,7 @@ pub fn execute_pre_response_plugins_in_task(
                         || {
                             Box::pin(async {
                                 execute_all_plugins(
+                                    client_address,
                                     &pre_response_plugins_config,
                                     &http_client,
                                     &session,
@@ -251,6 +272,7 @@ pub fn execute_pre_response_plugins_in_task(
                         || {
                             Box::pin(async {
                                 execute_all_plugins(
+                                    client_address,
                                     &pre_response_plugins_config,
                                     &http_client,
                                     &session,
@@ -271,6 +293,7 @@ pub fn execute_pre_response_plugins_in_task(
 
 /// Execute all pre-response plugins
 async fn execute_all_plugins(
+    client_address: std::net::SocketAddr,
     pre_response_plugins_config: &nonempty::NonEmpty<LifecyclePreResponsePluginHook>,
     http_client: &reqwest::Client,
     session: &Session,
@@ -296,6 +319,7 @@ async fn execute_all_plugins(
                                 pre_plugin_config.name.clone(),
                             );
                             execute_plugin(
+                                client_address,
                                 http_client,
                                 pre_plugin_config,
                                 headers_map,

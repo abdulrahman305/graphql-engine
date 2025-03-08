@@ -35,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
 
         tracing_util::initialize_tracing(
             Some(&otlp_endpoint),
-            env!("CARGO_PKG_NAME"),
+            env!("CARGO_PKG_NAME").to_string(),
             None,
             tracing_util::PropagateBaggage::Enable,
             export_traces_stdout,
@@ -56,7 +56,10 @@ async fn main() -> anyhow::Result<()> {
     let address = (host, port);
     let listener = tokio::net::TcpListener::bind(address).await.unwrap();
 
-    let server = axum::serve(listener, app.into_make_service());
+    let server = axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<net::SocketAddr>(),
+    );
     server
         .with_graceful_shutdown(axum_ext::shutdown_signal())
         .await?;

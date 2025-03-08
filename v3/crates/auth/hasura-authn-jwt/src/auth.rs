@@ -39,9 +39,10 @@ fn build_allowed_roles(
 /// with the `JWTSecretConfig` and returns `hasura_authn_core::Identity`
 pub async fn authenticate_request(
     http_client: &reqwest::Client,
-    jwt_config: JWTConfig,
+    jwt_config: &JWTConfig,
     headers: &HeaderMap,
     allow_role_emulation_for: Option<&Role>,
+    audience_validation_mode: AudienceValidationMode,
 ) -> Result<Identity, Error> {
     let tracer = tracing_util::global_tracer();
     tracer
@@ -64,6 +65,7 @@ pub async fn authenticate_request(
                                         http_client,
                                         jwt_config,
                                         authorization_token,
+                                        audience_validation_mode,
                                     ))
                                 },
                             )
@@ -225,9 +227,10 @@ mod tests {
 
         let authenticated_identity = authenticate_request(
             &http_client,
-            jwt_config,
+            &jwt_config,
             &header_map,
             Some(&Role::new("admin")),
+            AudienceValidationMode::Required,
         )
         .await?;
 
@@ -322,9 +325,10 @@ mod tests {
 
         let authenticated_identity = authenticate_request(
             &http_client,
-            jwt_config,
+            &jwt_config,
             &header_map,
             Some(&Role::new("admin")),
+            AudienceValidationMode::Required,
         )
         .await?;
 

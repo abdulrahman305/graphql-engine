@@ -26,7 +26,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                             field_type: QualifiedTypeReference {
                                 underlying_type: Named(
                                     Inbuilt(
-                                        Int,
+                                        Float,
                                     ),
                                 ),
                                 nullable: false,
@@ -43,7 +43,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                             field_type: QualifiedTypeReference {
                                 underlying_type: Named(
                                     Inbuilt(
-                                        Int,
+                                        Float,
                                     ),
                                 ),
                                 nullable: false,
@@ -105,8 +105,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [],
-                                                in_operators: [],
+                                                eq_operator: None,
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "match",
@@ -124,6 +134,54 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                                         "terms",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "cardinality",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stats",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "sum",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "value_count",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -146,8 +204,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [],
-                                                in_operators: [],
+                                                eq_operator: None,
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "match",
@@ -165,6 +233,54 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                                         "terms",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "cardinality",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stats",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "sum",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "value_count",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -313,8 +429,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [],
-                                                in_operators: [],
+                                                eq_operator: None,
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "match",
@@ -332,6 +458,54 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                                         "terms",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "cardinality",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stats",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "sum",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "value_count",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -354,8 +528,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [],
-                                                in_operators: [],
+                                                eq_operator: None,
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "match",
@@ -373,6 +557,54 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                                         "terms",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "cardinality",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stats",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "sum",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "value_count",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -395,8 +627,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [],
-                                                in_operators: [],
+                                                eq_operator: None,
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "match",
@@ -431,6 +673,32 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                                 ],
                                             },
                                         ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
                                         argument_mappings: {},
                                     },
                                 },
@@ -451,7 +719,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                         "movies",
                     ),
                 ),
-            }: ModelWithArgumentPresets {
+            }: ModelWithPermissions {
                 model: Model {
                     path: JSONPath(
                         [
@@ -480,6 +748,19 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                             ),
                         ),
                     },
+                    data_type_path: JSONPath(
+                        [
+                            Index(
+                                7,
+                            ),
+                            Key(
+                                "definition",
+                            ),
+                            Key(
+                                "objectType",
+                            ),
+                        ],
+                    ),
                     type_fields: {
                         FieldName(
                             Identifier(
@@ -578,10 +859,14 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: false,
                                     supports_nested_object_filtering: true,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: true,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: None,
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: true,
@@ -638,8 +923,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [],
-                                                    in_operators: [],
+                                                    eq_operator: None,
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "match",
@@ -657,6 +952,54 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                                             "terms",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "avg",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "cardinality",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stats",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "sum",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "value_count",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -679,8 +1022,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [],
-                                                    in_operators: [],
+                                                    eq_operator: None,
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "match",
@@ -698,6 +1051,54 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                                             "terms",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "avg",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "cardinality",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stats",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "sum",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "value_count",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -720,8 +1121,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [],
-                                                    in_operators: [],
+                                                    eq_operator: None,
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "match",
@@ -756,6 +1167,32 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                                     ],
                                                 },
                                             ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
                                             argument_mappings: {},
                                         },
                                     },
@@ -768,20 +1205,6 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                     ),
                     global_id_source: None,
                     apollo_federation_key_source: None,
-                    order_by_expression: Some(
-                        Qualified {
-                            subgraph: SubgraphName(
-                                "__unknown_namespace",
-                            ),
-                            name: FromModel(
-                                ModelName(
-                                    Identifier(
-                                        "movies",
-                                    ),
-                                ),
-                            ),
-                        },
-                    ),
                     aggregate_expression: None,
                     raw: ModelRaw {
                         filter_expression_type: Some(
@@ -816,13 +1239,41 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                             },
                         ),
                         description: None,
-                    },
-                },
-                argument_presets: {
-                    Role(
-                        "admin",
-                    ): ArgumentPresets {
-                        argument_presets: {},
+                        order_by: ModelV1 {
+                            graphql_type_name: None,
+                            orderable_fields: [
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "id",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "title",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "rating",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                            ],
+                        },
                     },
                 },
                 select_permissions: {
@@ -835,235 +1286,237 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                     },
                 },
                 filter_expression_type: Some(
-                    BooleanExpressionType(
-                        ResolvedObjectBooleanExpressionType {
-                            name: Qualified {
-                                subgraph: SubgraphName(
-                                    "__unknown_namespace",
-                                ),
-                                name: CustomTypeName(
-                                    Identifier(
-                                        "movie_bool_exp",
-                                    ),
-                                ),
-                            },
-                            object_type: Qualified {
-                                subgraph: SubgraphName(
-                                    "__unknown_namespace",
-                                ),
-                                name: CustomTypeName(
-                                    Identifier(
-                                        "movie",
-                                    ),
-                                ),
-                            },
-                            graphql: Some(
-                                BooleanExpressionGraphqlConfig {
-                                    type_name: TypeName(
-                                        Name(
-                                            "InstitutionBoolExp",
-                                        ),
-                                    ),
-                                    object_fields: {},
-                                    scalar_fields: {
-                                        FieldName(
-                                            Identifier(
-                                                "id",
-                                            ),
-                                        ): ScalarBooleanExpressionGraphqlConfig {
-                                            type_name: TypeName(
-                                                Name(
-                                                    "Int_Comparison_Exp",
-                                                ),
-                                            ),
-                                            is_null_operator_name: Some(
-                                                Name(
-                                                    "_is_null",
-                                                ),
-                                            ),
-                                        },
-                                        FieldName(
-                                            Identifier(
-                                                "rating",
-                                            ),
-                                        ): ScalarBooleanExpressionGraphqlConfig {
-                                            type_name: TypeName(
-                                                Name(
-                                                    "Int_Comparison_Exp_With_Range",
-                                                ),
-                                            ),
-                                            is_null_operator_name: Some(
-                                                Name(
-                                                    "_is_null",
-                                                ),
-                                            ),
-                                        },
-                                        FieldName(
-                                            Identifier(
-                                                "title",
-                                            ),
-                                        ): ScalarBooleanExpressionGraphqlConfig {
-                                            type_name: TypeName(
-                                                Name(
-                                                    "String_Comparison_Exp",
-                                                ),
-                                            ),
-                                            is_null_operator_name: Some(
-                                                Name(
-                                                    "_is_null",
-                                                ),
-                                            ),
-                                        },
-                                    },
-                                    field_config: BooleanExpressionGraphqlFieldConfig {
-                                        where_field_name: Name(
-                                            "where",
-                                        ),
-                                        logical_operators: LogicalOperatorsGraphqlConfig {
-                                            and_operator_name: Name(
-                                                "_and",
-                                            ),
-                                            or_operator_name: Name(
-                                                "_or",
-                                            ),
-                                            not_operator_name: Name(
-                                                "_not",
-                                            ),
-                                        },
-                                    },
-                                },
+                    ResolvedObjectBooleanExpressionType {
+                        name: Qualified {
+                            subgraph: SubgraphName(
+                                "__unknown_namespace",
                             ),
-                            fields: ResolvedObjectBooleanExpressionTypeFields {
+                            name: CustomTypeName(
+                                Identifier(
+                                    "movie_bool_exp",
+                                ),
+                            ),
+                        },
+                        object_type: Qualified {
+                            subgraph: SubgraphName(
+                                "__unknown_namespace",
+                            ),
+                            name: CustomTypeName(
+                                Identifier(
+                                    "movie",
+                                ),
+                            ),
+                        },
+                        graphql: Some(
+                            BooleanExpressionGraphqlConfig {
+                                type_name: TypeName(
+                                    Name(
+                                        "InstitutionBoolExp",
+                                    ),
+                                ),
                                 object_fields: {},
                                 scalar_fields: {
                                     FieldName(
                                         Identifier(
                                             "id",
                                         ),
-                                    ): ComparisonExpressionInfo {
-                                        object_type_name: Some(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "__unknown_namespace",
-                                                ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "int_bool_exp",
-                                                    ),
-                                                ),
-                                            },
-                                        ),
-                                        operators: {},
-                                        operator_mapping: {
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "__unknown_namespace",
-                                                ),
-                                                name: DataConnectorName(
-                                                    Identifier(
-                                                        "elastic",
-                                                    ),
-                                                ),
-                                            }: OperatorMapping(
-                                                {},
+                                    ): ScalarBooleanExpressionGraphqlConfig {
+                                        type_name: TypeName(
+                                            Name(
+                                                "Int_Comparison_Exp",
                                             ),
-                                        },
-                                        logical_operators: Exclude,
+                                        ),
+                                        is_null_operator_name: Some(
+                                            Name(
+                                                "_is_null",
+                                            ),
+                                        ),
                                     },
                                     FieldName(
                                         Identifier(
                                             "rating",
                                         ),
-                                    ): ComparisonExpressionInfo {
-                                        object_type_name: Some(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "__unknown_namespace",
-                                                ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "int_bool_exp_with_range",
-                                                    ),
-                                                ),
-                                            },
-                                        ),
-                                        operators: {
-                                            OperatorName(
-                                                "range",
-                                            ): QualifiedTypeReference {
-                                                underlying_type: Named(
-                                                    Custom(
-                                                        Qualified {
-                                                            subgraph: SubgraphName(
-                                                                "__unknown_namespace",
-                                                            ),
-                                                            name: CustomTypeName(
-                                                                Identifier(
-                                                                    "int_range",
-                                                                ),
-                                                            ),
-                                                        },
-                                                    ),
-                                                ),
-                                                nullable: true,
-                                            },
-                                        },
-                                        operator_mapping: {
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "__unknown_namespace",
-                                                ),
-                                                name: DataConnectorName(
-                                                    Identifier(
-                                                        "elastic",
-                                                    ),
-                                                ),
-                                            }: OperatorMapping(
-                                                {},
+                                    ): ScalarBooleanExpressionGraphqlConfig {
+                                        type_name: TypeName(
+                                            Name(
+                                                "Int_Comparison_Exp_With_Range",
                                             ),
-                                        },
-                                        logical_operators: Exclude,
+                                        ),
+                                        is_null_operator_name: Some(
+                                            Name(
+                                                "_is_null",
+                                            ),
+                                        ),
                                     },
                                     FieldName(
                                         Identifier(
                                             "title",
                                         ),
-                                    ): ComparisonExpressionInfo {
-                                        object_type_name: Some(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "__unknown_namespace",
-                                                ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "string_bool_exp",
-                                                    ),
-                                                ),
-                                            },
-                                        ),
-                                        operators: {},
-                                        operator_mapping: {
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "__unknown_namespace",
-                                                ),
-                                                name: DataConnectorName(
-                                                    Identifier(
-                                                        "elastic",
-                                                    ),
-                                                ),
-                                            }: OperatorMapping(
-                                                {},
+                                    ): ScalarBooleanExpressionGraphqlConfig {
+                                        type_name: TypeName(
+                                            Name(
+                                                "String_Comparison_Exp",
                                             ),
-                                        },
-                                        logical_operators: Exclude,
+                                        ),
+                                        is_null_operator_name: Some(
+                                            Name(
+                                                "_is_null",
+                                            ),
+                                        ),
                                     },
                                 },
-                                relationship_fields: {},
+                                field_config: BooleanExpressionGraphqlFieldConfig {
+                                    where_field_name: Name(
+                                        "where",
+                                    ),
+                                    logical_operators: LogicalOperatorsGraphqlConfig {
+                                        and_operator_name: Name(
+                                            "_and",
+                                        ),
+                                        or_operator_name: Name(
+                                            "_or",
+                                        ),
+                                        not_operator_name: Name(
+                                            "_not",
+                                        ),
+                                    },
+                                },
                             },
-                            include_logical_operators: Yes,
+                        ),
+                        fields: ResolvedObjectBooleanExpressionTypeFields {
+                            object_fields: {},
+                            scalar_fields: {
+                                FieldName(
+                                    Identifier(
+                                        "id",
+                                    ),
+                                ): ComparisonExpressionInfo {
+                                    boolean_expression_type_name: FromBooleanExpressionType(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "__unknown_namespace",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "int_bool_exp",
+                                                ),
+                                            ),
+                                        },
+                                    ),
+                                    operators: {},
+                                    operator_mapping: {
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "__unknown_namespace",
+                                            ),
+                                            name: DataConnectorName(
+                                                Identifier(
+                                                    "elastic",
+                                                ),
+                                            ),
+                                        }: OperatorMapping(
+                                            {},
+                                        ),
+                                    },
+                                    logical_operators: Exclude,
+                                    field_kind: Scalar,
+                                },
+                                FieldName(
+                                    Identifier(
+                                        "rating",
+                                    ),
+                                ): ComparisonExpressionInfo {
+                                    boolean_expression_type_name: FromBooleanExpressionType(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "__unknown_namespace",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "int_bool_exp_with_range",
+                                                ),
+                                            ),
+                                        },
+                                    ),
+                                    operators: {
+                                        OperatorName(
+                                            "range",
+                                        ): QualifiedTypeReference {
+                                            underlying_type: Named(
+                                                Custom(
+                                                    Qualified {
+                                                        subgraph: SubgraphName(
+                                                            "__unknown_namespace",
+                                                        ),
+                                                        name: CustomTypeName(
+                                                            Identifier(
+                                                                "int_range",
+                                                            ),
+                                                        ),
+                                                    },
+                                                ),
+                                            ),
+                                            nullable: true,
+                                        },
+                                    },
+                                    operator_mapping: {
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "__unknown_namespace",
+                                            ),
+                                            name: DataConnectorName(
+                                                Identifier(
+                                                    "elastic",
+                                                ),
+                                            ),
+                                        }: OperatorMapping(
+                                            {},
+                                        ),
+                                    },
+                                    logical_operators: Exclude,
+                                    field_kind: Scalar,
+                                },
+                                FieldName(
+                                    Identifier(
+                                        "title",
+                                    ),
+                                ): ComparisonExpressionInfo {
+                                    boolean_expression_type_name: FromBooleanExpressionType(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "__unknown_namespace",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "string_bool_exp",
+                                                ),
+                                            ),
+                                        },
+                                    ),
+                                    operators: {},
+                                    operator_mapping: {
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "__unknown_namespace",
+                                            ),
+                                            name: DataConnectorName(
+                                                Identifier(
+                                                    "elastic",
+                                                ),
+                                            ),
+                                        }: OperatorMapping(
+                                            {},
+                                        ),
+                                    },
+                                    logical_operators: Exclude,
+                                    field_kind: Scalar,
+                                },
+                            },
+                            relationship_fields: {},
                         },
-                    ),
+                        include_logical_operators: Yes,
+                        data_connector: None,
+                    },
                 ),
                 graphql_api: ModelGraphQlApi {
                     arguments_input_config: None,
@@ -1099,7 +1552,6 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
             },
         },
         commands: {},
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {
                 Qualified {
@@ -1216,7 +1668,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                     "id",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "__unknown_namespace",
@@ -1244,13 +1696,14 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "rating",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "__unknown_namespace",
@@ -1298,13 +1751,14 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "title",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "__unknown_namespace",
@@ -1332,25 +1786,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                         },
                         relationship_fields: {},
                     },
                     include_logical_operators: Yes,
+                    data_connector: None,
                 },
             },
             scalars: {
-                Qualified {
-                    subgraph: SubgraphName(
-                        "__unknown_namespace",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "int_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "__unknown_namespace",
                         ),
@@ -1360,6 +1807,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         Int,
                     ),
@@ -1402,17 +1850,8 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                         ),
                     },
                 },
-                Qualified {
-                    subgraph: SubgraphName(
-                        "__unknown_namespace",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "int_bool_exp_with_range",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "__unknown_namespace",
                         ),
@@ -1422,6 +1861,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         Int,
                     ),
@@ -1484,17 +1924,8 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                         ),
                     },
                 },
-                Qualified {
-                    subgraph: SubgraphName(
-                        "__unknown_namespace",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "string_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "__unknown_namespace",
                         ),
@@ -1504,6 +1935,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         String,
                     ),
@@ -1663,7 +2095,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
                             },
                         ),
                     },
-                    orderable_relationships: ModelV1AllowAll,
+                    orderable_relationships: {},
                     graphql: None,
                     description: Some(
                         "OrderByExpression for Model movies (in subgraph __unknown_namespace)",
@@ -1708,6 +2140,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/range/
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {
             Role(

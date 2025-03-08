@@ -1,6 +1,7 @@
 use std::sync::Arc;
 
 use super::types::{Model, ModelSource, ModelsIssue};
+use jsonpath::JSONPath;
 use open_dds::data_connector::{DataConnectorName, DataConnectorObjectType};
 use open_dds::identifier::SubgraphName;
 use open_dds::types::DataConnectorArgumentName;
@@ -11,14 +12,15 @@ use crate::helpers::ndc_validation;
 use super::helpers;
 use crate::helpers::type_mappings;
 use crate::stages::{
-    boolean_expressions, data_connector_scalar_types, data_connectors, object_boolean_expressions,
-    scalar_types, type_permissions,
+    boolean_expressions, data_connector_scalar_types, data_connectors, scalar_types,
+    type_permissions,
 };
 use crate::types::subgraph::Qualified;
 
 use super::error::ModelsError;
 use open_dds::{
     models::{self, ModelName},
+    spanned::Spanned,
     types::CustomTypeName,
 };
 use std::collections::BTreeMap;
@@ -35,12 +37,8 @@ pub(crate) fn resolve_model_source(
     >,
     object_types: &type_permissions::ObjectTypesWithPermissions,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
-) -> Result<(ModelSource, Vec<ModelsIssue>), crate::WithContext<ModelsError>> {
+) -> Result<(ModelSource, Vec<ModelsIssue>), ModelsError> {
     if model.source.is_some() {
         Err(ModelsError::DuplicateModelSourceDefinition {
             model_name: model.name.clone(),
@@ -54,33 +52,20 @@ pub(crate) fn resolve_model_source(
     let data_connector_context = data_connectors
         .0
         .get(&qualified_data_connector_name)
-        .ok_or_else(|| crate::WithContext::Contextualised {
-            error: ModelsError::UnknownModelDataConnector {
-                model_name: model.name.clone(),
-                data_connector: qualified_data_connector_name.clone(),
-            },
-            context: error_context::Context(vec![error_context::Step {
-                message: "Data connector name given here".to_string(),
-                path: model_source.data_connector_name.path.clone(),
-                subgraph: Some(subgraph.clone()),
-            }]),
+        .ok_or_else(|| ModelsError::UnknownModelDataConnector {
+            model_name: model.name.clone(),
+            data_connector: qualified_data_connector_name.clone(),
+            data_connector_path: Some(model_source.data_connector_name.path.clone()),
         })?;
 
     let source_collection = data_connector_context
         .schema
         .collections
         .get(model_source.collection.as_str())
-        .ok_or_else(|| crate::WithContext::Contextualised {
-            error: ModelsError::UnknownModelCollection {
-                model_name: model.name.clone(),
-                data_connector: qualified_data_connector_name.clone(),
-                collection: model_source.collection.value.clone(),
-            },
-            context: error_context::Context(vec![error_context::Step {
-                message: "Collection name given here".to_string(),
-                path: model_source.collection.path.clone(),
-                subgraph: Some(subgraph.clone()),
-            }]),
+        .ok_or_else(|| ModelsError::UnknownModelCollection {
+            model_name: model.name.clone(),
+            data_connector: qualified_data_connector_name.clone(),
+            collection: model_source.collection.clone(),
         })?;
     let source_collection_type =
         DataConnectorObjectType::from(source_collection.collection_type.as_str());
@@ -91,6 +76,14 @@ pub(crate) fn resolve_model_source(
         .into_iter()
         .map(|(k, v)| (DataConnectorArgumentName::from(k.as_str()), v.argument_type))
         .collect();
+
+    let data_connector_scalar_types = data_connector_scalars
+        .get(&qualified_data_connector_name)
+        .ok_or_else(|| ModelsError::UnknownModelDataConnector {
+            model_name: model.name.clone(),
+            data_connector: qualified_data_connector_name.clone(),
+            data_connector_path: Some(model_source.data_connector_name.path.clone()),
+        })?;
 
     // Get the mappings of arguments and any type mappings that need resolving from the arguments
     let ArgumentMappingResults {
@@ -103,9 +96,9 @@ pub(crate) fn resolve_model_source(
         &model_source.argument_mapping,
         &source_arguments,
         data_connector_context,
+        data_connector_scalar_types,
         object_types,
         scalar_types,
-        object_boolean_expression_types,
         boolean_expression_types,
     )
     .map_err(|err| ModelsError::ModelCollectionArgumentMappingError {
@@ -163,8 +156,12 @@ pub(crate) fn resolve_model_source(
         source_arguments,
     };
 
-    let model_object_type =
-        get_model_object_type_representation(object_types, &model.data_type, &model.name)?;
+    let model_object_type = get_model_object_type_representation(
+        object_types,
+        &model.data_type,
+        &model.name,
+        &model.data_type_path,
+    )?;
 
     if let Some(global_id_source) = &mut model.global_id_source {
         for global_id_field in &model_object_type.object_type.global_id_fields {
@@ -175,7 +172,6 @@ pub(crate) fn resolve_model_source(
                     &model.data_type,
                     &resolved_model_source,
                     global_id_field,
-                    data_connector_scalars,
                     || format!("the global ID fields of type {}", model.data_type),
                 )?,
             );
@@ -195,7 +191,6 @@ pub(crate) fn resolve_model_source(
                             &model.data_type,
                             &resolved_model_source,
                             field,
-                            data_connector_scalars,
                             || {
                                 format!(
                                     "the apollo federation key fields of type {}",
@@ -221,11 +216,15 @@ pub(crate) fn get_model_object_type_representation<'s>(
     object_types: &'s type_permissions::ObjectTypesWithPermissions,
     data_type: &Qualified<CustomTypeName>,
     model_name: &Qualified<ModelName>,
+    data_type_path: &JSONPath,
 ) -> Result<&'s type_permissions::ObjectTypeWithPermissions, ModelsError> {
     object_types
         .get(data_type)
         .map_err(|_| ModelsError::UnknownModelDataType {
             model_name: model_name.clone(),
-            data_type: data_type.clone(),
+            data_type: Spanned {
+                path: data_type_path.clone(),
+                value: data_type.clone(),
+            },
         })
 }

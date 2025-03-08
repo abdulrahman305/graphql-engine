@@ -1,5 +1,6 @@
 use std::convert::Infallible;
 
+#[derive(Debug, Eq, PartialEq)]
 pub enum ErrorVisibility {
     Internal,
     User,

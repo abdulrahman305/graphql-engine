@@ -182,12 +182,22 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -205,6 +215,69 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                                         "_neq",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_and",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_or",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_xor",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "variance",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -227,12 +300,22 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -250,6 +333,69 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                                         "_neq",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "avg",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_and",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_or",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "bit_xor",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "min",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "stddev_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_pop",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "var_samp",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "variance",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -272,12 +418,22 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_gt",
@@ -339,6 +495,32 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                                 ],
                                             },
                                         ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
                                         argument_mappings: {},
                                     },
                                 },
@@ -359,7 +541,7 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                         "Articles",
                     ),
                 ),
-            }: ModelWithArgumentPresets {
+            }: ModelWithPermissions {
                 model: Model {
                     path: JSONPath(
                         [
@@ -397,6 +579,28 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                             ),
                         ),
                     },
+                    data_type_path: JSONPath(
+                        [
+                            Key(
+                                "subgraphs",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "objects",
+                            ),
+                            Index(
+                                4,
+                            ),
+                            Key(
+                                "definition",
+                            ),
+                            Key(
+                                "objectType",
+                            ),
+                        ],
+                    ),
                     type_fields: {
                         FieldName(
                             Identifier(
@@ -501,10 +705,14 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: false,
                                     supports_nested_object_filtering: true,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: true,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: None,
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: true,
@@ -561,12 +769,22 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -584,6 +802,69 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                                             "_neq",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "avg",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_and",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_or",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_xor",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "variance",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -606,12 +887,22 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -629,6 +920,69 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                                             "_neq",
                                                         ),
                                                     ],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "avg",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_and",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_or",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "bit_xor",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "min",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "stddev_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_pop",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "var_samp",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "variance",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -651,12 +1005,22 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [
                                                         DataConnectorOperatorName(
                                                             "_gt",
@@ -718,6 +1082,32 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                                     ],
                                                 },
                                             ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
                                             argument_mappings: {},
                                         },
                                     },
@@ -747,20 +1137,6 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                         },
                     ),
                     apollo_federation_key_source: None,
-                    order_by_expression: Some(
-                        Qualified {
-                            subgraph: SubgraphName(
-                                "article_namespace",
-                            ),
-                            name: FromModel(
-                                ModelName(
-                                    Identifier(
-                                        "Articles",
-                                    ),
-                                ),
-                            ),
-                        },
-                    ),
                     aggregate_expression: None,
                     raw: ModelRaw {
                         filter_expression_type: None,
@@ -784,23 +1160,41 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                             },
                         ),
                         description: None,
-                    },
-                },
-                argument_presets: {
-                    Role(
-                        "admin",
-                    ): ArgumentPresets {
-                        argument_presets: {},
-                    },
-                    Role(
-                        "user1",
-                    ): ArgumentPresets {
-                        argument_presets: {},
-                    },
-                    Role(
-                        "user2",
-                    ): ArgumentPresets {
-                        argument_presets: {},
+                        order_by: ModelV1 {
+                            graphql_type_name: None,
+                            orderable_fields: [
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "article_id",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "title",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "author_id",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                            ],
+                        },
                     },
                 },
                 select_permissions: {
@@ -851,6 +1245,7 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                                             "x-hasura-user-id",
                                         ),
                                         passed_as_json: false,
+                                        disallow_unknown_fields: false,
                                     },
                                 ),
                                 deprecated: None,
@@ -902,7 +1297,6 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
             },
         },
         commands: {},
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {},
             scalars: {},
@@ -1022,7 +1416,7 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
                             },
                         ),
                     },
-                    orderable_relationships: ModelV1AllowAll,
+                    orderable_relationships: {},
                     graphql: None,
                     description: Some(
                         "OrderByExpression for Model Articles (in subgraph article_namespace)",
@@ -1067,6 +1461,7 @@ input_file: crates/metadata-resolve/tests/passing/missing_subgraph_when_ignoring
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {
             Role(

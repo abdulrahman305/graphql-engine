@@ -1,10 +1,9 @@
 use indexmap::IndexMap;
-
 use serde::{Deserialize, Serialize};
 
+pub use crate::arguments::ArgumentName;
 use crate::{
-    aggregates::AggregationFunctionName,
-    arguments::ArgumentName,
+    aggregates::{AggregationFunctionName, ExtractionFunctionName},
     commands::CommandName,
     identifier::{Identifier, SubgraphName},
     models::{ModelName, OrderByDirection},
@@ -14,6 +13,8 @@ use crate::{
 };
 
 str_newtype!(Alias over Identifier | doc "Alias to refer to a particular query or selection in the response.");
+
+str_newtype!(Name | doc "The name of an OpenDDS field, aggregate, dimension etc., which is not required to be an Identifier");
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -37,7 +38,7 @@ pub struct QueryRequestV1 {
 pub enum Query {
     Model(ModelSelection),
     ModelAggregate(ModelAggregateSelection),
-    // ModelGroups(ModelGroupsSelection),
+    ModelGroups(ModelGroupsSelection),
     Command(CommandSelection),
     // CommandAggregate(CommandAggregateSelection),
     // CommandGroups(CommandGroupsSelection),
@@ -60,7 +61,79 @@ pub struct ModelAggregateSelection {
     #[serde(flatten)]
     pub target: ModelTarget,
     /// What metrics aggregated across the model's objects to retrieve.
-    pub selection: IndexMap<Alias, Aggregate>,
+    pub selection: IndexMap<Name, Aggregate>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+/// Query selecting metrics aggregated over the objects of a model and grouped.
+pub struct ModelGroupsSelection {
+    #[serde(flatten)]
+    pub target: ModelTarget,
+    /// What metrics aggregated across the model's objects to retrieve.
+    pub selection: IndexMap<Name, Aggregate>,
+    pub dimensions: ModelDimensions,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelDimensions {
+    pub dimensions: IndexMap<Name, Dimension>,
+    // pub filter: Option<BooleanExpression>,
+    // #[serde(default)]
+    // pub order_by: Vec<OrderByElement>,
+    pub limit: Option<usize>,
+    pub offset: Option<usize>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum Dimension {
+    /// Group by a field of the current object or a related object
+    /// Note: Operand::RelationshipAggregate will not be valid here.
+    Field {
+        column: Operand,
+        extraction: Option<ExtractionFunction>,
+    },
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+/// An extraction function to evaluate.
+pub enum ExtractionFunction {
+    Nanosecond,
+    Microsecond,
+    Second,
+    Minute,
+    Hour,
+    Day,
+    Week,
+    Month,
+    Quarter,
+    Year,
+    DayOfWeek,
+    DayOfYear,
+    Custom { name: ExtractionFunctionName },
+}
+
+impl core::fmt::Display for ExtractionFunction {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            ExtractionFunction::Nanosecond => write!(f, "NANOSECOND"),
+            ExtractionFunction::Microsecond => write!(f, "MICROSECOND"),
+            ExtractionFunction::Second => write!(f, "SECOND"),
+            ExtractionFunction::Minute => write!(f, "MINUTE"),
+            ExtractionFunction::Hour => write!(f, "HOUR"),
+            ExtractionFunction::Day => write!(f, "DAY"),
+            ExtractionFunction::Week => write!(f, "WEEK"),
+            ExtractionFunction::Month => write!(f, "MONTH"),
+            ExtractionFunction::Quarter => write!(f, "QUARTER"),
+            ExtractionFunction::Year => write!(f, "YEAR"),
+            ExtractionFunction::DayOfWeek => write!(f, "DAYOFWEEK"),
+            ExtractionFunction::DayOfYear => write!(f, "DAYOFYEAR"),
+            ExtractionFunction::Custom { name } => write!(f, "{name}"),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -112,7 +185,7 @@ pub struct RelationshipAggregateSelection {
     #[serde(flatten)]
     pub target: RelationshipTarget,
     /// What aggregated metrics to select.
-    pub selection: IndexMap<String, Aggregate>,
+    pub selection: IndexMap<Name, Aggregate>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -185,6 +258,36 @@ impl Value {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub enum ComparisonOperator {
+    #[serde(rename = "_eq")]
+    Equals,
+    #[serde(rename = "_neq")]
+    NotEquals,
+    #[serde(rename = "_lt")]
+    LessThan,
+    #[serde(rename = "_lte")]
+    LessThanOrEqual,
+    #[serde(rename = "_gt")]
+    GreaterThan,
+    #[serde(rename = "_gte")]
+    GreaterThanOrEqual,
+    #[serde(rename = "_contains")]
+    Contains,
+    #[serde(rename = "_icontains")]
+    ContainsInsensitive,
+    #[serde(rename = "starts_with")]
+    StartsWith,
+    #[serde(rename = "istarts_with")]
+    StartsWithInsensitive,
+    #[serde(rename = "iends_with")]
+    EndsWith,
+    #[serde(rename = "ends_with")]
+    EndsWithInsensitive,
+    #[serde(untagged)]
+    Custom(OperatorName),
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 /// A boolean expression value that can be used for model filters or boolean expression arguments.
 pub enum BooleanExpression {
@@ -194,8 +297,13 @@ pub enum BooleanExpression {
     IsNull(Operand),
     Comparison {
         operand: Operand,
-        operator: OperatorName,
+        operator: ComparisonOperator,
         argument: Box<Value>,
+    },
+    Relationship {
+        operand: Option<Operand>,
+        relationship_name: RelationshipName,
+        predicate: Box<BooleanExpression>,
     },
 }
 
@@ -220,17 +328,82 @@ impl BooleanExpression {
             ),
             BooleanExpression::Not(expr) => format!("(NOT {})", expr.fmt_for_explain()),
             BooleanExpression::IsNull(operand) => format!("{} IS NULL", operand.fmt_for_explain()),
+            BooleanExpression::Relationship {
+                relationship_name,
+                predicate,
+                ..
+            } => format!(
+                "In relationship {}, predicate {}",
+                relationship_name,
+                predicate.fmt_for_explain()
+            ),
             BooleanExpression::Comparison {
                 operand,
                 operator,
                 argument,
-            } => match operator.as_str() {
-                "_eq" => format!(
+            } => match operator {
+                ComparisonOperator::Equals => format!(
                     "{} = {}",
                     operand.fmt_for_explain(),
                     argument.fmt_for_explain()
                 ),
-                op => format!(
+                ComparisonOperator::NotEquals => format!(
+                    "{} != {}",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::LessThan => format!(
+                    "{} < {}",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::LessThanOrEqual => format!(
+                    "{} ≤ {}",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::GreaterThan => format!(
+                    "{} > {}",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::GreaterThanOrEqual => format!(
+                    "{} ≥ {}",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::Contains => format!(
+                    "contains({}, {})",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::ContainsInsensitive => format!(
+                    "icontains({}, {})",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::StartsWith => format!(
+                    "starts_with({}, {})",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::StartsWithInsensitive => format!(
+                    "istarts_with({}, {})",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::EndsWith => format!(
+                    "ends_with({}, {})",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+                ComparisonOperator::EndsWithInsensitive => format!(
+                    "iends_with({}, {})",
+                    operand.fmt_for_explain(),
+                    argument.fmt_for_explain()
+                ),
+
+                ComparisonOperator::Custom(op) => format!(
                     "{}({}, {})",
                     operand.fmt_for_explain(),
                     op,
@@ -266,6 +439,10 @@ impl OrderByElement {
 #[serde(rename_all = "camelCase")]
 /// An aggregate function to execute.
 pub enum AggregationFunction {
+    Sum,
+    Min,
+    Max,
+    Average,
     Count {},
     CountDistinct {},
     Custom { name: AggregationFunctionName },
@@ -327,8 +504,8 @@ impl ObjectFieldOperand {
 /// Operand targeting a particular relationship or an operand nested within that relationship.
 pub struct RelationshipOperand {
     #[serde(flatten)]
-    target: Box<RelationshipTarget>,
-    nested: Option<Box<Operand>>,
+    pub target: Box<RelationshipTarget>,
+    pub nested: Option<Box<Operand>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
@@ -336,8 +513,8 @@ pub struct RelationshipOperand {
 /// Operand targeting a metric aggregated over related values of an OpenDD object.
 pub struct RelationshipAggregateOperand {
     #[serde(flatten)]
-    target: Box<RelationshipTarget>,
-    aggregate: Box<Aggregate>,
+    pub target: Box<RelationshipTarget>,
+    pub aggregate: Box<Aggregate>,
 }
 
 #[cfg(test)]

@@ -8,7 +8,7 @@ services:
     build:
       dockerfile: Dockerfile
     environment:
-      - METADATA_PATH=app/docker_schema.json
+      - METADATA_PATH=app/metadata.json
       - AUTHN_CONFIG_PATH=app/auth_config.json
       - OTLP_ENDPOINT=http://jaeger:4317
     ports:
@@ -19,10 +19,10 @@ services:
       auth_hook:
         condition: service_started
     extra_hosts:
-      - local.hasura.dev=host-gateway
+      - local.hasura.dev=${LOCALHOST_GATEWAY:-host-gateway}
     volumes:
-      - ./static/auth/auth_config.json:/app/auth_config.json
-      - ./static/docker_schema.json:/app/docker_schema.json
+      - ./static/auth/auth_config_v3.json:/app/auth_config.json
+      - ./static/metadata.json:/app/metadata.json
       - ./crates/open-dds/examples/reference.json:/app/crates/open-dds/examples/reference.json
 
   postgres:
@@ -65,16 +65,15 @@ services:
     build:
       dockerfile: dev-auth-webhook.Dockerfile
     environment:
-      OTLP_ENDPOINT: "http://local.hasura.dev:4317"
+      OTLP_ENDPOINT: "http://jaeger:4317"
       RUST_LOG: debug
     ports:
       - "3050:3050"
-    extra_hosts:
-      - local.hasura.dev=host-gateway
     depends_on:
       jaeger:
         condition: service_started
 
+  # browse traces at: http://localhost:16686/search
   jaeger:
     image: jaegertracing/all-in-one:1.55
     restart: always
@@ -90,18 +89,18 @@ services:
       - 4317:4317 # OTLP gRPC
       - 4318:4318 # OTLP HTTP
       - 9411:9411
+      - 16686:16686
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
       COLLECTOR_ZIPKIN_HOST_PORT: "9411"
 
-  postgres_connector:
-    image: ghcr.io/hasura/ndc-postgres:latest
+  postgres_connector_ndc_v01:
+    image: ghcr.io/hasura/ndc-postgres:dev-main
     ports:
       - 8080:8080
     environment:
-      HASURA_SERVICE_TOKEN_SECRET: super sekret
-      CONNECTION_URI: "postgresql://postgres:password@local.hasura.dev"
-      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://local.hasura.dev:4317"
+      CONNECTION_URI: "postgresql://postgres:password@postgres"
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://jaeger:4317"
       OTEL_SERVICE_NAME: "ndc-postgres"
       RUST_LOG: info
     volumes:
@@ -109,13 +108,73 @@ services:
         source: ./crates/engine/tests/ndc-postgres-configuration
         target: /etc/connector
         read_only: true
-    extra_hosts:
-      - local.hasura.dev=host-gateway
     depends_on:
       postgres:
         condition: service_healthy
       jaeger:
         condition: service_started
+
+  postgres_connector:
+    image: ghcr.io/hasura/ndc-postgres:dev-benoit-eng-362-update-ndc-postgres-to-ndc_models-020
+    ports:
+      - 8082:8080
+    environment:
+      CONNECTION_URI: "postgresql://postgres:password@postgres"
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: "http://jaeger:4317"
+      OTEL_SERVICE_NAME: "ndc-postgres"
+      RUST_LOG: info
+    volumes:
+      - type: bind
+        source: ./crates/engine/tests/ndc-postgres-configuration
+        target: /etc/connector
+        read_only: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+
+  custom_connector:
+    build:
+      dockerfile: custom-connector.Dockerfile
+    entrypoint:
+      - ./bin/custom-connector
+    ports:
+      - "8102:8102"
+    environment:
+      RUST_LOG: info
+      ENABLE_RELATIONSHIP_SUPPORT: "1" # Enabled
+    healthcheck:
+      test: curl -fsS http://localhost:8102/schema
+      start_period: 5s
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  custom_connector_no_relationships:
+    build:
+      dockerfile: custom-connector.Dockerfile
+    entrypoint:
+      - ./bin/custom-connector
+    ports:
+      - "8103:8102"
+    environment:
+      RUST_LOG: info
+      ENABLE_RELATIONSHIP_SUPPORT: "0" # Disabled
+    healthcheck:
+      test: curl -fsS http://localhost:8102/schema
+      start_period: 5s
+      interval: 5s
+      timeout: 10s
+      retries: 20
+
+  custom_connector_ndc_v01:
+    # This is the v3-engine commit version before the custom connector got upgraded to ndc_models v0.2.0
+    image: ghcr.io/hasura/v3-custom-connector:bef8a750ca31b067952247ad348683a4faa843f5
+    ports:
+      - "8101:8101"
+    environment:
+      RUST_LOG: info
 
 volumes:
   postgres:

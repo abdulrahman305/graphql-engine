@@ -147,7 +147,11 @@ pub struct AggregationFunctionDefinition {
 
 str_newtype!(AggregationFunctionName over Identifier | doc "The name of an aggregation function.");
 
+str_newtype!(ExtractionFunctionName | doc "The name of an extraction function.");
+
 str_newtype!(DataConnectorAggregationFunctionName | doc "The name of an aggregation function in a data connector");
+
+str_newtype!(DataConnectorExtractionFunctionName | doc "The name of an extraction function in a data connector");
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, opendds_derive::OpenDd)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
@@ -180,6 +184,21 @@ impl Deref for AggregationFunctionMappings {
     }
 }
 
+#[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, Eq, opendds_derive::OpenDd)]
+#[opendd(json_schema(title = "ExtractionFunctionMappings"))]
+/// Mapping of extraction functions to their matching extraction functions in the data connector.
+pub struct ExtractionFunctionMappings(
+    pub IndexMap<ExtractionFunctionName, ExtractionFunctionMapping>,
+);
+
+impl Deref for ExtractionFunctionMappings {
+    type Target = IndexMap<ExtractionFunctionName, ExtractionFunctionMapping>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash, opendds_derive::OpenDd)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[opendd(json_schema(title = "AggregateFunctionMapping"))]
@@ -189,6 +208,15 @@ pub struct AggregateFunctionMapping {
     pub name: DataConnectorAggregationFunctionName,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash, opendds_derive::OpenDd)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+#[opendd(json_schema(title = "ExtractionFunctionMapping"))]
+/// Definition of how to map the extraction function to a function in the data connector
+pub struct ExtractionFunctionMapping {
+    /// The name of the extraction function in the data connector
+    pub name: DataConnectorExtractionFunctionName,
+}
+
 #[derive(Serialize, Clone, Debug, PartialEq, opendds_derive::OpenDd)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[opendd(json_schema(title = "AggregateCountDefinition"))]
@@ -196,9 +224,14 @@ pub struct AggregateFunctionMapping {
 pub struct AggregateCountDefinition {
     /// Whether or not the aggregate function is available for use or not
     pub enable: bool,
+
     /// A description of the aggregation function.
     /// Gets added to the description of the field in the GraphQL schema.
     pub description: Option<String>,
+
+    /// The scalar type that the count aggregation function returns.
+    /// Must be an integer type. If omitted, Int is used as the default.
+    pub return_type: Option<TypeName>,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, Eq, opendds_derive::OpenDd)]

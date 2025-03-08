@@ -2,10 +2,9 @@ pub mod init;
 pub mod subscribe;
 pub mod types;
 
-use types::{ClientMessage, ServerMessage};
-
 use crate::metrics::WebSocketMetrics;
 use crate::websocket::types as ws;
+use types::{ClientMessage, ServerMessage};
 
 /// Protocol name for the GraphQL over WebSocket.
 /// ref: <https://github.com/enisdenjo/graphql-ws/blob/master/PROTOCOL.md#communication>
@@ -19,6 +18,7 @@ pub static KEEPALIVE_INTERVAL: std::time::Duration = std::time::Duration::from_s
 
 /// Handles incoming client messages and dispatches them to appropriate handlers.
 pub async fn handle_graphql_ws_message<M: WebSocketMetrics>(
+    client_address: std::net::SocketAddr,
     connection: ws::Connection<M>,
     message: ClientMessage,
 ) {
@@ -41,7 +41,13 @@ pub async fn handle_graphql_ws_message<M: WebSocketMetrics>(
                             id: operation_id,
                             payload,
                         } => {
-                            subscribe::handle_subscribe(connection, operation_id, payload).await;
+                            subscribe::handle_subscribe(
+                                client_address,
+                                connection,
+                                operation_id,
+                                payload,
+                            )
+                            .await;
                         }
                         // Handle the Complete message and stop the corresponding poller
                         ClientMessage::Complete { id: operation_id } => {

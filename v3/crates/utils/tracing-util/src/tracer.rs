@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::future::Future;
 use std::pin::Pin;
 
@@ -183,6 +184,9 @@ impl Tracer {
     /// Runs the tive closure `f` asynchronously by opening a span in a new trace with the given `name`, and sets a visibility attribute
     /// on the span based on `visibility` and sets the span's error attributes based on the result of the closure.
     /// The span is linked to the given `link`.
+    ///
+    /// rustc doesn't accept what clippy suggests here
+    #[allow(clippy::needless_lifetimes)]
     pub async fn new_trace_async_with_link<'a, R, F>(
         &'a self,
         name: &'static str,
@@ -223,9 +227,10 @@ impl Tracer {
 
     /// Runs the given closure `f` asynchronously in a new span with the given `name`, and sets a visibility attribute
     /// on the span based on `visibility` and sets the span's error attributes based on the result of the closure.
-    pub async fn in_span_async<'a, R, F>(
+    #[allow(clippy::needless_lifetimes)]
+    pub async fn in_span_async<'a, R, F, N>(
         &'a self,
-        name: &'static str,
+        name: N,
         display_name: impl Into<AttributeValue>,
         visibility: SpanVisibility,
         f: F,
@@ -235,6 +240,7 @@ impl Tracer {
         // because when using generics for this, it takes an extremely long time to build the engine binary.
         F: FnOnce() -> Pin<Box<dyn Future<Output = R> + 'a + Send>>,
         R: Traceable,
+        N: Into<Cow<'static, str>>,
     {
         self.tracer
             .in_span(name, |cx| {
@@ -256,9 +262,11 @@ impl Tracer {
             .await
     }
 
-    pub async fn in_span_async_with_parent_context<'a, R, F>(
+    // rustc doesn't accept what clippy suggests here
+    #[allow(clippy::needless_lifetimes)]
+    pub async fn in_span_async_with_parent_context<'a, R, F, N>(
         &'a self,
-        name: &'static str,
+        name: N,
         display_name: impl Into<AttributeValue>,
         visibility: SpanVisibility,
         parent_headers: &HeaderMap<http::HeaderValue>,
@@ -267,6 +275,7 @@ impl Tracer {
     where
         F: FnOnce() -> Pin<Box<dyn Future<Output = R> + 'a + Send>>,
         R: Traceable,
+        N: Into<Cow<'static, str>>,
     {
         let parent_context = global::get_text_map_propagator(|propagator| {
             propagator.extract(&HeaderExtractor(parent_headers))

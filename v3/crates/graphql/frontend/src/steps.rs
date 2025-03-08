@@ -1,13 +1,13 @@
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 use super::types::{GraphQlParseError, GraphQlValidationError};
-
 use crate::query_usage;
 use gql::normalized_ast::Operation;
 use graphql_schema::{GDSRoleNamespaceGetter, GDS};
 use hasura_authn_core::Session;
 use lang_graphql as gql;
 use lang_graphql::ast::common as ast;
+use std::sync::Arc;
 use tracing_util::{set_attribute_on_active_span, AttributeVisibility, SpanVisibility};
 
 /// Parses a raw GraphQL request into a GQL query AST
@@ -62,7 +62,7 @@ pub fn normalize_request<'s>(
                     variables: raw_request
                         .variables
                         .as_ref()
-                        .map_or_else(HashMap::default, Clone::clone),
+                        .map_or_else(BTreeMap::default, Clone::clone),
                 };
                 gql::validation::normalize_request(
                     &GDSRoleNamespaceGetter {
@@ -80,7 +80,9 @@ pub fn normalize_request<'s>(
 
 /// Generate IR for the request
 pub fn build_ir<'n, 's>(
+    request_pipeline: graphql_ir::GraphqlRequestPipeline,
     schema: &'s gql::schema::Schema<GDS>,
+    metadata: &'s metadata_resolve::Metadata,
     session: &Session,
     request_headers: &reqwest::header::HeaderMap,
     normalized_request: &'s Operation<'s, GDS>,
@@ -90,7 +92,16 @@ pub fn build_ir<'n, 's>(
         "generate_ir",
         "Generate IR for the request",
         SpanVisibility::Internal,
-        || generate_ir(schema, session, request_headers, normalized_request),
+        || {
+            generate_ir(
+                request_pipeline,
+                schema,
+                metadata,
+                session,
+                request_headers,
+                normalized_request,
+            )
+        },
     )?;
     Ok(ir)
 }
@@ -99,19 +110,31 @@ pub fn build_ir<'n, 's>(
 /// using the new execution plan
 pub fn build_request_plan<'n, 's, 'ir>(
     ir: &'ir graphql_ir::IR<'n, 's>,
+    metadata: &'s metadata_resolve::Metadata,
+    session: &Session,
+    request_headers: &reqwest::header::HeaderMap,
 ) -> Result<graphql_ir::RequestPlan<'n, 's, 'ir>, graphql_ir::PlanError> {
     let tracer = tracing_util::global_tracer();
     let plan = tracer.in_span(
         "plan",
         "Construct a plan to execute the request",
         SpanVisibility::Internal,
-        || graphql_ir::generate_request_plan(ir),
+        || {
+            graphql_ir::generate_request_plan(
+                ir,
+                metadata,
+                &Arc::new(session.clone()),
+                request_headers,
+            )
+        },
     )?;
     Ok(plan)
 }
 
 pub fn generate_ir<'n, 's>(
+    request_pipeline: graphql_ir::GraphqlRequestPipeline,
     schema: &'s gql::schema::Schema<GDS>,
+    metadata: &'s metadata_resolve::Metadata,
     session: &Session,
     request_headers: &reqwest::header::HeaderMap,
     normalized_request: &'s Operation<'s, GDS>,
@@ -119,7 +142,9 @@ pub fn generate_ir<'n, 's>(
     match &normalized_request.ty {
         ast::OperationType::Query => {
             let query_ir = graphql_ir::generate_query_ir(
+                request_pipeline,
                 schema,
+                metadata,
                 session,
                 request_headers,
                 &normalized_request.selection_set,
@@ -128,15 +153,19 @@ pub fn generate_ir<'n, 's>(
         }
         ast::OperationType::Mutation => {
             let mutation_ir = graphql_ir::generate_mutation_ir(
+                request_pipeline,
                 &normalized_request.selection_set,
-                &session.variables,
+                metadata,
+                session,
                 request_headers,
             )?;
             Ok(graphql_ir::IR::Mutation(mutation_ir))
         }
         ast::OperationType::Subscription => {
             let (alias, field) = graphql_ir::generate_subscription_ir(
+                request_pipeline,
                 session,
+                metadata,
                 request_headers,
                 &normalized_request.selection_set,
             )?;

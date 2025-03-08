@@ -1,27 +1,31 @@
 use super::arguments;
 use super::commands;
 use super::model_selection;
-use super::relationships;
 use super::types::Plan;
 use super::ProcessResponseAs;
 use crate::plan::error;
 use crate::{FieldSelection, NestedSelection, ResultSelectionSet};
+use hasura_authn_core::Session;
 use indexmap::IndexMap;
 use metadata_resolve::data_connectors::NdcVersion;
-use metadata_resolve::FieldMapping;
+use metadata_resolve::{FieldMapping, Metadata};
 use open_dds::data_connector::DataConnectorColumnName;
+use plan::{process_command_relationship_definition, process_model_relationship_definition};
 use plan_types::{
-    ExecutionTree, Field, JoinLocations, JoinNode, Location, LocationKind, NestedArray,
-    NestedField, NestedObject, PredicateQueryTrees, RemoteJoin, RemoteJoinType, SourceFieldAlias,
-    TargetField,
+    CommandReturnKind, Field, JoinLocations, JoinNode, Location, LocationKind, NestedArray,
+    NestedField, NestedObject, PredicateQueryTrees, QueryExecutionTree, RemoteJoin, RemoteJoinType,
+    SourceFieldAlias, TargetField,
 };
 use plan_types::{NdcFieldAlias, NdcRelationshipName, Relationship, UniqueNumber};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 
 pub(crate) fn plan_nested_selection(
     nested_selection: &NestedSelection<'_>,
     ndc_version: NdcVersion,
     relationships: &mut BTreeMap<NdcRelationshipName, Relationship>,
+    metadata: &'_ Metadata,
+    session: &Session,
+    request_headers: &reqwest::header::HeaderMap,
     unique_number: &mut UniqueNumber,
 ) -> Result<Plan<NestedField>, error::Error> {
     match nested_selection {
@@ -30,7 +34,15 @@ pub(crate) fn plan_nested_selection(
                 inner: fields,
                 join_locations,
                 remote_predicates,
-            } = plan_selection_set(model_selection, ndc_version, relationships, unique_number)?;
+            } = plan_selection_set(
+                model_selection,
+                ndc_version,
+                relationships,
+                metadata,
+                session,
+                request_headers,
+                unique_number,
+            )?;
             Ok(Plan {
                 inner: NestedField::Object(NestedObject { fields }),
                 join_locations,
@@ -42,7 +54,15 @@ pub(crate) fn plan_nested_selection(
                 inner: field,
                 join_locations,
                 remote_predicates,
-            } = plan_nested_selection(nested_selection, ndc_version, relationships, unique_number)?;
+            } = plan_nested_selection(
+                nested_selection,
+                ndc_version,
+                relationships,
+                metadata,
+                session,
+                request_headers,
+                unique_number,
+            )?;
             Ok(Plan {
                 inner: NestedField::Array(NestedArray {
                     fields: Box::new(field),
@@ -63,6 +83,9 @@ pub(crate) fn plan_selection_set(
     model_selection: &ResultSelectionSet<'_>,
     ndc_version: NdcVersion,
     relationships: &mut BTreeMap<NdcRelationshipName, Relationship>,
+    metadata: &'_ Metadata,
+    session: &Session,
+    request_headers: &reqwest::header::HeaderMap,
     unique_number: &mut UniqueNumber,
 ) -> Result<Plan<IndexMap<NdcFieldAlias, Field>>, error::Error> {
     let mut fields = IndexMap::<NdcFieldAlias, Field>::new();
@@ -86,6 +109,9 @@ pub(crate) fn plan_selection_set(
                         nested_selection,
                         ndc_version,
                         relationships,
+                        metadata,
+                        session,
+                        request_headers,
                         unique_number,
                     )?;
 
@@ -125,13 +151,26 @@ pub(crate) fn plan_selection_set(
                 // collect local model relationship
                 relationships.insert(
                     name.clone(),
-                    relationships::process_model_relationship_definition(relationship_info)?,
+                    process_model_relationship_definition(relationship_info).map_err(
+                        |plan_error| {
+                            error::Error::Internal(error::InternalError::InternalGeneric {
+                                description: plan_error.to_string(),
+                            })
+                        },
+                    )?,
                 );
                 let Plan {
                     inner: relationship_query,
                     join_locations: jl,
                     remote_predicates: relationship_remote_predicates,
-                } = model_selection::plan_query_node(query, relationships, unique_number)?;
+                } = model_selection::plan_query_node(
+                    query,
+                    relationships,
+                    metadata,
+                    session,
+                    request_headers,
+                    unique_number,
+                )?;
 
                 remote_predicates.0.extend(relationship_remote_predicates.0);
 
@@ -159,22 +198,40 @@ pub(crate) fn plan_selection_set(
                 // collect local command relationship
                 relationships.insert(
                     name.clone(),
-                    relationships::process_command_relationship_definition(relationship_info)?,
+                    process_command_relationship_definition(relationship_info).map_err(
+                        |plan_error| {
+                            error::Error::Internal(error::InternalError::InternalGeneric {
+                                description: plan_error.to_string(),
+                            })
+                        },
+                    )?,
                 );
                 let Plan {
                     inner: relationship_query,
                     join_locations: jl,
                     remote_predicates: command_remote_predicates,
-                } = commands::plan_query_node(&ir.command_info, relationships, unique_number)?;
+                } = commands::plan_query_node(
+                    &ir.command_info,
+                    relationships,
+                    metadata,
+                    session,
+                    request_headers,
+                    unique_number,
+                )?;
+
+                let arguments = match &ir.command_info.selection {
+                    crate::CommandSelection::Ir { arguments, .. } => Ok(arguments),
+                    crate::CommandSelection::OpenDd { .. } => Err(error::Error::Internal(
+                        error::InternalError::InternalGeneric {
+                            description: "OpenDD IR found when planning regular IR query".into(),
+                        },
+                    )),
+                }?;
 
                 remote_predicates.0.extend(command_remote_predicates.0);
 
                 let (relationship_arguments, argument_remote_predicates) =
-                    arguments::plan_arguments(
-                        &ir.command_info.arguments,
-                        relationships,
-                        unique_number,
-                    )?;
+                    arguments::plan_arguments(arguments, relationships, unique_number)?;
 
                 remote_predicates.0.extend(argument_remote_predicates.0);
 
@@ -199,7 +256,7 @@ pub(crate) fn plan_selection_set(
                 ir,
                 relationship_info,
             } => {
-                let mut join_mapping = HashMap::new();
+                let mut join_mapping = BTreeMap::new();
                 for ((src_field_alias, src_field), target_field) in &relationship_info.join_mapping
                 {
                     let ndc_field_alias = process_remote_relationship_field_mapping(
@@ -209,18 +266,21 @@ pub(crate) fn plan_selection_set(
                     );
                     join_mapping.insert(
                         src_field_alias.clone(),
-                        (
-                            ndc_field_alias,
-                            TargetField::ModelField(target_field.clone()),
-                        ),
+                        (ndc_field_alias, target_field.clone()),
                     );
                 }
                 // Construct the `JoinLocations` tree
-                let ExecutionTree {
+                let QueryExecutionTree {
                     query_execution_plan: query_execution,
                     remote_join_executions: sub_join_locations,
                     remote_predicates: model_remote_predicates,
-                } = model_selection::plan_query_execution(ir, unique_number)?;
+                } = model_selection::plan_query_execution(
+                    ir,
+                    metadata,
+                    session,
+                    request_headers,
+                    unique_number,
+                )?;
 
                 // push any remote predicates to the outer list
                 remote_predicates.0.extend(model_remote_predicates.0);
@@ -244,7 +304,7 @@ pub(crate) fn plan_selection_set(
                 ir,
                 relationship_info,
             } => {
-                let mut join_mapping = HashMap::new();
+                let mut join_mapping = BTreeMap::new();
 
                 for ((src_field_alias, src_field), target_field) in &relationship_info.join_mapping
                 {
@@ -255,18 +315,21 @@ pub(crate) fn plan_selection_set(
                     );
                     join_mapping.insert(
                         src_field_alias.clone(),
-                        (
-                            ndc_field_alias,
-                            TargetField::CommandField(target_field.clone()),
-                        ),
+                        (ndc_field_alias, TargetField::Argument(target_field.clone())),
                     );
                 }
                 // Construct the `JoinLocations` tree
-                let ExecutionTree {
+                let QueryExecutionTree {
                     query_execution_plan: ndc_ir,
                     remote_join_executions: sub_join_locations,
                     remote_predicates: command_remote_predicates,
-                } = commands::plan_query_execution(ir, unique_number)?;
+                } = commands::plan_query_execution(
+                    ir,
+                    metadata,
+                    session,
+                    request_headers,
+                    unique_number,
+                )?;
 
                 // we push remote predicates to the outer list
                 remote_predicates.0.extend(command_remote_predicates.0);
@@ -277,11 +340,17 @@ pub(crate) fn plan_selection_set(
                     join_mapping,
                     process_response_as: ProcessResponseAs::CommandResponse {
                         command_name: ir.command_info.command_name.clone(),
-                        type_container: ir.command_info.type_container.clone(),
+                        is_nullable: ir.command_info.type_container.nullable,
+                        return_kind: if ir.command_info.type_container.is_list() {
+                            CommandReturnKind::Array
+                        } else {
+                            CommandReturnKind::Object
+                        },
                         response_config: ir.command_info.data_connector.response_config.clone(),
                     },
                     remote_join_type: RemoteJoinType::ToCommand,
                 };
+
                 join_locations.locations.insert(
                     field_name.as_str().to_owned(),
                     Location {

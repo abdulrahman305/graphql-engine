@@ -162,6 +162,8 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                                         },
                                         column_type_representation: None,
                                         comparison_operators: None,
+                                        aggregate_functions: None,
+                                        extraction_functions: None,
                                         argument_mappings: {},
                                     },
                                     FieldName(
@@ -182,17 +184,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -215,17 +253,53 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [
                                                     DataConnectorOperatorName(
                                                         "_like",
                                                     ),
                                                 ],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -240,7 +314,6 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
         scalar_types: {},
         models: {},
         commands: {},
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {
                 Qualified {
@@ -357,7 +430,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                                     "author_id",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "default",
@@ -431,13 +504,14 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                                         },
                                     ),
                                 },
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "first_name",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "default",
@@ -511,13 +585,14 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                                         },
                                     ),
                                 },
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "last_name",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "default",
@@ -591,25 +666,18 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                                         },
                                     ),
                                 },
+                                field_kind: Scalar,
                             },
                         },
                         relationship_fields: {},
                     },
                     include_logical_operators: Yes,
+                    data_connector: None,
                 },
             },
             scalars: {
-                Qualified {
-                    subgraph: SubgraphName(
-                        "default",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "postgres_int_comparison_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "default",
                         ),
@@ -619,6 +687,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         Int,
                     ),
@@ -707,17 +776,8 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                         ),
                     },
                 },
-                Qualified {
-                    subgraph: SubgraphName(
-                        "default",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "postgres_string_comparison_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "default",
                         ),
@@ -727,6 +787,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         String,
                     ),
@@ -859,6 +920,7 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/basic_
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {
             Role(

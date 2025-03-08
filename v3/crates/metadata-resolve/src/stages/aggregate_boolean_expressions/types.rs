@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use lang_graphql::ast::common as ast;
 use open_dds::{
@@ -11,6 +11,8 @@ use open_dds::{
 };
 
 use crate::{
+    stages::aggregates::CountAggregateType,
+    stages::boolean_expressions::BooleanExpressionTypeIdentifier,
     stages::graphql_config::GraphqlConfigError,
     stages::scalar_boolean_expressions::LogicalOperators, Qualified, QualifiedTypeName,
     QualifiedTypeReference,
@@ -22,7 +24,6 @@ pub struct AggregateBooleanExpressionsOutput {
     pub object_aggregates: BTreeMap<Qualified<CustomTypeName>, ObjectAggregateBooleanExpression>,
 
     pub issues: Vec<NamedAggregateBooleanExpressionIssue>,
-    pub graphql_types: BTreeSet<ast::TypeName>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -42,12 +43,12 @@ pub struct ComparableAggregationFunction {
     #[serde(default = "serde_ext::ser_default")]
     #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub description: Option<String>,
-    pub boolean_expression_type: Qualified<CustomTypeName>,
+    pub boolean_expression_type: BooleanExpressionTypeIdentifier,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComparableCountAggregation {
-    pub boolean_expression_type: Qualified<CustomTypeName>,
+    pub boolean_expression_type: BooleanExpressionTypeIdentifier,
     pub graphql: Option<ComparableCountGraphqlConfig>,
 }
 
@@ -175,14 +176,14 @@ pub enum AggregateBooleanExpressionError {
         "could not find a scalar-operanded boolean expression type named '{boolean_expression_type}'"
     )]
     ScalarBooleanExpressionTypeNotFound {
-        boolean_expression_type: Qualified<CustomTypeName>,
+        boolean_expression_type: BooleanExpressionTypeIdentifier,
     },
 
     #[error("type mismatch between the aggregation function '{aggregation_function_name}' (return type: '{aggregation_function_return_type}') and the specified boolean expression type '{boolean_expression_type}' (operand type: '{boolean_expression_operand_type}')")]
     AggregationFunctionTypeMismatch {
         aggregation_function_name: AggregationFunctionName,
         aggregation_function_return_type: QualifiedTypeName,
-        boolean_expression_type: Qualified<CustomTypeName>,
+        boolean_expression_type: BooleanExpressionTypeIdentifier,
         boolean_expression_operand_type: QualifiedTypeName,
     },
 
@@ -202,7 +203,7 @@ pub enum AggregateBooleanExpressionError {
     CountAggregateTypeMismatch {
         count_type: CountAggregateType,
         count_return_type: QualifiedTypeName,
-        boolean_expression_type: Qualified<CustomTypeName>,
+        boolean_expression_type: BooleanExpressionTypeIdentifier,
         boolean_expression_operand_type: QualifiedTypeName,
     },
 
@@ -328,14 +329,6 @@ pub enum AggregateBooleanExpressionError {
         name_source_1: NameSource,
         name_source_2: NameSource,
     },
-}
-
-#[derive(Debug, Eq, PartialEq, Copy, Clone, derive_more::Display)]
-pub enum CountAggregateType {
-    #[display("count")]
-    Count,
-    #[display("count distinct")]
-    CountDistinct,
 }
 
 #[derive(Debug, Eq, PartialEq, Copy, Clone, derive_more::Display)]

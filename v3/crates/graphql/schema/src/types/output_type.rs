@@ -115,7 +115,6 @@ pub fn get_custom_output_type(
         gds_type,
         &gds.metadata.object_types,
         &gds.metadata.scalar_types,
-        &gds.metadata.object_boolean_expression_types,
         &gds.metadata.boolean_expression_types,
     )
     .map_err(|_| crate::Error::InternalTypeNotFound {
@@ -146,8 +145,7 @@ pub fn get_custom_output_type(
                     .clone(),
             }))
         }
-        TypeRepresentation::BooleanExpression(_)
-        | TypeRepresentation::BooleanExpressionObject(_)
+        TypeRepresentation::BooleanExpressionObject(_)
         | TypeRepresentation::BooleanExpressionScalar(_) => {
             Err(Error::BooleanExpressionUsedAsOutputType)
         }
@@ -166,7 +164,6 @@ pub(crate) fn get_type_kind(
                     type_name,
                     &gds.metadata.object_types,
                     &gds.metadata.scalar_types,
-                    &gds.metadata.object_boolean_expression_types,
                     &gds.metadata.boolean_expression_types,
                 )
                 .map_err(|_| Error::InternalTypeNotFound {
@@ -175,8 +172,7 @@ pub(crate) fn get_type_kind(
                     TypeRepresentation::Scalar(_) => Ok(super::TypeKind::Scalar),
                     TypeRepresentation::Object(_)
                     | TypeRepresentation::BooleanExpressionObject(_)
-                    | TypeRepresentation::BooleanExpressionScalar(_)
-                    | TypeRepresentation::BooleanExpression(_) => Ok(super::TypeKind::Object),
+                    | TypeRepresentation::BooleanExpressionScalar(_) => Ok(super::TypeKind::Object),
                 }
             }
         },
@@ -271,49 +267,49 @@ fn add_relationship_fields(
     object_type_representation: &metadata_resolve::ObjectTypeWithRelationships,
     parent_graphql_type_name: &ast::TypeName,
 ) -> Result<(), Error> {
-    for (relationship_field_name, relationship) in &object_type_representation.relationship_fields {
-        let relationship_field = match &relationship.target {
+    for relationship in object_type_representation.relationship_fields.values() {
+        let mut relationship_fields = Vec::new();
+        match &relationship.target {
             metadata_resolve::RelationshipTarget::Command(command_relationship_target) => {
-                command_relationship_field(
+                let command_relationship = command_relationship_field(
                     command_relationship_target,
                     builder,
                     gds,
-                    relationship_field_name,
                     relationship,
                     object_type_representation,
-                )?
+                )?;
+                relationship_fields.push(command_relationship);
             }
             metadata_resolve::RelationshipTarget::Model(model_relationship_target) => {
-                model_relationship_field(
+                let ModelRelationshipFields {
+                    field,
+                    aggregate_field,
+                } = model_relationship_fields(
                     model_relationship_target,
                     builder,
                     gds,
-                    relationship_field_name,
                     relationship,
                     object_type_representation,
-                )?
+                    parent_graphql_type_name,
+                )?;
+                relationship_fields.push(field);
+                if let Some(aggregate_field) = aggregate_field {
+                    relationship_fields.push(aggregate_field);
+                }
             }
-            metadata_resolve::RelationshipTarget::ModelAggregate(
-                model_aggregate_relationship_target,
-            ) => model_aggregate_relationship_field(
-                model_aggregate_relationship_target,
-                builder,
-                gds,
-                relationship_field_name,
-                relationship,
-                object_type_representation,
-                parent_graphql_type_name,
-            )?,
-        };
-        if graphql_fields
-            .insert(relationship_field_name.clone(), relationship_field)
-            .is_some()
-        {
-            return Err(Error::RelationshipFieldNameConflict {
-                relationship_name: relationship.relationship_name.clone(),
-                field_name: relationship_field_name.clone(),
-                type_name: type_name.clone(),
-            });
+        }
+        for relationship_field in relationship_fields {
+            let relationship_field_name = relationship_field.data.name.clone();
+            if graphql_fields
+                .insert(relationship_field_name.clone(), relationship_field)
+                .is_some()
+            {
+                return Err(Error::RelationshipFieldNameConflict {
+                    relationship_name: relationship.relationship_name.clone(),
+                    field_name: relationship_field_name,
+                    type_name: type_name.clone(),
+                });
+            }
         }
     }
 
@@ -325,7 +321,6 @@ fn command_relationship_field(
     command_relationship_target: &metadata_resolve::CommandRelationshipTarget,
     builder: &mut gql_schema::Builder<GDS>,
     gds: &GDS,
-    relationship_field_name: &ast::Name,
     relationship: &metadata_resolve::RelationshipField,
     object_type_representation: &metadata_resolve::ObjectTypeWithRelationships,
 ) -> Result<gql_schema::Namespaced<GDS, gql_schema::Field<GDS>>, Error> {
@@ -356,7 +351,7 @@ fn command_relationship_field(
 
     let field = builder.conditional_namespaced(
         gql_schema::Field::<GDS>::new(
-            relationship_field_name.clone(),
+            relationship.field_name.clone(),
             relationship.description.clone(),
             Annotation::Output(super::OutputAnnotation::RelationshipToCommand(
                 CommandRelationshipAnnotation {
@@ -381,20 +376,27 @@ fn command_relationship_field(
             command,
             object_type_representation,
             &command_relationship_target.mappings,
-        )?,
+        ),
     );
     Ok(field)
 }
 
+struct ModelRelationshipFields {
+    // array or object relationship field
+    field: gql_schema::Namespaced<GDS, gql_schema::Field<GDS>>,
+    // aggregate relationship field applicable only for an array relationship
+    aggregate_field: Option<gql_schema::Namespaced<GDS, gql_schema::Field<GDS>>>,
+}
+
 /// Create a model relationship field
-fn model_relationship_field(
+fn model_relationship_fields(
     model_relationship_target: &metadata_resolve::ModelRelationshipTarget,
     builder: &mut gql_schema::Builder<GDS>,
     gds: &GDS,
-    relationship_field_name: &ast::Name,
     relationship: &metadata_resolve::RelationshipField,
     object_type_representation: &metadata_resolve::ObjectTypeWithRelationships,
-) -> Result<gql_schema::Namespaced<GDS, gql_schema::Field<GDS>>, Error> {
+    parent_graphql_type_name: &ast::TypeName,
+) -> Result<ModelRelationshipFields, Error> {
     let relationship_base_output_type =
         get_custom_output_type(gds, builder, &model_relationship_target.target_typename)?;
     let relationship_output_type = match model_relationship_target.relationship_type {
@@ -415,11 +417,6 @@ fn model_relationship_field(
         .ok_or_else(|| Error::InternalModelNotFound {
             model_name: model_relationship_target.model_name.clone(),
         })?;
-    if !model.model.arguments.is_empty() {
-        return Err(Error::InternalUnsupported {
-            summary: "Relationships to models with arguments aren't supported".into(),
-        });
-    }
 
     let arguments = match model_relationship_target.relationship_type {
         relationships::RelationshipType::Array => generate_select_many_arguments(builder, model)?,
@@ -431,15 +428,14 @@ fn model_relationship_field(
 
     let field = builder.conditional_namespaced(
         gql_schema::Field::<GDS>::new(
-            relationship_field_name.clone(),
+            relationship.field_name.clone(),
             relationship.description.clone(),
             Annotation::Output(super::OutputAnnotation::RelationshipToModel(
                 ModelRelationshipAnnotation {
                     source_type: relationship.source.clone(),
                     relationship_name: relationship.relationship_name.clone(),
-                    model_name: model_relationship_target.model_name.clone(),
-                    target_source: metadata_resolve::ModelTargetSource::new(model, relationship)
-                        .map_err(metadata_resolve::WithContext::from)?,
+                    target_model_name: model_relationship_target.model_name.clone(),
+                    target_capabilities: relationship.target_capabilities.clone(),
                     target_type: model_relationship_target.target_typename.clone(),
                     relationship_type: model_relationship_target.relationship_type.clone(),
                     mappings: model_relationship_target.mappings.clone(),
@@ -455,22 +451,46 @@ fn model_relationship_field(
             object_type_representation,
             target_object_type_representation,
             &model_relationship_target.mappings,
-        )?,
+        ),
     );
-    Ok(field)
+    let aggregate_field = model_relationship_target
+        .relationship_aggregate
+        .as_ref()
+        .map(|aggregate| {
+            model_aggregate_relationship_field(
+                aggregate,
+                builder,
+                gds,
+                model,
+                &aggregate.field_name,
+                &model_relationship_target.target_typename,
+                &model_relationship_target.mappings,
+                relationship,
+                object_type_representation,
+                parent_graphql_type_name,
+            )
+        })
+        .transpose()?;
+    Ok(ModelRelationshipFields {
+        field,
+        aggregate_field,
+    })
 }
 
 /// Create a model relationship field
 fn model_aggregate_relationship_field(
-    model_aggregate_relationship_target: &metadata_resolve::ModelAggregateRelationshipTarget,
+    aggregate_relationship: &metadata_resolve::AggregateRelationship,
     builder: &mut gql_schema::Builder<GDS>,
     gds: &GDS,
-    relationship_field_name: &ast::Name,
+    target_model: &metadata_resolve::ModelWithPermissions,
+    aggregate_field_name: &ast::Name,
+    target_typename: &Qualified<CustomTypeName>,
+    mappings: &[metadata_resolve::RelationshipModelMapping],
     relationship: &metadata_resolve::RelationshipField,
     object_type_representation: &metadata_resolve::ObjectTypeWithRelationships,
     parent_graphql_type_name: &ast::TypeName,
 ) -> Result<gql_schema::Namespaced<GDS, gql_schema::Field<GDS>>, Error> {
-    let aggregate_expression_name = &model_aggregate_relationship_target.aggregate_expression;
+    let aggregate_expression_name = &aggregate_relationship.aggregate_expression;
     let aggregate_expression = gds
         .metadata
         .aggregate_expressions
@@ -479,41 +499,32 @@ fn model_aggregate_relationship_field(
             aggregate_expression: aggregate_expression_name.clone(),
         })?;
 
-    let model = gds
-        .metadata
-        .models
-        .get(&model_aggregate_relationship_target.model_name)
-        .ok_or_else(|| Error::InternalModelNotFound {
-            model_name: model_aggregate_relationship_target.model_name.clone(),
-        })?;
-
     let aggregate_select_output_type =
         aggregates::get_aggregate_select_output_type(builder, aggregate_expression)?;
 
     let arguments = select_aggregate::generate_select_aggregate_arguments(
         builder,
-        model,
-        &model_aggregate_relationship_target.filter_input_field_name,
-        relationship_field_name,
+        target_model,
+        &aggregate_relationship.filter_input_field_name,
+        aggregate_field_name,
         parent_graphql_type_name,
     )?;
 
     let target_object_type_representation =
-        get_object_type_representation(gds, &model.model.data_type)?;
+        get_object_type_representation(gds, &target_model.model.data_type)?;
 
     let field = builder.conditional_namespaced(
         gql_schema::Field::<GDS>::new(
-            relationship_field_name.clone(),
-            relationship.description.clone(),
+            aggregate_field_name.clone(),
+            aggregate_relationship.description.clone(),
             Annotation::Output(super::OutputAnnotation::RelationshipToModelAggregate(
                 ModelAggregateRelationshipAnnotation {
                     source_type: relationship.source.clone(),
                     relationship_name: relationship.relationship_name.clone(),
-                    model_name: model_aggregate_relationship_target.model_name.clone(),
-                    target_source: metadata_resolve::ModelTargetSource::new(model, relationship)
-                        .map_err(metadata_resolve::WithContext::from)?,
-                    target_type: model_aggregate_relationship_target.target_typename.clone(),
-                    mappings: model_aggregate_relationship_target.mappings.clone(),
+                    target_model_name: target_model.model.name.clone(),
+                    target_capabilities: relationship.target_capabilities.clone(),
+                    target_type: target_typename.clone(),
+                    mappings: mappings.to_vec(),
                     deprecated: relationship.deprecated.clone(),
                 },
             )),
@@ -522,11 +533,11 @@ fn model_aggregate_relationship_field(
             mk_deprecation_status(relationship.deprecated.as_ref()),
         ),
         permissions::get_model_relationship_namespace_annotations(
-            model,
+            target_model,
             object_type_representation,
             target_object_type_representation,
-            &model_aggregate_relationship_target.mappings,
-        )?,
+            mappings,
+        ),
     );
     Ok(field)
 }

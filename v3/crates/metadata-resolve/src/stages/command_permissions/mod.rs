@@ -7,15 +7,15 @@ use open_dds::{
 };
 
 use crate::stages::{
-    boolean_expressions, commands, data_connector_scalar_types, data_connectors, models_graphql,
-    object_boolean_expressions, object_relationships, scalar_types,
+    boolean_expressions, commands, data_connector_scalar_types, models_graphql,
+    object_relationships, scalar_types,
 };
 use crate::types::error::Error;
 use crate::types::subgraph::Qualified;
 
 use std::collections::BTreeMap;
 mod types;
-pub use types::{CommandPermission, CommandWithPermissions};
+pub use types::{CommandPermissionIssue, CommandPermissionsOutput, CommandWithPermissions};
 
 /// resolve command permissions
 pub fn resolve(
@@ -26,18 +26,14 @@ pub fn resolve(
         object_relationships::ObjectTypeWithRelationships,
     >,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
     models: &IndexMap<Qualified<ModelName>, models_graphql::ModelWithGraphql>,
-    data_connectors: &data_connectors::DataConnectors,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
         data_connector_scalar_types::DataConnectorScalars,
     >,
-) -> Result<IndexMap<Qualified<CommandName>, CommandWithPermissions>, Error> {
+) -> Result<CommandPermissionsOutput, Error> {
+    let mut issues = Vec::new();
     let mut commands_with_permissions: IndexMap<Qualified<CommandName>, CommandWithPermissions> =
         commands
             .iter()
@@ -72,12 +68,11 @@ pub fn resolve(
                 command_permissions,
                 object_types,
                 scalar_types,
-                object_boolean_expression_types,
                 boolean_expression_types,
                 models,
-                data_connectors,
                 data_connector_scalars,
                 subgraph,
+                &mut issues,
             )?;
         } else {
             return Err(Error::DuplicateCommandPermission {
@@ -85,5 +80,8 @@ pub fn resolve(
             });
         }
     }
-    Ok(commands_with_permissions)
+    Ok(CommandPermissionsOutput {
+        permissions: commands_with_permissions,
+        issues,
+    })
 }

@@ -78,6 +78,17 @@
             "string",
             "null"
           ]
+        },
+        "returnType": {
+          "description": "The scalar type that the count aggregation function returns. Must be an integer type. If omitted, Int is used as the default.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/TypeName"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
@@ -2140,6 +2151,46 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "title": "LifecyclePreRoutePluginHook",
+          "description": "Definition of a lifecycle plugin hook for the pre-route stage.",
+          "type": "object",
+          "required": [
+            "config",
+            "name",
+            "pre",
+            "url"
+          ],
+          "properties": {
+            "pre": {
+              "type": "string",
+              "enum": [
+                "route"
+              ]
+            },
+            "name": {
+              "description": "The name of the lifecycle plugin hook.",
+              "type": "string"
+            },
+            "url": {
+              "description": "The URL to access the lifecycle plugin hook.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/EnvironmentValue"
+                }
+              ]
+            },
+            "config": {
+              "description": "Configuration for the lifecycle plugin hook.",
+              "allOf": [
+                {
+                  "$ref": "#/definitions/LifecyclePreRoutePluginHookConfig"
+                }
+              ]
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -2277,6 +2328,129 @@
         }
       },
       "additionalProperties": false
+    },
+    "LifecyclePreRoutePluginHookConfig": {
+      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreRoutePluginHookConfig",
+      "title": "LifecyclePreRoutePluginHookConfig",
+      "description": "Configuration for a lifecycle plugin hook.",
+      "type": "object",
+      "required": [
+        "matchMethods",
+        "matchPath",
+        "request"
+      ],
+      "properties": {
+        "matchPath": {
+          "description": "Regex to match the request path",
+          "type": "string"
+        },
+        "matchMethods": {
+          "description": "Possible HTTP methods for the request",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LifecyclePreRoutePluginHookIncomingHTTPMethod"
+          }
+        },
+        "request": {
+          "description": "Configuration for the request to the lifecycle plugin hook.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/LifecyclePreRoutePluginHookConfigRequest"
+            }
+          ]
+        },
+        "response": {
+          "description": "Configuration for the response to the lifecycle plugin hook.",
+          "default": null,
+          "anyOf": [
+            {
+              "$ref": "#/definitions/LifecyclePreRoutePluginHookConfigResponse"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "LifecyclePreRoutePluginHookConfigRequest": {
+      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreRoutePluginHookConfigRequest",
+      "title": "LifecyclePreRoutePluginHookConfigRequest",
+      "description": "Configuration for a lifecycle plugin hook request.",
+      "type": "object",
+      "required": [
+        "method",
+        "rawRequest"
+      ],
+      "properties": {
+        "headers": {
+          "description": "Configuration for the headers in the pre-route plugin hook HTTP requests.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/LifecyclePluginHookHeadersConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "description": "Configuration for the HTTP method for the pre-route plugin hook HTTP requests.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/LifecyclePreRoutePluginHookConfigRequestMethod"
+            }
+          ]
+        },
+        "rawRequest": {
+          "$ref": "#/definitions/PreRouteRequestConfig"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LifecyclePreRoutePluginHookConfigRequestMethod": {
+      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreRoutePluginHookConfigRequestMethod",
+      "title": "LifecyclePreRoutePluginHookConfigRequestMethods",
+      "description": "Configuration for the method for the pre-route plugin hook HTTP requests.",
+      "type": "string",
+      "enum": [
+        "GET",
+        "POST"
+      ]
+    },
+    "LifecyclePreRoutePluginHookConfigResponse": {
+      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreRoutePluginHookConfigResponse",
+      "title": "LifecyclePreRoutePluginHookConfigResponse",
+      "description": "Configuration for a lifecycle plugin hook response.",
+      "type": "object",
+      "properties": {
+        "headers": {
+          "description": "Configuration for the headers in the response from the engine.",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/LifecyclePluginHookHeadersConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "LifecyclePreRoutePluginHookIncomingHTTPMethod": {
+      "$id": "https://hasura.io/jsonschemas/metadata/LifecyclePreRoutePluginHookIncomingHTTPMethod",
+      "title": "RequestMethod",
+      "description": "Possible HTTP Request Methods for the incoming requests handled by the pre-route plugin hook.",
+      "type": "string",
+      "enum": [
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ]
     },
     "LimitInputGraphqlConfig": {
       "$id": "https://hasura.io/jsonschemas/metadata/LimitInputGraphqlConfig",
@@ -2942,12 +3116,11 @@
           ]
         },
         "objectType": {
+          "$id": "https://hasura.io/jsonschemas/metadata/CustomTypeName",
+          "title": "CustomTypeName",
           "description": "The type of the objects of which this model is a collection.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/CustomTypeName"
-            }
-          ]
+          "type": "string",
+          "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
         },
         "globalIdSource": {
           "description": "Whether this model should be used as the global ID source for all objects of its type.",
@@ -3042,12 +3215,11 @@
           ]
         },
         "objectType": {
+          "$id": "https://hasura.io/jsonschemas/metadata/CustomTypeName",
+          "title": "CustomTypeName",
           "description": "The type of the objects of which this model is a collection.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/CustomTypeName"
-            }
-          ]
+          "type": "string",
+          "pattern": "^[_a-zA-Z][_a-zA-Z0-9]*$"
         },
         "globalIdSource": {
           "description": "Whether this model should be used as the global ID source for all objects of its type.",
@@ -3506,6 +3678,86 @@
         "disallow_multiple_input_object_fields_in_graphql_order_by": {
           "default": false,
           "type": "boolean"
+        },
+        "require_nested_support_for_order_by_expressions": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_model_v1_ordering_non_scalar_fields": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_array_relationship_in_order_by": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_duplicate_operator_definitions_for_scalar_type": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_multidimensional_arrays_in_boolean_expressions": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_duplicate_names_across_types_and_expressions": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_duplicate_aggregate_function_definitions_for_scalar_type": {
+          "default": false,
+          "type": "boolean"
+        },
+        "typecheck_object_type_values_in_presets": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_data_connector_scalar_types_mismatch": {
+          "default": false,
+          "type": "boolean"
+        },
+        "check_object_type_fields_exist": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_order_by_fields_with_field_arguments": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_unsupported_orderable_relationships": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_local_relationships_on_data_connectors_without_relationships_or_variables": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_recursive_object_types": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_unknown_values_in_arguments": {
+          "default": false,
+          "type": "boolean"
+        },
+        "require_valid_command_output_type": {
+          "default": false,
+          "type": "boolean"
+        },
+        "validate_object_type_data_connector_type_mapping_field_types": {
+          "default": false,
+          "type": "boolean"
+        },
+        "validate_argument_mapping_types": {
+          "default": false,
+          "type": "boolean"
+        },
+        "disallow_invalid_headers_in_auth_config": {
+          "default": false,
+          "type": "boolean"
+        },
+        "require_jwt_audience_validation_if_aud_claim_present": {
+          "default": false,
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -3538,24 +3790,7 @@
               }
             },
             "flags": {
-              "default": {
-                "require_graphql_config": false,
-                "require_valid_ndc_v01_version": false,
-                "bypass_relation_comparisons_ndc_capability": false,
-                "require_nested_array_filtering_capability": false,
-                "disallow_scalar_type_names_conflicting_with_inbuilt_types": false,
-                "propagate_boolean_expression_deprecation_status": false,
-                "require_unique_command_graphql_names": false,
-                "allow_partial_supergraph": false,
-                "json_session_variables": false,
-                "disallow_array_field_compared_with_scalar_boolean_type": false,
-                "allow_boolean_expression_fields_without_graphql": false,
-                "require_unique_model_graphql_names": false,
-                "disallow_object_boolean_expression_type": false,
-                "logical_operators_in_scalar_boolean_expressions": false,
-                "disallow_duplicate_names_in_boolean_expressions": false,
-                "disallow_multiple_input_object_fields_in_graphql_order_by": false
-              },
+              "default": {},
               "allOf": [
                 {
                   "$ref": "#/definitions/OpenDdFlags"
@@ -3598,24 +3833,7 @@
               }
             },
             "flags": {
-              "default": {
-                "require_graphql_config": false,
-                "require_valid_ndc_v01_version": false,
-                "bypass_relation_comparisons_ndc_capability": false,
-                "require_nested_array_filtering_capability": false,
-                "disallow_scalar_type_names_conflicting_with_inbuilt_types": false,
-                "propagate_boolean_expression_deprecation_status": false,
-                "require_unique_command_graphql_names": false,
-                "allow_partial_supergraph": false,
-                "json_session_variables": false,
-                "disallow_array_field_compared_with_scalar_boolean_type": false,
-                "allow_boolean_expression_fields_without_graphql": false,
-                "require_unique_model_graphql_names": false,
-                "disallow_object_boolean_expression_type": false,
-                "logical_operators_in_scalar_boolean_expressions": false,
-                "disallow_duplicate_names_in_boolean_expressions": false,
-                "disallow_multiple_input_object_fields_in_graphql_order_by": false
-              },
+              "default": {},
               "allOf": [
                 {
                   "$ref": "#/definitions/OpenDdFlags"
@@ -3648,24 +3866,7 @@
               }
             },
             "flags": {
-              "default": {
-                "require_graphql_config": false,
-                "require_valid_ndc_v01_version": false,
-                "bypass_relation_comparisons_ndc_capability": false,
-                "require_nested_array_filtering_capability": false,
-                "disallow_scalar_type_names_conflicting_with_inbuilt_types": false,
-                "propagate_boolean_expression_deprecation_status": false,
-                "require_unique_command_graphql_names": false,
-                "allow_partial_supergraph": false,
-                "json_session_variables": false,
-                "disallow_array_field_compared_with_scalar_boolean_type": false,
-                "allow_boolean_expression_fields_without_graphql": false,
-                "require_unique_model_graphql_names": false,
-                "disallow_object_boolean_expression_type": false,
-                "logical_operators_in_scalar_boolean_expressions": false,
-                "disallow_duplicate_names_in_boolean_expressions": false,
-                "disallow_multiple_input_object_fields_in_graphql_order_by": false
-              },
+              "default": {},
               "allOf": [
                 {
                   "$ref": "#/definitions/OpenDdFlags"
@@ -5222,6 +5423,59 @@
       },
       "additionalProperties": false
     },
+    "PreRouteRequestConfig": {
+      "$id": "https://hasura.io/jsonschemas/metadata/PreRouteRequestConfig",
+      "title": "PreRouteRequestConfig",
+      "description": "Configuration for the raw request body for the pre-route plugin hook HTTP requests.",
+      "type": "object",
+      "properties": {
+        "path": {
+          "description": "Configuration for adding/excluding the request path of the incoming request",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/LeafConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "method": {
+          "description": "Configuration for adding/excluding the request method of the incoming request",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/LeafConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "query": {
+          "description": "Configuration for adding/excluding the query params of the incoming request",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/LeafConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "body": {
+          "description": "Configuration for adding/excluding the body of the incoming request",
+          "anyOf": [
+            {
+              "$ref": "#/definitions/LeafConfig"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "ProcedureName": {
       "$id": "https://hasura.io/jsonschemas/metadata/ProcedureName",
       "title": "ProcedureName",
@@ -6191,6 +6445,19 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "title": "ValueFromEnv",
+          "type": "object",
+          "required": [
+            "valueFromEnv"
+          ],
+          "properties": {
+            "valueFromEnv": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -6235,6 +6502,19 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "title": "ValueFromEnv",
+          "type": "object",
+          "required": [
+            "valueFromEnv"
+          ],
+          "properties": {
+            "valueFromEnv": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -6264,6 +6544,31 @@
             },
             "capabilities": {
               "$ref": "https://raw.githubusercontent.com/hasura/ndc-spec/v0.1.6/ndc-models/tests/json_schema/capabilities_response.jsonschema"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "SchemaAndCapabilitiesV02",
+          "description": "Version 0.2 of schema and capabilities for a data connector.",
+          "type": "object",
+          "required": [
+            "capabilities",
+            "schema",
+            "version"
+          ],
+          "properties": {
+            "version": {
+              "type": "string",
+              "enum": [
+                "v0.2"
+              ]
+            },
+            "schema": {
+              "$ref": "https://raw.githubusercontent.com/hasura/ndc-spec/v0.2.0/ndc-models/tests/json_schema/schema_response.jsonschema"
+            },
+            "capabilities": {
+              "$ref": "https://raw.githubusercontent.com/hasura/ndc-spec/v0.2.0/ndc-models/tests/json_schema/capabilities_response.jsonschema"
             }
           },
           "additionalProperties": false

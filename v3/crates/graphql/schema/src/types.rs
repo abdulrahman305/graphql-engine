@@ -14,17 +14,15 @@ use open_dds::{
     aggregates,
     arguments::ArgumentName,
     commands,
-    data_connector::{DataConnectorColumnName, DataConnectorName, DataConnectorOperatorName},
+    data_connector::{DataConnectorName, DataConnectorOperatorName},
     models,
     types::{self, DataConnectorArgumentName, Deprecated},
 };
 
 use metadata_resolve::{
-    self, data_connectors::ArgumentPresetValue, deserialize_non_string_key_btreemap,
-    deserialize_qualified_btreemap, serialize_non_string_key_btreemap,
-    serialize_qualified_btreemap, ArgumentPresets, DataConnectorLink, FieldPresetInfo,
+    self, deserialize_non_string_key_btreemap, serialize_non_string_key_btreemap, FieldPresetInfo,
     LogicalOperators, NdcColumnForComparison, OperatorMapping, OrderByExpressionIdentifier,
-    Qualified, QualifiedTypeReference, TypeMapping,
+    Qualified, QualifiedTypeReference,
 };
 
 use json_ext::HashMapWithJsonKey;
@@ -57,6 +55,7 @@ pub struct GlobalID {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct NodeFieldTypeNameMapping {
+    pub model_name: Qualified<models::ModelName>,
     pub type_name: Qualified<types::CustomTypeName>,
     // `model_source` is are optional because we allow building schema without specifying a data source
     // In such a case, `global_id_fields_ndc_mapping` will also be empty
@@ -67,6 +66,7 @@ pub struct NodeFieldTypeNameMapping {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct EntityFieldTypeNameMapping {
     pub type_name: Qualified<types::CustomTypeName>,
+    pub model_name: Qualified<models::ModelName>,
     // `model_source` is are optional because we allow building schema without specifying a data source
     // In such a case, `global_id_fields_ndc_mapping` will also be empty
     pub model_source: Option<Arc<metadata_resolve::ModelSource>>,
@@ -83,6 +83,7 @@ pub enum RootFieldKind {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ObjectFieldKind {
     Scalar,
+    ScalarArray,
     Object,
     ObjectArray,
 }
@@ -91,21 +92,6 @@ pub enum ObjectFieldKind {
 pub enum ModelOrderByDirection {
     Asc,
     Desc,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-/// Common details to generate a command annotation.
-pub struct CommandSourceDetail {
-    pub data_connector: Arc<DataConnectorLink>,
-    #[serde(
-        serialize_with = "serialize_qualified_btreemap",
-        deserialize_with = "deserialize_qualified_btreemap"
-    )]
-    pub type_mappings: BTreeMap<Qualified<types::CustomTypeName>, TypeMapping>,
-    pub argument_mappings: BTreeMap<ArgumentName, DataConnectorArgumentName>,
-    pub data_connector_link_argument_presets:
-        BTreeMap<DataConnectorArgumentName, ArgumentPresetValue>,
-    pub ndc_type_opendd_type_same: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Display)]
@@ -124,14 +110,12 @@ pub enum RootFieldAnnotation {
     },
     Model {
         data_type: Qualified<types::CustomTypeName>,
-        source: Option<Arc<metadata_resolve::ModelSource>>,
         // select_permissions: HashMap<Role, metadata_resolve::SelectPermission>,
         kind: RootFieldKind,
         name: Qualified<models::ModelName>,
     },
     ModelSubscription {
         data_type: Qualified<types::CustomTypeName>,
-        source: Option<Arc<metadata_resolve::ModelSource>>,
         // select_permissions: HashMap<Role, metadata_resolve::SelectPermission>,
         kind: RootFieldKind,
         name: Qualified<models::ModelName>,
@@ -141,16 +125,12 @@ pub enum RootFieldAnnotation {
         name: Qualified<commands::CommandName>,
         result_type: QualifiedTypeReference,
         result_base_type_kind: TypeKind,
-        // A command may/may not have a source
-        source: Option<CommandSourceDetail>,
         function_name: Option<commands::FunctionName>,
     },
     ProcedureCommand {
         name: Qualified<commands::CommandName>,
         result_type: QualifiedTypeReference,
         result_base_type_kind: TypeKind,
-        // A command may/may not have a source
-        source: Option<CommandSourceDetail>,
         procedure_name: Option<commands::ProcedureName>,
     },
     ApolloFederation(ApolloFederationRootFields),
@@ -211,13 +191,15 @@ pub enum OutputAnnotation {
 pub enum ModelInputAnnotation {
     ModelArgumentsExpression,
     ModelArgument {
+        argument_name: ArgumentName,
         argument_type: QualifiedTypeReference,
         argument_kind: metadata_resolve::ArgumentKind,
         ndc_table_argument: Option<DataConnectorArgumentName>,
     },
     ModelOrderByExpression,
     ModelOrderByNestedExpression {
-        ndc_column: DataConnectorColumnName,
+        field_name: types::FieldName,
+        parent_type: Qualified<types::CustomTypeName>,
         multiple_input_properties: metadata_resolve::MultipleOrderByInputObjectFields,
     },
     ModelOrderByArgument {
@@ -225,7 +207,6 @@ pub enum ModelInputAnnotation {
         /// The parent type is required to report field usage while analyzing query usage.
         /// Field usage is reported with the name of object type where the field is defined.
         parent_type: Qualified<types::CustomTypeName>,
-        ndc_column: DataConnectorColumnName,
         /// To mark a field as deprecated in the field usage while reporting query usage analytics.
         deprecated: Option<Deprecated>,
     },
@@ -237,6 +218,8 @@ pub enum ModelInputAnnotation {
     ModelLimitArgument,
     ModelOffsetArgument,
     ModelUniqueIdentifierArgument {
+        // in future this will be the only thing required
+        field_name: types::FieldName,
         // Optional because we allow building schema without specifying a data source
         ndc_column: Option<NdcColumnForComparison>,
     },
@@ -278,6 +261,9 @@ pub enum ScalarBooleanExpressionField {
             deserialize_with = "deserialize_non_string_key_btreemap"
         )]
         operator_mapping: BTreeMap<Qualified<DataConnectorName>, DataConnectorOperatorName>,
+        /// In OpenDD IR we don't need to think about the data connector, so we'll just need this
+        /// name:
+        operator_name: open_dds::types::OperatorName,
     },
     IsNullOperation,
 }
@@ -314,13 +300,16 @@ pub enum InputAnnotation {
     },
     BooleanExpression(BooleanExpressionAnnotation),
     CommandArgument {
+        argument_name: ArgumentName,
         argument_type: QualifiedTypeReference,
         argument_kind: metadata_resolve::ArgumentKind,
         ndc_func_proc_argument: Option<DataConnectorArgumentName>,
     },
     Relay(RelayInputAnnotation),
     ApolloFederationRepresentationsInput(ApolloFederationInputAnnotation),
-    FieldArgument,
+    FieldArgument {
+        argument_name: ArgumentName, // OpenDd argument name
+    },
 }
 
 /// Contains the different possible entities that can be used to generate
@@ -343,11 +332,25 @@ pub enum Annotation {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Display)]
 pub enum NamespaceAnnotation {
     /// any arguments that we should prefill for a command or type
-    Command(ArgumentPresets),
+    Command(
+        BTreeMap<
+            ArgumentName,
+            (
+                QualifiedTypeReference,
+                metadata_resolve::ValueExpressionOrPredicate,
+            ),
+        >,
+    ),
     /// any filter and arguments for selecting from a model
     Model {
         filter: metadata_resolve::FilterPermission,
-        argument_presets: ArgumentPresets,
+        argument_presets: BTreeMap<
+            ArgumentName,
+            (
+                QualifiedTypeReference,
+                metadata_resolve::ValueExpressionOrPredicate,
+            ),
+        >,
         allow_subscriptions: bool,
     },
     /// Field presets for an input field.
@@ -414,8 +417,7 @@ pub enum TypeId {
         model_name: Qualified<models::ModelName>,
         type_name: ast::TypeName,
     },
-    ModelOrderByExpression {
-        model_name: Qualified<models::ModelName>,
+    OrderByExpression {
         order_by_expression_identifier: Qualified<OrderByExpressionIdentifier>,
         graphql_type_name: ast::TypeName,
     },
@@ -468,7 +470,7 @@ impl TypeId {
             | TypeId::InputScalarBooleanExpressionType {
                 graphql_type_name, ..
             }
-            | TypeId::ModelOrderByExpression {
+            | TypeId::OrderByExpression {
                 graphql_type_name, ..
             }
             | TypeId::OrderByEnumType {

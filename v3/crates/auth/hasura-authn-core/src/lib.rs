@@ -8,6 +8,7 @@ use axum::{
 use axum_core::body::Body;
 use lang_graphql::http::Response;
 use schemars::JsonSchema;
+use std::collections::BTreeMap;
 use std::{
     borrow::Cow,
     collections::{HashMap, HashSet},
@@ -94,7 +95,7 @@ impl From<JsonSessionVariableValue> for SessionVariableValue {
 pub struct JsonSessionVariableValue(pub serde_json::Value);
 
 #[derive(Clone, Debug, Eq, PartialEq, serde::Serialize)]
-pub struct SessionVariables(HashMap<SessionVariableName, SessionVariableValue>);
+pub struct SessionVariables(BTreeMap<SessionVariableName, SessionVariableValue>);
 
 impl SessionVariables {
     pub fn get(&self, session_variable: &SessionVariableName) -> Option<&SessionVariableValue> {
@@ -120,7 +121,7 @@ pub struct RoleAuthorization {
 impl RoleAuthorization {
     pub fn build_session(
         &self,
-        mut variables: HashMap<SessionVariableName, SessionVariableValue>,
+        mut variables: BTreeMap<SessionVariableName, SessionVariableValue>,
     ) -> Session {
         let allowed_client_session_variables = match &self.allowed_session_variables_from_request {
             SessionVariableList::All => variables,
@@ -214,13 +215,17 @@ impl IntoResponse for SessionError {
             SessionError::InternalRoleNotFound(_) => StatusCode::INTERNAL_SERVER_ERROR,
             SessionError::InvalidHeaderValue { .. } => StatusCode::BAD_REQUEST,
         };
-        Response::error_message_with_status(code, self.to_string()).into_response()
+        let is_internal = match self {
+            SessionError::Unauthorized(_) | SessionError::InvalidHeaderValue { .. } => false,
+            SessionError::InternalRoleNotFound(_) => true,
+        };
+        Response::error_message_with_status(code, self.to_string(), is_internal).into_response()
     }
 }
 
 // Using the x-hasura-* headers of the request and the identity set by the authn system,
 // this layer resolves a 'session' which is then used by the execution engine
-pub async fn resolve_session<'a>(
+pub async fn resolve_session(
     Extension(identity): Extension<Identity>,
     mut request: Request<Body>,
     next: Next,
@@ -236,7 +241,7 @@ pub fn authorize_identity(
     identity: &Identity,
     headers: &HeaderMap,
 ) -> Result<Session, SessionError> {
-    let mut session_variables = HashMap::new();
+    let mut session_variables = BTreeMap::new();
     let mut role = None;
     // traverse through the headers and collect role and session variables
     for (header_name, header_value) in headers {
@@ -272,7 +277,7 @@ mod tests {
 
     #[test]
     fn test_build_session_allow_all_session_variables() {
-        let mut client_session_variables = HashMap::new();
+        let mut client_session_variables = BTreeMap::new();
 
         let mut authenticated_session_variables = HashMap::new();
 
@@ -314,7 +319,7 @@ mod tests {
 
     #[test]
     fn test_build_session_allow_specific_session_variables() {
-        let mut client_session_variables = HashMap::new();
+        let mut client_session_variables = BTreeMap::new();
 
         let mut authenticated_session_variables = HashMap::new();
 
@@ -365,7 +370,7 @@ mod tests {
 
     #[test]
     fn test_build_session_allow_no_session_variables() {
-        let mut client_session_variables = HashMap::new();
+        let mut client_session_variables = BTreeMap::new();
 
         let mut authenticated_session_variables = HashMap::new();
 
@@ -391,7 +396,7 @@ mod tests {
 
         let session = role_authorization.build_session(client_session_variables.clone());
 
-        let mut expected_session_variables = HashMap::new();
+        let mut expected_session_variables = BTreeMap::new();
 
         expected_session_variables.insert(
             SessionVariableName::from_str("x-hasura-user-id").unwrap(),

@@ -4,7 +4,561 @@
 
 ### Added
 
+#### Native Data Connector (NDC) Specification v0.2.0 Support
+
+Engine now supports the
+[NDC specification v0.2.0](https://hasura.github.io/ndc-spec/specification/changelog.html#020).
+This new version of the specification adds many new capabilities to data
+connectors that engine will support over time. As of this release, engine
+supports the following new features for data connectors that support NDC Spec
+v0.2.0:
+
+##### Filtering by items in a nested array of scalars
+
+Consider an `ObjectType` with a field that is an array of scalars, such as the
+`Country` type with its `cities` array of string field below.
+
+```yaml
+kind: ObjectType
+version: v1
+definition:
+  name: Country
+  fields:
+    - name: id
+      type: Int!
+    - name: name
+      type: String!
+    - name: cities
+      type: [String!]!
+  graphql:
+    typeName: Country
+  dataConnectorTypeMapping: {}
+```
+
+It is now possible to write the following `where` clause in GraphQL, which
+returns all countries whose cities array contains a string equalling
+"Melbourne":
+
+```graphql
+query {
+  CountryMany(where: { cities: { _eq: "Melbourne" } }) {
+    id
+    name
+    cities
+  }
+}
+```
+
+In order to do this, the `cities` field must be added as a `comparableField` to
+Country's `BooleanExpressionType`:
+
+```yaml
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: Country_bool_exp
+  operand:
+    object:
+      type: Country
+      comparableFields:
+        - fieldName: cities
+          booleanExpressionType: String_bool_exp # New!
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: false
+  graphql:
+    typeName: Country_bool_exp
+```
+
+The `booleanExpressionType` of the `comparableField` must be for the scalar type
+of the array element (in this case a `BooleanExpressionType` for `String`).
+
+However, doing this is only supported if the data connector your `Model` sources
+itself from supports filtering by nested scalar arrays, which is new in NDC Spec
+v0.2.0.
+
+##### Count aggregates can return ScalarTypes other than Int
+
+Some data sources return count aggregates using a scalar type other than a
+32-bit integer (for example, a 64-bit integer). If the data connector declares
+that counts are returned in a different scalar type, the engine can now return
+those counts using the approprate ScalarType.
+
+This is done by specifying the correct ScalarType in the `AggregateExpression`
+`count` and `countDistinct`'s `resultType` field, like so:
+
+```yaml
+kind: AggregateExpression
+version: v1
+definition:
+  name: String_aggregate_exp
+  operand:
+    scalar:
+      aggregatedType: String
+      aggregationFunctions:
+        - name: _min
+          returnType: String
+        - name: _max
+          returnType: String
+      dataConnectorAggregationFunctionMapping:
+        - dataConnectorName: custom
+          dataConnectorScalarType: String
+          functionMapping:
+            _min:
+              name: min
+            _max:
+              name: max
+  count:
+    enable: true
+    returnType: Int64 # New!
+  countDistinct:
+    enable: true
+    returnType: Int64 # New!
+  description: Aggregate expression for the String type
+  graphql:
+    selectTypeName: String_aggregate_exp
+```
+
+If `returnType` is omitted, it defaults to the `Int` type.
+
+##### Filtering and ordering of relationships that start from inside a nested object
+
+Consider an `Institution` type with a nested `campuses` field, where each
+`Campus` has a relationship to a `Country` type:
+
+```yaml
+kind: ObjectType
+version: v1
+definition:
+  name: Institution
+  fields:
+    - name: id
+      type: Int!
+    - name: name
+      type: String!
+    - name: campuses
+      type: "[Campus!]!" # Array of Campus objects
+
+kind: ObjectType
+version: v1
+definition:
+  name: Campus
+  fields:
+    - name: id
+      type: Int!
+    - name: name
+      type: String!
+    - name: country_id # Foreign key to Country
+      type: Int!
+
+kind: Relationship
+version: v1
+definition:
+  name: country
+  sourceType: Campus
+  target:
+    model:
+      name: Country
+      relationshipType: Object
+  mapping:
+    - source:
+        fieldPath:
+          - fieldName: country_id
+      target:
+        modelField:
+          - fieldName: id
+```
+
+If the data connector declares support for doing so, you can filter and order
+institutions based on their campuses' countries:
+
+```graphql
+query {
+  InstitutionMany(
+    where: { campuses: { country: { name: { _eq: "USA" } } } }
+    order_by: { campuses: { country: { name: Asc } } }
+  ) {
+    id
+    name
+    campuses {
+      name
+      country {
+        name
+      }
+    }
+  }
+}
+```
+
+To do so, you will need to declare the `country` relationship as a
+`comparableRelationship` in the `Campus`'s `BooleanExpressionType`, an as an
+`orderableRelationship` in the `Campus`'s `OrderByExpression`:
+
+```yaml
+kind: BooleanExpressionType
+version: v1
+definition:
+  name: Campus_bool_exp
+  operand:
+    object:
+      type: Campus
+      comparableFields:
+        - fieldName: id
+          booleanExpressionType: Int_bool_exp
+        - fieldName: name
+          booleanExpressionType: String_bool_exp
+      comparableRelationships:
+        - relationshipName: country # New!
+          booleanExpressionType: Country_bool_exp
+  logicalOperators:
+    enable: true
+  isNull:
+    enable: false
+  graphql:
+    typeName: Campus_bool_exp
+
+kind: OrderByExpression
+version: v1
+definition:
+  name: Campus_order_by_exp
+  operand:
+    object:
+      orderedType: Campus
+      orderableFields:
+        - fieldName: id
+          orderByExpression: Int_order_by_exp
+        - fieldName: name
+          orderByExpression: String_order_by_exp
+      orderableRelationships:
+        - relationshipName: country # New!
+          orderByExpression: Country_order_by_exp
+  graphql:
+    expressionTypeName: Campus_order_by_exp
+```
+
+#### Other
+
+- Pretty print errors where they have had contexts and paths provided
+
 ### Fixed
+
+- Validate `ObjectType` field types against mapped NDC types, ensuring
+  compatibility of nullability, arrays, and scalar representations.
+- Validate argument types against mapped NDC types, ensuring compatibility of
+  nullability, arrays, and scalar representations.
+- Validate `AuthConfig` headers to ensure they are valid HTTP headers.
+- GraphQL API: Fixed a bug where `null` inputs for nullable query parameters
+  like `limit`, `offset`, `order_by` and `where` would cause an error.
+
+### Changed
+
+## [v2025.02.26]
+
+### Added
+
+- Added validation for command output types to ensure they reference valid types
+  in the schema.
+- Relationships that target models are now able to provide mappings that target
+  model arguments.
+
+### Fixed
+
+- Reverted: GraphQL API: Using `null` for non-nullable custom scalar types now
+  correctly raises validation error.
+- Reverted: GraphQL API: Validate query variables to ensure non-nullable
+  variables are not omitted or set to `null`.
+
+### Changed
+
+## [v2025.02.20]
+
+### Fixed
+
+- GraphQL API: Using `null` for non-nullable custom scalar types now correctly
+  raises validation error.
+
+### Changed
+
+## [v2025.02.19]
+
+### Added
+
+#### AuthConfig v3
+
+AuthConfig v3 is a new version of the AuthConfig that allows for more
+flexibility in the configuration of the authentication webhook.
+
+The following is an example of the OpenDD metadata for the AuthConfig v3:
+
+```yaml
+version: v3
+definition:
+  mode:
+    webhook:
+      method: GET
+      url:
+        valueFromEnv: AUTH_HOOK_URL
+      customHeadersConfig:
+        headers:
+          forward:
+            - Authorization
+          additional:
+            user-agent: hasura-ddn
+```
+
+For the above example, the following headers will be sent to the auth hook:
+
+- `Authorization` header from the original request
+- `user-agent` header with the value `hasura-ddn`
+
+The AuthConfig v3 is backwards compatible with the AuthConfig v2.
+
+#### Other
+
+- GraphQL WebSocket connections now include client headers from the initial
+  handshake request, in addition to those from the `connection_init` message.
+  These headers are forwarded to auth webhooks, plugins and data connectors.
+- Remote relationships are now available in the JSONAPI.
+
+### Fixed
+
+- Support execution of remote joins from mutations/procedures
+
+- Loosen restriction on `ObjectType` fields to allow them to refer to
+  `BooleanExpressionType` with the `object` operand.
+
+- Restrict `ObjectType`s that contain infinite recursion through non-nullable
+  field paths. Warnings are emitted while creating a build. Projects created or
+  with a
+  [compatibility date](https://hasura.io/docs/3.0/supergraph-modeling/compatibility-config/)
+  after this release date are affected.
+- Avoid infinite recursion when validating `BooleanExpressionType` for
+  `ObjectType`s that contain self references through nested fields during build
+  creation.
+- Argument presets did not map OpenDD field names to the corresponding NDC field
+  names before sending values across, this is now resolved.
+- GraphQL API: Validate query variables to ensure non-nullable variables are not
+  omitted or set to `null`.
+
+### Changed
+
+- When JWKs are configured to be read from a URL in AuthConfig, we now no longer
+  require the JWT to specify the `alg` property. We will validate the signature
+  in a JWT so long as the algorithm used is supported by the JWK retrieved from
+  the URL.
+
+## [v2025.02.07]
+
+### Added
+
+- Added type checking for object-type values in field presets within type
+  permissions and for argument presets in model or command permissions.
+- Added a OpenDD flag
+  (`disallow_local_relationships_on_data_connectors_without_relationships_or_variables`)
+  to disallow local relationships on data connectors without the `relationships`
+  and `variables` capabilities.
+
+### Fixed
+
+- Invalid JSON pointers provided in AuthConfig's `jwt.claimsConfig.locations`
+  now raise a build error, whereas previously they were silently ignored.
+- Orderable relationships in OrderByExpressions will now produce a build error
+  if the relationship is a remote relationship, or if the data connector does
+  not support relationships, or if the target of the relationship does not have
+  a source.
+- Fixed a bug causing queries to fail when filter expressions included remote
+  relationships from nested fields.
+
+### Changed
+
+## [v2025.02.03]
+
+### Added
+
+- Allow environment variables to be used in permission filters.
+- Added a OpenDD flag (`disallow_order_by_fields_with_field_arguments`) to
+  disallow fields with field arguments in order by expressions
+
+### Fixed
+
+- Reduce errors for unnecessary GraphQL configuration in aggregates to warnings
+
+- The `args` field for a model is now optional if all arguments are nullable or
+  preset.
+
+Previously, this would be necessary:
+
+```graphql
+query MyQuery {
+  customers(args: {}) {
+    # `args` is mandatory, even if it is empty
+    email
+  }
+}
+```
+
+Now, if all fields are nullable or preset, this is acceptable:
+
+```graphql
+query MyQuery {
+  customers {
+    # `args` is no longer mandatory
+    email
+  }
+}
+```
+
+### Changed
+
+- Check that all named types referenced in object type fields exist.
+
+## [v2025.01.24]
+
+### Added
+
+- Added configuration for headers in response to client for requests handled by
+  the pre-route plugin hook.
+- Added OpenAPI schema for filter parameters in JSONAPI
+- Added checks that the fields of an `ObjectType` match the underlying column
+  types exposed by the data connector.
+
+### Fixed
+
+- Fixed a bug where TypePermissions field presets would be ignored if the type
+  was inside a nested array.
+- Fixed a bug where TypePermissions field presets would be ignored if recursive
+  types were used.
+
+## [v2025.01.17]
+
+### Added
+
+#### Pre-route Engine Plugins
+
+Add support for pre-route engine plugins. Engine now supports calling a HTTP
+webhook in pre-route execution step. This can be used to add a bunch of
+functionalities to the DDN, such as a restify middleware, etc.
+
+The following is an example of the OpenDD metadata for the plugins:
+
+```yaml
+kind: LifecyclePluginHook
+version: v1
+definition:
+  pre: route
+  name: restified_endpoints
+  url:
+    value: http://localhost:5001/restified
+  config:
+    match: "/v1/api/rest/*"
+    matchMethods: ["GET", "POST"]
+    request:
+      method: POST
+      headers:
+        forward:
+          - Authorization
+        additional:
+          hasura-m-auth:
+            value: "your-strong-m-auth-key"
+      rawRequest:
+        path: {}
+        query: {}
+        method: {}
+        body: {}
+```
+
+This will match all GET and POST requests to `/v1/api/rest/*` and make a POST
+request to `http://localhost:5001/restified` with the following request body:
+
+```json
+{
+  "path": "/v1/api/rest/some/path",
+  "method": "GET",
+  "query": "some=query&params=here",
+  "body": "..."
+}
+```
+
+Additionally, the following headers will be sent with the request:
+
+- `Authorization` header from the original request
+- `hasura-m-auth` header with the value `your-strong-m-auth-key`
+
+The response from the plugin will be used as the response to the original
+request.
+
+The pre-route plugin hook's request can be customized using the
+`LifecyclePluginHook` metadata object. Currently we support the following
+customizations:
+
+- forwarding/additional headers
+- adding/removing path information
+- adding/removing query information
+- adding/removing method information
+- adding/removing body information
+
+### Fixed
+
+- Allow reusing `OrderByExpressions` in different models.
+- Fixed a bug where erroneous build errors would be raised when using a
+  relationship in a boolean expression pre-set to an argument in
+  CommandPermissions.
+- Fixed a bug where setting both Command/Model argument presets (via
+  ModelPermissions or CommandPermissions) as well as setting field presets (via
+  TypePermissions) would result in the argument presets being ignored.
+- Fixed a bug where setting field presets (via TypePermissions) on multiple
+  types that were nested inside each other would result in some field presets
+  being ignored.
+- Fixed a bug where TypePermissions field presets would be ignored if the
+  argument type was an array of objects.
+- Fixed a bug where a successful response from a pre-parse plugin would have a
+  Content-Type header `application/octet-stream`. Now it returns
+  `Content-Type: application/json`
+
+## [v2025.01.09]
+
+### Fixed
+
+- Fixed a bug where erroneous typechecking errors could be produced when
+  querying a Model or Command that used an object type as an argument that had
+  input field presets applied on its TypePermissions.
+
+## [v2025.01.06]
+
+### Added
+
+- Added support for relationships targeting commands in JSON:API.
+
+### Fixed
+
+- Fix syntax error in descriptions in generated SDL, when description strings
+  contained a trailing double-quote
+- Filtering by fields in an object nested inside an array that itself is nested
+  inside an object now works correctly. Previously this would generate an
+  invalid query.
+- Prevent conflicting names for `BooleanExpressionType`, `OrderByExpression`,
+  `ScalarType` and `ObjectType` definitions.
+
+## [v2024.12.17]
+
+### Added
+
+- Plugins will now receive the `X-FORWARDED-FOR` header, which contains the IP
+  address of the client who made the request. This allows for the implementation
+  of plugins such as IP allow lists and per-user traffic control.
+
+- `count` and `countDistinct` in `AggregateExpression`s now support a
+  `resultType` field. This allows you to specify the type of the result of the
+  count aggregation. Currently, only `Int` is supported, but this will change in
+  the future once data connector support arrives. Omitting this field will
+  default to `Int`.
+
+### Fixed
+
+- Fixed the `include` query parameter and `included` response field in JSON:API
+  OpenAPI schema generation. These now honor type permissions for the role in
+  relationship fields.
 
 - Fixed a bug where commands with array return types would not build when header
   forwarding was in effect.
@@ -26,7 +580,20 @@
   These fixes are only enabled if your `CompatibilityConfig` date is set to
   `2024-12-10` or newer.
 
-### Changed
+- Fixed a bug where `orderableFields` in a `Model` `v1` would allow you to
+  attempt to order by non-scalar fields. At runtime, queries would either fail
+  or produce unexpected results. Trying to use a non-scalar `orderableField`
+  will now result in a build error. However, it is recommended you upgrade to
+  `Model` `v2` and use `OrderByExpression` instead.
+
+- Fixed a bug where `OrderByExpression`s that incorporate nested fields and
+  nested relationships were allowed to be used with `Model`s that source from
+  data connectors that did not support ordering by nested fields and nested
+  relationships. Such a configuration will now result in a build error.
+
+- Fixed a bug where `OrderByExpressions` could refer to array relationships in
+  an `orderableRelationship`. Such a configuration will now result in a build
+  error.
 
 ## [v2024.12.04]
 
@@ -884,7 +1451,17 @@ Initial release.
 
 <!-- end -->
 
-[Unreleased]: https://github.com/hasura/v3-engine/compare/v2024.12.03...HEAD
+[Unreleased]: https://github.com/hasura/v3-engine/compare/v2025.02.26...HEAD
+[v2025.02.26]: https://github.com/hasura/v3-engine/releases/tag/v2025.02.26
+[v2025.02.20]: https://github.com/hasura/v3-engine/releases/tag/v2025.02.20
+[v2025.02.19]: https://github.com/hasura/v3-engine/releases/tag/v2025.02.19
+[v2025.02.07]: https://github.com/hasura/v3-engine/releases/tag/v2025.02.07
+[v2025.02.03]: https://github.com/hasura/v3-engine/releases/tag/v2025.02.03
+[v2025.01.24]: https://github.com/hasura/v3-engine/releases/tag/v2025.01.24
+[v2025.01.17]: https://github.com/hasura/v3-engine/releases/tag/v2025.01.17
+[v2025.01.09]: https://github.com/hasura/v3-engine/releases/tag/v2025.01.09
+[v2025.01.06]: https://github.com/hasura/v3-engine/releases/tag/v2025.01.06
+[v2024.12.17]: https://github.com/hasura/v3-engine/releases/tag/v2024.12.17
 [v2024.12.03]: https://github.com/hasura/v3-engine/releases/tag/v2024.12.03
 [v2024.11.25]: https://github.com/hasura/v3-engine/releases/tag/v2024.11.25
 [v2024.11.18]: https://github.com/hasura/v3-engine/releases/tag/v2024.11.18

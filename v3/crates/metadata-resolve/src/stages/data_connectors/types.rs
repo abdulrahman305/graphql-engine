@@ -1,7 +1,6 @@
 use super::error::{
     DataConnectorError, DataConnectorIssue, NamedDataConnectorError, NamedDataConnectorIssue,
 };
-use crate::configuration::UnstableFeatures;
 use crate::helpers::http::{
     HeaderError, SerializableHeaderMap, SerializableHeaderName, SerializableUrl,
 };
@@ -13,7 +12,7 @@ use indexmap::IndexMap;
 use lang_graphql::ast::common::OperationType;
 use ndc_models;
 use open_dds::accessor::MetadataAccessor;
-use open_dds::data_connector::DataConnectorColumnName;
+use open_dds::data_connector::{DataConnectorColumnName, DataConnectorScalarType};
 use open_dds::types::DataConnectorArgumentName;
 use open_dds::{
     commands::{FunctionName, ProcedureName},
@@ -65,7 +64,6 @@ impl<'a> DataConnectorContext<'a> {
     pub fn new(
         metadata_accessor: &MetadataAccessor,
         data_connector: &'a data_connector::DataConnectorLinkV1,
-        unstable_features: &UnstableFeatures,
     ) -> Result<(Self, Vec<DataConnectorIssue>), DataConnectorError> {
         let (resolved_schema, capabilities, issues) = match &data_connector.schema {
             VersionedSchemaAndCapabilities::V01(schema_and_capabilities) => {
@@ -87,17 +85,13 @@ impl<'a> DataConnectorContext<'a> {
                     &schema_and_capabilities.capabilities.version,
                 )?;
                 let schema = DataConnectorSchema::new(schema_and_capabilities.schema.clone());
-                let capabilities =
-                    mk_ndc_02_capabilities(&schema_and_capabilities.capabilities.capabilities);
+                let capabilities = mk_ndc_02_capabilities(
+                    &schema_and_capabilities.capabilities.capabilities,
+                    schema_and_capabilities.schema.capabilities.as_ref(),
+                );
                 (schema, capabilities, issues)
             }
         };
-
-        if !unstable_features.enable_ndc_v02_support
-            && capabilities.supported_ndc_version == NdcVersion::V02
-        {
-            return Err(DataConnectorError::NdcV02DataConnectorNotSupported);
-        }
 
         let argument_presets = data_connector
             .argument_presets
@@ -186,7 +180,7 @@ fn validate_ndc_version(
 
 /// information provided in the `ndc_models::SchemaResponse`, processed to make it easier to work
 /// with
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct DataConnectorSchema {
     /// A list of scalar types which will be used as the types of collection columns
     pub scalar_types: BTreeMap<ndc_models::ScalarTypeName, ndc_models::ScalarType>,
@@ -388,7 +382,12 @@ fn resolve_value_expression(
         open_dds::permissions::ValueExpression::SessionVariable(session_variable) => {
             ValueExpression::SessionVariable(hasura_authn_core::SessionVariableReference {
                 name: session_variable,
-                passed_as_json: metadata_accessor.flags.json_session_variables,
+                passed_as_json: metadata_accessor
+                    .flags
+                    .contains(open_dds::flags::Flag::JsonSessionVariables),
+                disallow_unknown_fields: metadata_accessor
+                    .flags
+                    .contains(open_dds::flags::Flag::DisallowUnknownValuesInArguments),
             })
         }
         open_dds::permissions::ValueExpression::Literal(json_value) => {
@@ -454,10 +453,20 @@ pub struct DataConnectorCapabilities {
     #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub supports_nested_object_filtering: bool,
 
+    /// Whether not ordering by nested object fields is supported
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub supports_nested_object_ordering: bool,
+
     /// Whether not filtering using 'exists' over nested object arrays is supported
     #[serde(default = "serde_ext::ser_default")]
     #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
-    pub supports_nested_array_filtering: bool,
+    pub supports_nested_object_array_filtering: bool,
+
+    /// Whether not filtering using 'exists' over nested scalar arrays is supported
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub supports_nested_scalar_array_filtering: bool,
 
     /// Whether or not aggregates are supported
     #[serde(default = "serde_ext::ser_default")]
@@ -481,6 +490,25 @@ pub struct DataConnectorAggregateCapabilities {
     #[serde(default = "serde_ext::ser_default")]
     #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub supports_nested_object_aggregations: bool,
+
+    /// The scalar type used for any count aggregates. Optional because NDC 0.1.x did not specify this.
+    /// If unspecified, one should assume that it will be something that has an integer representation.
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub aggregate_count_scalar_type: Option<DataConnectorScalarType>,
+
+    /// Whether or not grouping operations are supported
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub supports_grouping: Option<DataConnectorGroupingCapabilities>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct DataConnectorGroupingCapabilities {
+    /// Whether not paginating groups is supported
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub supports_pagination: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -522,7 +550,14 @@ fn mk_ndc_01_capabilities(
         supports_explaining_queries: capabilities.query.explain.is_some(),
         supports_explaining_mutations: capabilities.mutation.explain.is_some(),
         supports_nested_object_filtering: capabilities.query.nested_fields.filter_by.is_some(),
-        supports_nested_array_filtering: capabilities.query.exists.nested_collections.is_some(),
+        supports_nested_object_ordering: capabilities.query.nested_fields.order_by.is_some(),
+        supports_nested_object_array_filtering: capabilities
+            .query
+            .exists
+            .nested_collections
+            .is_some(),
+        // Filtering by nested scalar arrays is not supported in NDC 0.1.x
+        supports_nested_scalar_array_filtering: false,
         supports_aggregates: capabilities.query.aggregates.as_ref().map(|_agg| {
             DataConnectorAggregateCapabilities {
                 supports_nested_object_aggregations: capabilities
@@ -530,6 +565,8 @@ fn mk_ndc_01_capabilities(
                     .nested_fields
                     .aggregates
                     .is_some(),
+                aggregate_count_scalar_type: None,
+                supports_grouping: None,
             }
         }),
         supports_query_variables: capabilities.query.variables.is_some(),
@@ -548,20 +585,48 @@ fn mk_ndc_01_capabilities(
     }
 }
 
-fn mk_ndc_02_capabilities(capabilities: &ndc_models::Capabilities) -> DataConnectorCapabilities {
+fn mk_ndc_02_capabilities(
+    capabilities: &ndc_models::Capabilities,
+    schema_capabilities: Option<&ndc_models::CapabilitySchemaInfo>,
+) -> DataConnectorCapabilities {
     DataConnectorCapabilities {
         supported_ndc_version: NdcVersion::V02,
         supports_explaining_queries: capabilities.query.explain.is_some(),
         supports_explaining_mutations: capabilities.mutation.explain.is_some(),
         supports_nested_object_filtering: capabilities.query.nested_fields.filter_by.is_some(),
-        supports_nested_array_filtering: capabilities.query.exists.nested_collections.is_some(),
-        supports_aggregates: capabilities.query.aggregates.as_ref().map(|_agg| {
+        supports_nested_object_ordering: capabilities.query.nested_fields.order_by.is_some(),
+        supports_nested_object_array_filtering: capabilities
+            .query
+            .exists
+            .nested_collections
+            .is_some(),
+        supports_nested_scalar_array_filtering: capabilities
+            .query
+            .exists
+            .nested_scalar_collections
+            .is_some(),
+        supports_aggregates: capabilities.query.aggregates.as_ref().map(|aggregates| {
             DataConnectorAggregateCapabilities {
                 supports_nested_object_aggregations: capabilities
                     .query
                     .nested_fields
                     .aggregates
                     .is_some(),
+
+                aggregate_count_scalar_type: schema_capabilities
+                    .and_then(|capabilities| capabilities.query.as_ref())
+                    .and_then(|query_capabilities| query_capabilities.aggregates.as_ref())
+                    .map(|aggregate_capabilities| {
+                        DataConnectorScalarType::from(
+                            aggregate_capabilities.count_scalar_type.as_str(),
+                        )
+                    }),
+
+                supports_grouping: aggregates.group_by.as_ref().map(|groupby_capabilities| {
+                    DataConnectorGroupingCapabilities {
+                        supports_pagination: groupby_capabilities.paginate.is_some(),
+                    }
+                }),
             }
         }),
         supports_query_variables: capabilities.query.variables.is_some(),
@@ -571,8 +636,8 @@ fn mk_ndc_02_capabilities(capabilities: &ndc_models::Capabilities) -> DataConnec
                 supports_nested_relationships: rel.nested.as_ref().map(|n| {
                     DataConnectorNestedRelationshipCapabilities {
                         supports_nested_array_selection: n.array.is_some(),
-                        supports_nested_in_filtering: true,
-                        supports_nested_in_ordering: true,
+                        supports_nested_in_filtering: n.filtering.is_some(),
+                        supports_nested_in_ordering: n.ordering.is_some(),
                     }
                 }),
             }
@@ -586,7 +651,6 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use crate::{
-        configuration::UnstableFeatures,
         data_connectors::{
             error::DataConnectorIssue, types::NdcVersion, DataConnectorCapabilities,
         },
@@ -638,24 +702,19 @@ mod tests {
             supports_explaining_queries: false,
             supports_explaining_mutations: false,
             supports_nested_object_filtering: false,
-            supports_nested_array_filtering: false,
+            supports_nested_object_ordering: false,
+            supports_nested_object_array_filtering: false,
+            supports_nested_scalar_array_filtering: false,
             supports_aggregates: None,
             supports_query_variables: false,
             supports_relationships: None,
         };
 
         // With explicit capabilities specified, we should use them
-        let unstable_features = UnstableFeatures {
-            enable_ndc_v02_support: true,
-            ..Default::default()
-        };
         let metadata_accessor = MetadataAccessor::new(Metadata::WithoutNamespaces(vec![]));
-        let (context, issues) = DataConnectorContext::new(
-            &metadata_accessor,
-            &data_connector_with_capabilities,
-            &unstable_features,
-        )
-        .unwrap();
+        let (context, issues) =
+            DataConnectorContext::new(&metadata_accessor, &data_connector_with_capabilities)
+                .unwrap();
         assert_eq!(context.capabilities, data_connector_capabilities);
         assert_eq!(issues.len(), 0, "Issues: {issues:#?}");
     }
@@ -687,24 +746,19 @@ mod tests {
             supports_explaining_queries: false,
             supports_explaining_mutations: false,
             supports_nested_object_filtering: false,
-            supports_nested_array_filtering: false,
+            supports_nested_object_ordering: false,
+            supports_nested_object_array_filtering: false,
+            supports_nested_scalar_array_filtering: false,
             supports_aggregates: None,
             supports_query_variables: false,
             supports_relationships: None,
         };
 
         // With explicit capabilities specified, we should use them
-        let unstable_features = UnstableFeatures {
-            enable_ndc_v02_support: true,
-            ..Default::default()
-        };
         let metadata_accessor = MetadataAccessor::new(Metadata::WithoutNamespaces(vec![]));
-        let (context, issues) = DataConnectorContext::new(
-            &metadata_accessor,
-            &data_connector_with_capabilities,
-            &unstable_features,
-        )
-        .unwrap();
+        let (context, issues) =
+            DataConnectorContext::new(&metadata_accessor, &data_connector_with_capabilities)
+                .unwrap();
         assert_eq!(context.capabilities, data_connector_capabilities);
         assert_eq!(issues.len(), 0, "Issues: {issues:#?}");
     }

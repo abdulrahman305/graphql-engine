@@ -91,13 +91,13 @@ fn ndc_schema_response_v01_schema_reference(
 fn ndc_capabilities_response_v02_schema_reference(
     _gen: &mut schemars::gen::SchemaGenerator,
 ) -> schemars::schema::Schema {
-    schemars::schema::Schema::new_ref("https://raw.githubusercontent.com/hasura/ndc-spec/v0.2.0-rc.1/ndc-models/tests/json_schema/capabilities_response.jsonschema".into())
+    schemars::schema::Schema::new_ref("https://raw.githubusercontent.com/hasura/ndc-spec/v0.2.0/ndc-models/tests/json_schema/capabilities_response.jsonschema".into())
 }
 
 fn ndc_schema_response_v02_schema_reference(
     _gen: &mut schemars::gen::SchemaGenerator,
 ) -> schemars::schema::Schema {
-    schemars::schema::Schema::new_ref("https://raw.githubusercontent.com/hasura/ndc-spec/v0.2.0-rc.1/ndc-models/tests/json_schema/schema_response.jsonschema".into())
+    schemars::schema::Schema::new_ref("https://raw.githubusercontent.com/hasura/ndc-spec/v0.2.0/ndc-models/tests/json_schema/schema_response.jsonschema".into())
 }
 
 /// Versioned schema and capabilities for a data connector.
@@ -113,7 +113,7 @@ pub enum VersionedSchemaAndCapabilities {
     #[opendd(rename = "v0.1")]
     V01(SchemaAndCapabilitiesV01),
     #[serde(rename = "v0.2")]
-    #[opendd(rename = "v0.2", hidden)]
+    #[opendd(rename = "v0.2")]
     V02(SchemaAndCapabilitiesV02),
 }
 
@@ -136,7 +136,7 @@ impl_OpenDd_default_for!(SchemaAndCapabilitiesV01);
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
-#[schemars(title = "SchemaAndCapabilitiesV01")]
+#[schemars(title = "SchemaAndCapabilitiesV02")]
 pub struct SchemaAndCapabilitiesV02 {
     #[schemars(schema_with = "ndc_schema_response_v02_schema_reference")]
     pub schema: ndc_models::SchemaResponse,

@@ -16,7 +16,7 @@ use std::collections::{BTreeMap, HashMap};
 /// arguments fields will live.
 pub fn get_model_arguments_input_field(
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
     include_empty_default: bool,
 ) -> Result<gql_schema::InputField<GDS>, crate::Error> {
     model
@@ -60,7 +60,7 @@ pub fn get_model_arguments_input_field(
 pub fn build_model_argument_fields(
     gds: &GDS,
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
 ) -> Result<
     BTreeMap<ast::Name, gql_schema::Namespaced<GDS, gql_schema::InputField<GDS>>>,
     crate::Error,
@@ -78,6 +78,7 @@ pub fn build_model_argument_fields(
                 argument_type.description.clone(),
                 Annotation::Input(InputAnnotation::Model(
                     ModelInputAnnotation::ModelArgument {
+                        argument_name: argument_name.clone(),
                         argument_type: argument_type.argument_type.clone(),
                         argument_kind: argument_type.argument_kind.clone(),
                         ndc_table_argument: model
@@ -141,7 +142,7 @@ pub fn build_model_arguments_input_schema(
 pub fn add_model_arguments_field(
     arguments: &mut BTreeMap<ast::Name, gql_schema::Namespaced<GDS, gql_schema::InputField<GDS>>>,
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
     parent_field_name: &ast::Name,
     parent_type: &ast::TypeName,
 ) -> Result<(), crate::Error> {
@@ -157,7 +158,12 @@ pub fn add_model_arguments_field(
                     return false;
                 }
             }
-            true
+            // is the argument nullable? if so we don't _need_ it to be provided
+            model
+                .model
+                .arguments
+                .get(*argument_name)
+                .is_some_and(|argument| !argument.argument_type.nullable)
         })
         .collect();
 
@@ -170,7 +176,7 @@ pub fn add_model_arguments_field(
 
         let model_arguments = builder.conditional_namespaced(
             model_arguments_input,
-            permissions::get_select_permissions_namespace_annotations(model)?,
+            permissions::get_select_permissions_namespace_annotations(model),
         );
 
         if arguments.insert(name.clone(), model_arguments).is_some() {

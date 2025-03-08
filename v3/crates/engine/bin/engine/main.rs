@@ -1,26 +1,27 @@
 use clap::Parser;
-use serde::Serialize;
-use std::net;
-use std::path::PathBuf;
-
 use engine::{
-    get_base_routes, get_cors_layer, get_jsonapi_route, get_metadata_routes, get_sql_route,
+    get_base_routes, get_cors_layer, get_jsonapi_route, get_metadata_routes,
     internal_flags::{resolve_unstable_features, UnstableFeature},
     StartupError, VERSION,
 };
 use engine_types::ExposeInternalErrors;
+use graphql_ir::GraphqlRequestPipeline;
+use serde::Serialize;
+use std::net;
+use std::path::PathBuf;
 use tracing_util::{add_event_on_active_span, set_attribute_on_active_span, SpanVisibility};
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
+static DEFAULT_OTEL_SERVICE_NAME: &str = "ddn-engine";
 const DEFAULT_PORT: u16 = 3000;
 
 #[allow(clippy::struct_excessive_bools)] // booleans are pretty useful here
 #[derive(Parser, Serialize)]
 #[command(version = VERSION)]
 struct ServerOptions {
-    /// The path to the metadata file, used to construct the schema.
+    /// The path to the OpenDD metadata file, used to construct the schema.
     #[arg(long, value_name = "PATH", env = "METADATA_PATH")]
     metadata_path: PathBuf,
     /// An introspection metadata file, served over `/metadata` if provided.
@@ -38,9 +39,6 @@ struct ServerOptions {
     /// The port on which the server listens.
     #[arg(long, value_name = "PORT", env = "PORT", default_value_t = DEFAULT_PORT)]
     port: u16,
-    /// Enables the '/v1/sql' endpoint
-    #[arg(long, env = "ENABLE_SQL_INTERFACE")]
-    enable_sql_interface: bool,
     /// Enable CORS. Support preflight request and include related headers in responses.
     #[arg(long, env = "ENABLE_CORS")]
     enable_cors: bool,
@@ -72,6 +70,10 @@ struct ServerOptions {
     /// Log traces to stdout.
     #[arg(long, env = "EXPORT_TRACES_STDOUT")]
     export_traces_stdout: bool,
+
+    /// Service name output in OpenTelemetry traces
+    #[arg(long, env = "OTEL_SERVICE_NAME")]
+    otel_service_name: Option<String>,
 }
 
 #[tokio::main]
@@ -84,9 +86,14 @@ async fn main() {
         tracing_util::ExportTracesStdout::Disable
     };
 
+    let otel_service_name = match &server_options.otel_service_name {
+        Some(otel_service_name) => otel_service_name,
+        None => DEFAULT_OTEL_SERVICE_NAME,
+    };
+
     tracing_util::initialize_tracing(
         server_options.otlp_endpoint.as_deref(),
-        "ddn-engine",
+        otel_service_name.to_string(),
         Some(VERSION),
         tracing_util::PropagateBaggage::Disable,
         export_traces_stdout,
@@ -120,20 +127,36 @@ async fn start_engine(server: &ServerOptions) -> Result<(), StartupError> {
         ExposeInternalErrors::Censor
     };
 
-    let state = engine::build_state(
-        expose_internal_errors,
-        &server.authn_config_path,
-        &server.metadata_path,
-        server.enable_sql_interface,
+    let request_pipeline = if server
+        .unstable_features
+        .contains(&UnstableFeature::EnableOpenDdPipelineForGraphql)
+    {
+        GraphqlRequestPipeline::OpenDd
+    } else {
+        GraphqlRequestPipeline::Old
+    };
+
+    let raw_auth_config =
+        std::fs::read_to_string(&server.authn_config_path).expect("could not read auth config");
+    let opendd_metadata_json =
+        std::fs::read_to_string(&server.metadata_path).expect("could not read metadata");
+
+    let (resolved_metadata, auth_config) = engine::resolve_metadata(
+        &opendd_metadata_json,
+        &raw_auth_config,
         &metadata_resolve_configuration,
     )
     .map_err(StartupError::ReadSchema)?;
 
-    let mut app = get_base_routes(state.clone());
+    let state = engine::build_state(
+        request_pipeline,
+        expose_internal_errors,
+        auth_config,
+        resolved_metadata,
+    )
+    .map_err(StartupError::ReadSchema)?;
 
-    if server.enable_sql_interface {
-        app = app.merge(get_sql_route(state.clone()));
-    }
+    let mut app = get_base_routes(state.clone());
 
     app = app.merge(get_jsonapi_route(state.clone()));
 
@@ -162,15 +185,18 @@ async fn start_engine(server: &ServerOptions) -> Result<(), StartupError> {
     // run it with hyper on `addr`
     let listener = tokio::net::TcpListener::bind(address).await.unwrap();
 
-    axum::serve(listener, app.into_make_service())
-        .with_graceful_shutdown(axum_ext::shutdown_signal_with_handler(|| async move {
-            state
-                .graphql_websocket_server
-                .shutdown("Shutting server down")
-                .await;
-        }))
-        .await
-        .unwrap();
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<net::SocketAddr>(),
+    )
+    .with_graceful_shutdown(axum_ext::shutdown_signal_with_handler(|| async move {
+        state
+            .graphql_websocket_server
+            .shutdown("Shutting server down")
+            .await;
+    }))
+    .await
+    .unwrap();
 
     Ok(())
 }

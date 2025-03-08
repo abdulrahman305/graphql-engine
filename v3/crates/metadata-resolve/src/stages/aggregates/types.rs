@@ -7,7 +7,7 @@ use open_dds::{
     types::{CustomTypeName, FieldName},
 };
 use serde::{Deserialize, Serialize};
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use lang_graphql::ast::common::{self as ast};
 
@@ -16,7 +16,6 @@ use crate::{Qualified, QualifiedTypeName, QualifiedTypeReference};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AggregateExpressionsOutput {
     pub aggregate_expressions: BTreeMap<Qualified<AggregateExpressionName>, AggregateExpression>,
-    pub graphql_types: BTreeSet<ast::TypeName>,
     pub issues: Vec<AggregateExpressionIssue>,
 }
 
@@ -38,12 +37,17 @@ pub struct AggregateCountDefinition {
     #[serde(default = "serde_ext::ser_default")]
     #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub description: Option<String>,
+    pub result_type: QualifiedTypeName,
+    /// If the result type was not specified in the metadata explicitly.
+    /// This is important because if the count is disabled and the user didn't specify a type, we want to skip further
+    /// type validation. But if they did specify a type, we want to validate it, even if the count is disabled.
+    pub result_type_defaulted: bool,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct AggregateOperand {
     pub aggregated_type: QualifiedTypeName,
-    pub aggregatable_fields: Vec<AggregatableFieldInfo>,
+    pub aggregatable_fields: Vec<AggregatableFieldInfo>, // Empty for scalar operands
     pub aggregation_functions: Vec<AggregationFunctionInfo>,
 }
 
@@ -230,9 +234,32 @@ pub enum AggregateExpressionError {
         data_connector_name: Qualified<DataConnectorName>,
         field_name: FieldName,
     },
-    #[error("graphql config error in {aggregate_expression_name:}: {graphql_config_error:}")]
+
+    #[error("graphql config error in {aggregate_expression_name}: {graphql_config_error}")]
     GraphqlConfigError {
         aggregate_expression_name: Qualified<AggregateExpressionName>,
         graphql_config_error: graphql_config::GraphqlConfigError,
     },
+
+    #[error("the return type used on the {count_type} aggregate ({return_type}) is unknown")]
+    UnknownCountReturnType {
+        aggregate_expression_name: Qualified<AggregateExpressionName>,
+        count_type: CountAggregateType,
+        return_type: QualifiedTypeName,
+    },
+
+    #[error("the return type used on the {count_type} aggregate ({return_type}) must be an integer type")]
+    InvalidCountReturnType {
+        aggregate_expression_name: Qualified<AggregateExpressionName>,
+        count_type: CountAggregateType,
+        return_type: QualifiedTypeName,
+    },
+}
+
+#[derive(Debug, Eq, PartialEq, Copy, Clone, derive_more::Display)]
+pub enum CountAggregateType {
+    #[display("count")]
+    Count,
+    #[display("count distinct")]
+    CountDistinct,
 }

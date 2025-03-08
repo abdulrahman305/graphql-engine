@@ -85,6 +85,20 @@ impl QualifiedTypeReference {
             QualifiedBaseType::Named(type_name) => type_name,
         }
     }
+
+    /// Check if this type is an array type
+    pub fn is_array_type(&self) -> bool {
+        matches!(self.underlying_type, QualifiedBaseType::List(_))
+    }
+
+    pub fn is_multidimensional_array_type(&self) -> bool {
+        match &self.underlying_type {
+            QualifiedBaseType::List(inner_type) => {
+                matches!(inner_type.underlying_type, QualifiedBaseType::List(_))
+            }
+            QualifiedBaseType::Named(_) => false,
+        }
+    }
 }
 
 // should this argument be converted into an NDC expression
@@ -133,7 +147,9 @@ impl QualifiedBaseType {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Hash, Eq, JsonSchema)]
+#[derive(
+    Serialize, Deserialize, Clone, Debug, PartialEq, PartialOrd, Ord, Hash, Eq, JsonSchema,
+)]
 pub enum QualifiedTypeName {
     Inbuilt(InbuiltType),
     Custom(Qualified<CustomTypeName>),
@@ -165,11 +181,18 @@ impl QualifiedTypeName {
     pub fn to_untagged(&self) -> UnTaggedQualifiedTypeName {
         match self {
             QualifiedTypeName::Inbuilt(inbuilt_type) => {
-                UnTaggedQualifiedTypeName::Inbuilt(inbuilt_type.clone())
+                UnTaggedQualifiedTypeName::Inbuilt(*inbuilt_type)
             }
             QualifiedTypeName::Custom(custom_type) => {
                 UnTaggedQualifiedTypeName::Custom(custom_type.clone())
             }
+        }
+    }
+
+    pub fn get_custom_type_name(&self) -> Option<&Qualified<CustomTypeName>> {
+        match self {
+            QualifiedTypeName::Inbuilt(_) => None,
+            QualifiedTypeName::Custom(custom_type) => Some(custom_type),
         }
     }
 }
@@ -297,7 +320,7 @@ pub(crate) fn mk_qualified_type_name(
     subgraph: &SubgraphName,
 ) -> QualifiedTypeName {
     match type_name {
-        TypeName::Inbuilt(inbuilt_type) => QualifiedTypeName::Inbuilt(inbuilt_type.clone()),
+        TypeName::Inbuilt(inbuilt_type) => QualifiedTypeName::Inbuilt(*inbuilt_type),
         TypeName::Custom(type_name) => {
             QualifiedTypeName::Custom(Qualified::new(subgraph.clone(), type_name.to_owned()))
         }

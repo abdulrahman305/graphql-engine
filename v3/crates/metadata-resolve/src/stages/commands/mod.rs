@@ -5,10 +5,11 @@ mod error;
 mod source;
 mod types;
 pub use error::CommandsError;
+use open_dds::data_connector::DataConnectorName;
 
 use crate::helpers::types::TrackGraphQLRootFields;
 use crate::stages::{
-    boolean_expressions, data_connectors, object_boolean_expressions, scalar_types,
+    boolean_expressions, data_connector_scalar_types, data_connectors, scalar_types,
     type_permissions,
 };
 use crate::types::subgraph::Qualified;
@@ -25,13 +26,13 @@ use std::collections::BTreeMap;
 pub fn resolve(
     metadata_accessor: &open_dds::accessor::MetadataAccessor,
     data_connectors: &data_connectors::DataConnectors,
+    data_connector_scalars: &BTreeMap<
+        Qualified<DataConnectorName>,
+        data_connector_scalar_types::DataConnectorScalars,
+    >,
     object_types: &type_permissions::ObjectTypesWithPermissions,
     track_root_fields: &mut TrackGraphQLRootFields,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
 ) -> Result<CommandsOutput, CommandsError> {
     let mut commands: IndexMap<Qualified<CommandName>, Command> = IndexMap::new();
@@ -48,7 +49,6 @@ pub fn resolve(
             object_types,
             track_root_fields,
             scalar_types,
-            object_boolean_expression_types,
             boolean_expression_types,
             &mut issues,
         )?;
@@ -58,9 +58,9 @@ pub fn resolve(
                 &resolved_command,
                 subgraph,
                 data_connectors,
+                data_connector_scalars,
                 object_types,
                 scalar_types,
-                object_boolean_expression_types,
                 boolean_expression_types,
             )?;
             resolved_command.source = Some(Arc::new(command_source));

@@ -3,25 +3,34 @@ use crate::helpers::{argument::ArgumentMappingError, type_mappings::TypeMappingC
 use crate::stages::{
     aggregates, apollo, data_connectors, graphql_config, object_types, order_by_expressions, relay,
 };
+use crate::types::error::ContextualError;
 use crate::types::subgraph::{Qualified, QualifiedTypeName};
+use crate::OrderByExpressionIdentifier;
 
 use open_dds::{
     aggregates::AggregateExpressionName,
     arguments::ArgumentName,
+    commands::CommandName,
     data_connector::{CollectionName, DataConnectorName, DataConnectorScalarType},
     models::ModelName,
     order_by_expression::OrderByExpressionName,
+    spanned::Spanned,
     types::{CustomTypeName, FieldName},
 };
 
 #[derive(Debug, thiserror::Error)]
 pub enum ModelsError {
-    #[error("the data type {data_type:} for model {model_name:} has not been defined")]
+    #[error("The data type '{data_type:}' for model '{model_name:}' has not been defined")]
     UnknownModelDataType {
         model_name: Qualified<ModelName>,
-        data_type: Qualified<CustomTypeName>,
+        data_type: Spanned<Qualified<CustomTypeName>>,
     },
-
+    #[error("the model {model_name:} could not be found")]
+    ModelNotFound { model_name: Qualified<ModelName> },
+    #[error("the command {command_name:} could not be found")]
+    CommandNotFound {
+        command_name: Qualified<CommandName>,
+    },
     #[error("source for the following model is defined more than once: {model_name:}")]
     DuplicateModelSourceDefinition { model_name: Qualified<ModelName> },
     #[error(
@@ -30,6 +39,7 @@ pub enum ModelsError {
     UnknownModelDataConnector {
         model_name: Qualified<ModelName>,
         data_connector: Qualified<DataConnectorName>,
+        data_connector_path: Option<jsonpath::JSONPath>,
     },
     #[error(
         "the following argument in model {model_name:} is defined more than once: {argument_name:}"
@@ -43,7 +53,7 @@ pub enum ModelsError {
     UnknownModelCollection {
         model_name: Qualified<ModelName>,
         data_connector: Qualified<DataConnectorName>,
-        collection: CollectionName,
+        collection: Spanned<CollectionName>,
     },
     #[error("An error occurred while mapping arguments in the model {model_name:} to the collection {collection_name:} in the data connector {data_connector_name:}: {error:}")]
     ModelCollectionArgumentMappingError {
@@ -81,17 +91,11 @@ pub enum ModelsError {
         model_name: Qualified<ModelName>,
         field_name: FieldName,
     },
-    #[error("multiple equality operators have been defined in the data connector for field {field_name:} of model {model_name:} used in {comparison_location}")]
-    MultipleEqualOperatorsForComparedField {
-        comparison_location: String,
-        model_name: Qualified<ModelName>,
-        field_name: FieldName,
-    },
     #[error("the following model is defined more than once: {name:}")]
     DuplicateModelDefinition { name: Qualified<ModelName> },
-    #[error("Error in order by expression {order_by_expression_name}: {error}")]
+    #[error("Error in order by expression {order_by_expression_identifier}: {error}")]
     OrderByExpressionError {
-        order_by_expression_name: Qualified<OrderByExpressionName>,
+        order_by_expression_identifier: Qualified<OrderByExpressionIdentifier>,
         error: order_by_expressions::OrderByExpressionError,
     },
     #[error("Error in orderable fields of model {model_name}: {error}")]
@@ -131,6 +135,52 @@ pub enum ModelsError {
     ModelAggregateExpressionError(#[from] ModelAggregateExpressionError),
     #[error("{0}")]
     DataConnectorError(#[from] data_connectors::NamedDataConnectorError),
+}
+
+impl ContextualError for ModelsError {
+    fn create_error_context(&self) -> Option<error_context::Context> {
+        match self {
+            ModelsError::UnknownModelDataConnector {
+                data_connector,
+                data_connector_path,
+                ..
+            } => Some(error_context::Context(vec![error_context::Step {
+                message: "There is no DataConnectorLink defined with this name".to_string(),
+                path: data_connector_path.clone()?,
+                subgraph: Some(data_connector.subgraph.clone()),
+            }])),
+
+            ModelsError::UnknownModelCollection {
+                collection,
+                data_connector,
+                ..
+            } => Some(error_context::Context(vec![error_context::Step {
+                message: format!(
+                    "This collection is not defined in the data connector schema for {}",
+                    data_connector.name
+                ),
+                path: collection.path.clone(),
+                subgraph: Some(data_connector.subgraph.clone()),
+            }])),
+            ModelsError::UnknownModelDataType {
+                model_name,
+                data_type:
+                    Spanned {
+                        path,
+                        value: data_type,
+                    },
+            } => Some(error_context::Context(vec![error_context::Step {
+                message: format!(
+                    "Model '{}' uses data type '{}', but it cannot be found in this subgraph",
+                    model_name.name, data_type.name
+                ),
+                path: path.clone(),
+                subgraph: Some(model_name.subgraph.clone()),
+            }])),
+
+            _other => None,
+        }
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -173,6 +223,31 @@ pub enum ModelAggregateExpressionError {
         model_name: Qualified<ModelName>,
         aggregate_expression: Qualified<AggregateExpressionName>,
         object_type_error: object_types::ObjectTypesError,
+    },
+    #[error("the aggregate expression '{aggregate_expression}' used with model '{model_name}' must use the Int type for its {count_type} aggregate as the data connector '{data_connector_name}' does not specify a count type in its schema")]
+    CountReturnTypeMustBeInt {
+        aggregate_expression: Qualified<AggregateExpressionName>,
+        model_name: Qualified<ModelName>,
+        count_type: aggregates::CountAggregateType,
+        data_connector_name: Qualified<DataConnectorName>,
+    },
+    #[error("the aggregate expression '{aggregate_expression}' is used with the model '{model_name}' but the {count_type} aggregate's return type ({count_return_type}) does not have a scalar type representation mapping to the '{data_connector_name}' data connector's count aggregate type '{data_connector_count_return_type}'")]
+    CountReturnTypeMappingMissing {
+        model_name: Qualified<ModelName>,
+        aggregate_expression: Qualified<AggregateExpressionName>,
+        count_type: aggregates::CountAggregateType,
+        count_return_type: QualifiedTypeName,
+        data_connector_name: Qualified<DataConnectorName>,
+        data_connector_count_return_type: DataConnectorScalarType,
+    },
+    #[error("the aggregate expression '{aggregate_expression}' is used with the model '{model_name}' but the {count_type} aggregate's return type ({count_return_type}) does not match the count aggregate scalar type defined by the data connector '{data_connector_name}': {expected_count_return_type}")]
+    CountReturnTypeMappingMismatch {
+        model_name: Qualified<ModelName>,
+        aggregate_expression: Qualified<AggregateExpressionName>,
+        count_type: aggregates::CountAggregateType,
+        count_return_type: QualifiedTypeName,
+        data_connector_name: Qualified<DataConnectorName>,
+        expected_count_return_type: QualifiedTypeName,
     },
     #[error("{0}")]
     AggregateExpressionError(#[from] aggregates::AggregateExpressionError),

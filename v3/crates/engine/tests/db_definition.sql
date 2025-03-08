@@ -17,6 +17,18 @@ COPY public.article (id, title, author_id) FROM stdin;
 5	Generalizing monads to arrows	2
 \.
 
+CREATE OR REPLACE FUNCTION public.search_articles(search_term text)
+RETURNS SETOF public.article
+LANGUAGE plpgsql
+STABLE
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT * FROM public.article
+    WHERE title ILIKE '%' || search_term || '%';
+END;
+$$;
+
 CREATE TABLE author (
   id integer NOT NULL,
   first_name text,
@@ -103,7 +115,8 @@ ALTER TABLE ONLY public.movie_analytics
 ALTER COLUMN id
 SET DEFAULT nextval('public.movie_analytics_id_seq'::regclass);
 -- `institution` table for testing queries into JSON objects
-CREATE TYPE public.country AS (name text, continent text);
+CREATE TYPE public.city AS (name text);
+CREATE TYPE public.country AS (name text, continent text, cities city []);
 CREATE TYPE public.location AS (city text, country country, campuses text []);
 CREATE TYPE public.pet AS (name text, age int);
 CREATE TYPE public.staff AS (
@@ -132,7 +145,11 @@ VALUES (
     'Queen Mary University of London',
     ROW(
       'London',
-      ROW('UK', 'Europe')::country,
+      ROW(
+        'UK',
+        'Europe',
+        ARRAY [ROW('London')::city, ROW('Birmingham')::city]
+      )::country,
       ARRAY ['Mile End','Whitechapel','Charterhouse Square','West Smithfield']
     )::location,
     ARRAY [ROW('Peter','Landin',
@@ -148,7 +165,11 @@ VALUES (
   'Chalmers University of Technology',
   ROW(
     'Gothenburg',
-    ROW('Sweden', 'Europe')::country,
+    ROW(
+      'Sweden',
+      'Europe',
+      ARRAY [ROW('Gothenburg')::city, ROW('Stockholm')::city]
+    )::country,
     ARRAY ['Johanneberg','Lindholmen']
   )::location,
   ARRAY [ROW('John','Hughes',

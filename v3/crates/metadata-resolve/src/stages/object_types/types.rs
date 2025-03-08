@@ -1,13 +1,19 @@
 use super::error::ObjectTypesError;
-use crate::types::subgraph::QualifiedTypeReference;
+use crate::helpers::type_validation::TypeCompatibilityIssue;
+use crate::types::error::ShouldBeAnError;
+use crate::types::subgraph::{QualifiedTypeName, QualifiedTypeReference};
+use crate::NdcVersion;
 use indexmap::IndexMap;
+use open_dds::aggregates::{
+    DataConnectorAggregationFunctionName, DataConnectorExtractionFunctionName,
+};
 use open_dds::arguments::ArgumentName;
 use open_dds::models::ModelName;
 use open_dds::types::{CustomTypeName, DataConnectorArgumentName, Deprecated, FieldName};
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::borrow::Borrow;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::ops::Deref;
 
 use crate::types::subgraph::Qualified;
@@ -110,11 +116,11 @@ impl Deref for ObjectTypesWithTypeMappings {
 
 /// output of `object_types` step
 pub struct ObjectTypesOutput {
-    pub graphql_types: BTreeSet<ast::TypeName>,
     pub global_id_enabled_types: BTreeMap<Qualified<CustomTypeName>, Vec<Qualified<ModelName>>>,
     pub apollo_federation_entity_enabled_types:
         BTreeMap<Qualified<CustomTypeName>, Option<Qualified<open_dds::models::ModelName>>>,
     pub object_types: ObjectTypesWithTypeMappings,
+    pub issues: Vec<ObjectTypesIssue>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -176,22 +182,246 @@ pub struct FieldMapping {
     #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub column_type_representation: Option<ndc_models::TypeRepresentation>,
     pub comparison_operators: Option<ComparisonOperators>,
+    pub aggregate_functions: Option<AggregateFunctions>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub extraction_functions: Option<ExtractionFunctions>,
     #[serde(default = "serde_ext::ser_default")]
     #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub argument_mappings: BTreeMap<ArgumentName, DataConnectorArgumentName>,
 }
 
-/// Mapping from a column to its type.
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash, Default)]
 pub struct ComparisonOperators {
-    pub equality_operators: Vec<DataConnectorOperatorName>,
     #[serde(default = "serde_ext::ser_default")]
     #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
-    pub in_operators: Vec<DataConnectorOperatorName>,
-
-    // TODO: for now, put other operators here. Later, once we have NDC
-    // operator meanings, categorize these by their meaning:
+    pub eq_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub in_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub lt_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub lte_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub gt_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub gte_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub contains_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub icontains_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub starts_with_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub istarts_with_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub ends_with_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
+    pub iends_with_operator: Option<DataConnectorOperatorName>,
+    #[serde(default = "serde_ext::ser_default")]
+    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
     pub other_operators: Vec<DataConnectorOperatorName>,
+}
+
+impl ComparisonOperators {
+    // TODO: this is a very crude backup lookup for operators.
+    // We keep it because v0.1 connectors don't have the newer
+    // set of comparison operator meanings (lt, lte, gt, gte),
+    // so until more connectors are on v0.2, we need a heuristic
+    // for finding these operators here.
+    pub(crate) fn find_comparison_operator<'a>(
+        &'a self,
+        operator_str: &str,
+        ndc_version: NdcVersion,
+    ) -> Option<&'a DataConnectorOperatorName> {
+        match ndc_version {
+            NdcVersion::V01 => self.other_operators.iter().find(|other_op| {
+                other_op.as_str() == operator_str
+                    || operator_str
+                        .strip_prefix("_")
+                        .is_some_and(|op| other_op.as_str() == op)
+            }),
+            NdcVersion::V02 => None,
+        }
+    }
+
+    pub fn get_eq_operator(&self, ndc_version: NdcVersion) -> Option<&DataConnectorOperatorName> {
+        self.eq_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_eq", ndc_version))
+    }
+
+    pub fn get_lt_operator(&self, ndc_version: NdcVersion) -> Option<&DataConnectorOperatorName> {
+        self.lt_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_lt", ndc_version))
+    }
+
+    pub fn get_lte_operator(&self, ndc_version: NdcVersion) -> Option<&DataConnectorOperatorName> {
+        self.lte_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_lte", ndc_version))
+    }
+
+    pub fn get_gt_operator(&self, ndc_version: NdcVersion) -> Option<&DataConnectorOperatorName> {
+        self.gt_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_gt", ndc_version))
+    }
+
+    pub fn get_gte_operator(&self, ndc_version: NdcVersion) -> Option<&DataConnectorOperatorName> {
+        self.gte_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_gte", ndc_version))
+    }
+
+    pub fn get_contains_operator(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorOperatorName> {
+        self.contains_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_contains", ndc_version))
+    }
+
+    pub fn get_icontains_operator(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorOperatorName> {
+        self.icontains_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_icontains", ndc_version))
+    }
+
+    pub fn get_starts_with_operator(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorOperatorName> {
+        self.starts_with_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_starts_with", ndc_version))
+    }
+
+    pub fn get_istarts_with_operator(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorOperatorName> {
+        self.istarts_with_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_istarts_with", ndc_version))
+    }
+
+    pub fn get_ends_with_operator(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorOperatorName> {
+        self.ends_with_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_ends_with", ndc_version))
+    }
+
+    pub fn get_iends_with_operator(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorOperatorName> {
+        self.iends_with_operator
+            .as_ref()
+            .or_else(|| self.find_comparison_operator("_iends_with", ndc_version))
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq, Hash)]
+pub struct AggregateFunctions {
+    pub sum_function: Option<DataConnectorAggregationFunctionName>,
+    pub min_function: Option<DataConnectorAggregationFunctionName>,
+    pub max_function: Option<DataConnectorAggregationFunctionName>,
+    pub avg_function: Option<DataConnectorAggregationFunctionName>,
+    pub other_functions: Vec<DataConnectorAggregationFunctionName>,
+}
+
+impl AggregateFunctions {
+    // TODO: this is a very crude backup lookup for functions.
+    // We keep it because v0.1 connectors don't have the newer
+    // set of aggregate function meanings,
+    // so until more connectors are on v0.2, we need a heuristic
+    // for finding these functions here.
+    pub(crate) fn find_function<'a>(
+        &'a self,
+        operator_str: &str,
+        ndc_version: NdcVersion,
+    ) -> Option<&'a DataConnectorAggregationFunctionName> {
+        match ndc_version {
+            NdcVersion::V01 => self
+                .other_functions
+                .iter()
+                .find(|other_op| other_op.as_str() == operator_str),
+            NdcVersion::V02 => None,
+        }
+    }
+
+    pub fn get_sum_function(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorAggregationFunctionName> {
+        self.sum_function
+            .as_ref()
+            .or_else(|| self.find_function("sum", ndc_version))
+    }
+
+    pub fn get_min_function(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorAggregationFunctionName> {
+        self.min_function
+            .as_ref()
+            .or_else(|| self.find_function("min", ndc_version))
+    }
+
+    pub fn get_max_function(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorAggregationFunctionName> {
+        self.max_function
+            .as_ref()
+            .or_else(|| self.find_function("max", ndc_version))
+    }
+
+    pub fn get_avg_function(
+        &self,
+        ndc_version: NdcVersion,
+    ) -> Option<&DataConnectorAggregationFunctionName> {
+        self.avg_function
+            .as_ref()
+            .or_else(|| self.find_function("avg", ndc_version))
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, Default, PartialEq, Eq, Hash)]
+pub struct ExtractionFunctions {
+    pub year_function: Option<DataConnectorExtractionFunctionName>,
+    pub month_function: Option<DataConnectorExtractionFunctionName>,
+    pub day_function: Option<DataConnectorExtractionFunctionName>,
+    pub nanosecond_function: Option<DataConnectorExtractionFunctionName>,
+    pub microsecond_function: Option<DataConnectorExtractionFunctionName>,
+    pub second_function: Option<DataConnectorExtractionFunctionName>,
+    pub minute_function: Option<DataConnectorExtractionFunctionName>,
+    pub hour_function: Option<DataConnectorExtractionFunctionName>,
+    pub week_function: Option<DataConnectorExtractionFunctionName>,
+    pub quarter_function: Option<DataConnectorExtractionFunctionName>,
+    pub day_of_week_function: Option<DataConnectorExtractionFunctionName>,
+    pub day_of_year_function: Option<DataConnectorExtractionFunctionName>,
+    pub other_functions: Vec<DataConnectorExtractionFunctionName>,
 }
 
 /// Mapping from an object to their fields, which contain types.
@@ -202,4 +432,80 @@ pub enum TypeMapping {
         ndc_object_type_name: DataConnectorObjectType,
         field_mappings: BTreeMap<FieldName, FieldMapping>,
     },
+}
+
+#[allow(clippy::enum_variant_names)]
+#[derive(Debug, thiserror::Error)]
+pub enum ObjectTypesIssue {
+    #[error("Multiple {operator_name} operators found for type {scalar_type} in data connector {data_connector_name}")]
+    DuplicateOperatorsDefined {
+        scalar_type: ndc_models::ScalarTypeName,
+        operator_name: String,
+        data_connector_name: Qualified<DataConnectorName>,
+    },
+    #[error("Multiple {function_name} aggregate functions found for type {scalar_type} in data connector {data_connector_name}")]
+    DuplicateAggregateFunctionsDefined {
+        scalar_type: ndc_models::ScalarTypeName,
+        function_name: String,
+        data_connector_name: Qualified<DataConnectorName>,
+    },
+    #[error("Multiple {function_name} extraction functions found for type {scalar_type} in data connector {data_connector_name}")]
+    DuplicateExtractionFunctionsDefined {
+        scalar_type: ndc_models::ScalarTypeName,
+        function_name: String,
+        data_connector_name: Qualified<DataConnectorName>,
+    },
+    #[error("the field {field_name:} in {type_name:} should have the type {expected:} for data connector {data_connector:} but the field has type {provided:}")]
+    FieldTypeMismatch {
+        field_name: FieldName,
+        type_name: Qualified<CustomTypeName>,
+        data_connector: Qualified<DataConnectorName>,
+        expected: QualifiedTypeName,
+        provided: QualifiedTypeName,
+    },
+    #[error("Field type {field_type} could not be found in field {field_name} for object type {object_type_name}")]
+    FieldTypeNotFound {
+        field_type: Qualified<CustomTypeName>,
+        object_type_name: Qualified<CustomTypeName>,
+        field_name: FieldName,
+    },
+    #[error("Recursive reference detected for object type '{type_name}' through non-null field path: {field_path}")]
+    RecursiveObjectType {
+        type_name: Qualified<CustomTypeName>,
+        field_path: String,
+    },
+    #[error("The field '{field_name}' in object type '{type_name}' cannot be mapped to data connector '{data_connector}' field '{data_connector_object}.{data_connector_column}' because: {issue}")]
+    FieldTypeNdcMappingIssue {
+        field_name: FieldName,
+        type_name: Qualified<CustomTypeName>,
+        data_connector: Qualified<DataConnectorName>,
+        data_connector_object: DataConnectorObjectType,
+        data_connector_column: DataConnectorColumnName,
+        issue: TypeCompatibilityIssue,
+    },
+}
+
+impl ShouldBeAnError for ObjectTypesIssue {
+    fn should_be_an_error(&self, flags: &open_dds::flags::OpenDdFlags) -> bool {
+        match self {
+            ObjectTypesIssue::DuplicateOperatorsDefined { .. } => flags
+                .contains(open_dds::flags::Flag::DisallowDuplicateOperatorDefinitionsForScalarType),
+            ObjectTypesIssue::DuplicateAggregateFunctionsDefined { .. } => flags.contains(
+                open_dds::flags::Flag::DisallowDuplicateAggregateFunctionDefinitionsForScalarType,
+            ),
+            ObjectTypesIssue::DuplicateExtractionFunctionsDefined { .. } => true,
+            ObjectTypesIssue::FieldTypeMismatch { .. } => {
+                flags.contains(open_dds::flags::Flag::DisallowDataConnectorScalarTypesMismatch)
+            }
+            ObjectTypesIssue::FieldTypeNotFound { .. } => {
+                flags.contains(open_dds::flags::Flag::CheckObjectTypeFieldsExist)
+            }
+            ObjectTypesIssue::RecursiveObjectType { .. } => {
+                flags.contains(open_dds::flags::Flag::DisallowRecursiveObjectTypes)
+            }
+            ObjectTypesIssue::FieldTypeNdcMappingIssue { .. } => flags.contains(
+                open_dds::flags::Flag::ValidateObjectTypeDataConnectorTypeMappingFieldTypes,
+            ),
+        }
+    }
 }

@@ -1,7 +1,9 @@
 use crate::stages::{data_connectors, object_types, type_permissions};
+use crate::types::error::ShouldBeAnError;
 use crate::types::subgraph::{Qualified, QualifiedTypeReference};
 use indexmap::IndexMap;
 use open_dds::aggregates::AggregateExpressionName;
+use open_dds::data_connector::DataConnectorName;
 use open_dds::permissions::Role;
 use open_dds::{commands::CommandName, models::ModelName, types::CustomTypeName};
 use serde::{Deserialize, Serialize};
@@ -14,6 +16,11 @@ use std::collections::BTreeMap;
 use open_dds::relationships::{FieldAccess, RelationshipName, RelationshipType};
 use open_dds::types::Deprecated;
 
+pub struct ObjectRelationshipsOutput {
+    pub object_types: BTreeMap<Qualified<CustomTypeName>, ObjectTypeWithRelationships>,
+    pub issues: Vec<ObjectRelationshipsIssue>,
+}
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectTypeWithRelationships {
     pub object_type: object_types::ObjectTypeRepresentation,
@@ -23,18 +30,15 @@ pub struct ObjectTypeWithRelationships {
     /// permissions on this type, when it is used in an input context (e.g. in
     /// an argument type of Model or Command)
     pub type_input_permissions: BTreeMap<Role, type_permissions::TypeInputPermission>,
-    /// any relationship fields defined on this object, indexed by field name
-    /// note that a single relationship may result in the generation of multiple fields
-    /// (ie normal relationship + aggregate relationship)
-    pub relationship_fields: IndexMap<ast::Name, RelationshipField>,
+    /// any relationship fields defined on this object, indexed by relationship name
+    pub relationship_fields: IndexMap<RelationshipName, RelationshipField>,
     /// type mappings for each data connector
     pub type_mappings: object_types::DataConnectorTypeMappingsForObject,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum RelationshipTarget {
-    Model(ModelRelationshipTarget),
-    ModelAggregate(ModelAggregateRelationshipTarget),
+    Model(Box<ModelRelationshipTarget>),
     Command(CommandRelationshipTarget),
 }
 
@@ -45,15 +49,15 @@ pub struct ModelRelationshipTarget {
     pub relationship_type: RelationshipType,
     pub target_typename: Qualified<CustomTypeName>,
     pub mappings: Vec<RelationshipModelMapping>,
+    pub relationship_aggregate: Option<AggregateRelationship>, // only applicable to array relationships
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
-pub struct ModelAggregateRelationshipTarget {
-    pub model_name: Qualified<ModelName>,
-    pub target_typename: Qualified<CustomTypeName>,
-    pub mappings: Vec<RelationshipModelMapping>,
+pub struct AggregateRelationship {
+    pub field_name: ast::Name,
     pub aggregate_expression: Qualified<AggregateExpressionName>,
     pub filter_input_field_name: ast::Name,
+    pub description: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -72,6 +76,17 @@ pub enum RelationshipTargetName {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct RelationshipModelMapping {
     pub source_field: FieldAccess,
+    pub target: RelationshipModelMappingTarget,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum RelationshipModelMappingTarget {
+    ModelField(RelationshipModelMappingFieldTarget),
+    Argument(ArgumentName),
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct RelationshipModelMappingFieldTarget {
     pub target_field: FieldAccess,
     // Optional because we allow building schema without specifying a data source
     pub target_ndc_column: Option<NdcColumnForComparison>,
@@ -129,4 +144,24 @@ pub enum FieldNestedness {
     ObjectNested,
     /// The fields are on an object type that that has a nested array ancestor
     ArrayNested,
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ObjectRelationshipsIssue {
+    #[error("The data connector {data_connector_name} does not support relationships or variables, so it cannot be used for relationship {relationship_name} on type {type_name}")]
+    LocalRelationshipDataConnectorDoesNotSupportRelationshipsOrVariables {
+        type_name: Qualified<CustomTypeName>,
+        relationship_name: RelationshipName,
+        data_connector_name: Qualified<DataConnectorName>,
+    },
+}
+
+impl ShouldBeAnError for ObjectRelationshipsIssue {
+    fn should_be_an_error(&self, flags: &open_dds::flags::OpenDdFlags) -> bool {
+        match self {
+            ObjectRelationshipsIssue::LocalRelationshipDataConnectorDoesNotSupportRelationshipsOrVariables { .. } => {
+                flags.contains(open_dds::flags::Flag::DisallowLocalRelationshipsOnDataConnectorsWithoutRelationshipsOrVariables)
+            }
+        }
+    }
 }

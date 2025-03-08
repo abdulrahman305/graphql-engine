@@ -150,13 +150,49 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -179,13 +215,49 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -208,13 +280,49 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -238,7 +346,7 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                         "GetAlbums",
                     ),
                 ),
-            }: CommandWithArgumentPresets {
+            }: CommandWithPermissions {
                 command: Command {
                     name: Qualified {
                         subgraph: SubgraphName(
@@ -372,10 +480,14 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                     supports_explaining_queries: true,
                                     supports_explaining_mutations: true,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: false,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: None,
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: true,
@@ -432,13 +544,49 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -461,13 +609,49 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -490,13 +674,49 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -572,7 +792,7 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                             ),
                                             name: CustomTypeName(
                                                 Identifier(
-                                                    "Album_bool_exp",
+                                                    "Album",
                                                 ),
                                             ),
                                         },
@@ -596,82 +816,7 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                                     "x-hasura-album-id",
                                                 ),
                                                 passed_as_json: true,
-                                            },
-                                        ),
-                                        deprecated: None,
-                                    },
-                                ),
-                            ),
-                        },
-                    },
-                },
-                argument_presets: {
-                    Role(
-                        "user",
-                    ): ArgumentPresets {
-                        argument_presets: {
-                            ArgumentNameAndPath {
-                                ndc_argument_name: Some(
-                                    DataConnectorArgumentName(
-                                        "where",
-                                    ),
-                                ),
-                                field_path: [],
-                            }: (
-                                QualifiedTypeReference {
-                                    underlying_type: Named(
-                                        Custom(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "subgraphs",
-                                                ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "Album_bool_exp",
-                                                    ),
-                                                ),
-                                            },
-                                        ),
-                                    ),
-                                    nullable: true,
-                                },
-                                BooleanExpression(
-                                    BinaryFieldComparison {
-                                        field: FieldName(
-                                            Identifier(
-                                                "AlbumId",
-                                            ),
-                                        ),
-                                        field_parent_type: Qualified {
-                                            subgraph: SubgraphName(
-                                                "subgraphs",
-                                            ),
-                                            name: CustomTypeName(
-                                                Identifier(
-                                                    "Album_bool_exp",
-                                                ),
-                                            ),
-                                        },
-                                        ndc_column: DataConnectorColumnName(
-                                            "AlbumId",
-                                        ),
-                                        operator: DataConnectorOperatorName(
-                                            "eq",
-                                        ),
-                                        argument_type: QualifiedTypeReference {
-                                            underlying_type: Named(
-                                                Inbuilt(
-                                                    Int,
-                                                ),
-                                            ),
-                                            nullable: false,
-                                        },
-                                        value: SessionVariable(
-                                            SessionVariableReference {
-                                                name: SessionVariableName(
-                                                    "x-hasura-album-id",
-                                                ),
-                                                passed_as_json: true,
+                                                disallow_unknown_fields: false,
                                             },
                                         ),
                                         deprecated: None,
@@ -683,7 +828,6 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                 },
             },
         },
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {
                 Qualified {
@@ -800,7 +944,7 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                     "AlbumId",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "subgraphs",
@@ -845,13 +989,14 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "ArtistId",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "subgraphs",
@@ -896,13 +1041,14 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                             FieldName(
                                 Identifier(
                                     "Title",
                                 ),
                             ): ComparisonExpressionInfo {
-                                object_type_name: Some(
+                                boolean_expression_type_name: FromBooleanExpressionType(
                                     Qualified {
                                         subgraph: SubgraphName(
                                             "subgraphs",
@@ -947,25 +1093,18 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                                     ),
                                 },
                                 logical_operators: Exclude,
+                                field_kind: Scalar,
                             },
                         },
                         relationship_fields: {},
                     },
                     include_logical_operators: Yes,
+                    data_connector: None,
                 },
             },
             scalars: {
-                Qualified {
-                    subgraph: SubgraphName(
-                        "subgraphs",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "Int_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "subgraphs",
                         ),
@@ -975,6 +1114,7 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         Int,
                     ),
@@ -1034,17 +1174,8 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                         ),
                     },
                 },
-                Qualified {
-                    subgraph: SubgraphName(
-                        "subgraphs",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "String_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "subgraphs",
                         ),
@@ -1054,6 +1185,7 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         String,
                     ),
@@ -1157,6 +1289,7 @@ input_file: crates/metadata-resolve/tests/passing/command_permissions/nullable_p
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {
             Role(

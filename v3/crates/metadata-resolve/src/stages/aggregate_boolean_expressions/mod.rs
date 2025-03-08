@@ -1,7 +1,19 @@
 mod types;
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
+use super::{
+    aggregates::{AggregateCountDefinition, AggregateExpression, CountAggregateType},
+    boolean_expressions, graphql_config, relationships,
+    scalar_boolean_expressions::{self, resolve_logical_operators, LogicalOperators},
+    scalar_types::ScalarTypeRepresentation,
+    type_permissions::ObjectTypeWithPermissions,
+};
+use crate::{
+    configuration::UnstableFeatures, helpers::check_for_duplicates, mk_name,
+    types::subgraph::mk_qualified_type_name, Qualified, QualifiedBaseType, QualifiedTypeName,
+    ResolvedScalarBooleanExpressionType,
+};
 use lang_graphql::ast::common as ast;
 use open_dds::{
     accessor::QualifiedObject,
@@ -12,28 +24,13 @@ use open_dds::{
     identifier::SubgraphName,
     types::{CustomTypeName, InbuiltType},
 };
-
-use super::{
-    aggregates::{AggregateCountDefinition, AggregateExpression},
-    graphql_config, relationships,
-    scalar_boolean_expressions::{self, resolve_logical_operators, LogicalOperators},
-    scalar_types::ScalarTypeRepresentation,
-    type_permissions::ObjectTypeWithPermissions,
-};
-use crate::{
-    configuration::UnstableFeatures,
-    helpers::{check_for_duplicates, types::store_new_graphql_type},
-    mk_name,
-    types::subgraph::mk_qualified_type_name,
-    Qualified, QualifiedBaseType, QualifiedTypeName, ResolvedScalarBooleanExpressionType,
-};
 pub use types::*;
 
 pub fn resolve(
     unstable_features: &UnstableFeatures,
     metadata_accessor: &open_dds::accessor::MetadataAccessor,
     scalar_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
+        boolean_expressions::BooleanExpressionTypeIdentifier,
         scalar_boolean_expressions::ResolvedScalarBooleanExpressionType,
     >,
     aggregate_expressions: &BTreeMap<Qualified<AggregateExpressionName>, AggregateExpression>,
@@ -41,13 +38,12 @@ pub fn resolve(
     object_types: &BTreeMap<Qualified<CustomTypeName>, ObjectTypeWithPermissions>,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, ScalarTypeRepresentation>,
     graphql_config: &graphql_config::GraphqlConfig,
-    graphql_types: BTreeSet<ast::TypeName>,
+    graphql_types: &mut graphql_config::GraphqlTypeNames,
 ) -> Result<AggregateBooleanExpressionsOutput, NamedAggregateBooleanExpressionError> {
     let mut output = AggregateBooleanExpressionsOutput {
         scalar_aggregates: BTreeMap::new(),
         object_aggregates: BTreeMap::new(),
         issues: vec![],
-        graphql_types,
     };
 
     for open_dds::accessor::QualifiedObject {
@@ -79,7 +75,7 @@ pub fn resolve(
                     scalar_types,
                     object_types,
                     graphql_config,
-                    &mut output.graphql_types,
+                    graphql_types,
                     &mut issues,
                 )
                 .map_err(|error| NamedAggregateBooleanExpressionError {
@@ -117,7 +113,7 @@ pub fn resolve(
                     aggregate_expressions,
                     scalar_types,
                     graphql_config,
-                    &mut output.graphql_types,
+                    graphql_types,
                     &mut issues,
                 )
                 .map_err(|error| NamedAggregateBooleanExpressionError {
@@ -175,21 +171,19 @@ fn resolve_scalar_aggregate_boolean_expression(
     boolean_expression: &open_dds::boolean_expression::BooleanExpressionTypeV1,
     scalar_aggregate_operand: &open_dds::boolean_expression::BooleanExpressionScalarAggregateOperand,
     scalar_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
+        boolean_expressions::BooleanExpressionTypeIdentifier,
         scalar_boolean_expressions::ResolvedScalarBooleanExpressionType,
     >,
     aggregate_expressions: &BTreeMap<Qualified<AggregateExpressionName>, AggregateExpression>,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, ScalarTypeRepresentation>,
     graphql_config: &graphql_config::GraphqlConfig,
-    graphql_types: &mut BTreeSet<ast::TypeName>,
+    graphql_types: &mut graphql_config::GraphqlTypeNames,
     issues: &mut Vec<AggregateBooleanExpressionIssue>,
 ) -> Result<ScalarAggregateBooleanExpression, AggregateBooleanExpressionError> {
     // Check if the specified operand type is actually a scalar type
     let scalar_operand_type = match &scalar_aggregate_operand.r#type {
         // All inbuilt types are scalar types
-        open_dds::types::TypeName::Inbuilt(inbuilt) => {
-            Ok(QualifiedTypeName::Inbuilt(inbuilt.clone()))
-        }
+        open_dds::types::TypeName::Inbuilt(inbuilt) => Ok(QualifiedTypeName::Inbuilt(*inbuilt)),
         open_dds::types::TypeName::Custom(custom_type_name) => {
             let qualified_name = Qualified::new(subgraph.clone(), custom_type_name.clone());
             if scalar_types.keys().any(|t| *t == qualified_name) {
@@ -324,7 +318,7 @@ fn resolve_scalar_aggregate_boolean_expression(
 
 fn resolve_aggregate_bool_exp_graphql_config(
     boolean_expression: &open_dds::boolean_expression::BooleanExpressionTypeV1,
-    graphql_types: &mut BTreeSet<ast::TypeName>,
+    graphql_types: &mut graphql_config::GraphqlTypeNames,
 ) -> Result<Option<AggregateBooleanExpressionGraphqlConfig>, AggregateBooleanExpressionError> {
     boolean_expression
         .graphql
@@ -333,7 +327,7 @@ fn resolve_aggregate_bool_exp_graphql_config(
             let boolean_expression_graphql_name =
                 mk_name(graphql.type_name.as_ref()).map(ast::TypeName)?;
 
-            store_new_graphql_type(graphql_types, Some(&boolean_expression_graphql_name))?;
+            graphql_types.store(Some(&boolean_expression_graphql_name))?;
 
             Ok(AggregateBooleanExpressionGraphqlConfig {
                 type_name: boolean_expression_graphql_name,
@@ -344,7 +338,7 @@ fn resolve_aggregate_bool_exp_graphql_config(
 
 fn resolve_aggregate_predicate_bool_exp_graphql_config(
     object_aggregate_operand: &open_dds::boolean_expression::BooleanExpressionObjectAggregateOperand,
-    graphql_types: &mut BTreeSet<ast::TypeName>,
+    graphql_types: &mut graphql_config::GraphqlTypeNames,
 ) -> Result<Option<AggregatePredicateGraphqlConfig>, AggregateBooleanExpressionError> {
     object_aggregate_operand
         .graphql
@@ -353,7 +347,7 @@ fn resolve_aggregate_predicate_bool_exp_graphql_config(
             let predicate_graphql_name =
                 mk_name(graphql.predicate_type_name.as_ref()).map(ast::TypeName)?;
 
-            store_new_graphql_type(graphql_types, Some(&predicate_graphql_name))?;
+            graphql_types.store(Some(&predicate_graphql_name))?;
 
             Ok(AggregatePredicateGraphqlConfig {
                 type_name: predicate_graphql_name,
@@ -368,7 +362,7 @@ fn resolve_comparable_aggregation_function(
     aggregate_expression_name: &Qualified<AggregateExpressionName>,
     aggregate_expression: &AggregateExpression,
     scalar_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
+        boolean_expressions::BooleanExpressionTypeIdentifier,
         ResolvedScalarBooleanExpressionType,
     >,
 ) -> Result<ComparableAggregationFunction, AggregateBooleanExpressionError> {
@@ -385,10 +379,13 @@ fn resolve_comparable_aggregation_function(
             },
         )?;
 
-    let agg_fn_bool_exp_name = Qualified::new(
-        subgraph.clone(),
-        comparable_agg_fn.boolean_expression_type.clone(),
-    );
+    let agg_fn_bool_exp_name =
+        boolean_expressions::BooleanExpressionTypeIdentifier::FromBooleanExpressionType(
+            Qualified::new(
+                subgraph.clone(),
+                comparable_agg_fn.boolean_expression_type.clone(),
+            ),
+        );
 
     // Check that the referenced boolean expression for the aggregate function exists
     let agg_fn_bool_exp = scalar_boolean_expression_types
@@ -434,7 +431,7 @@ fn resolve_object_aggregate_boolean_expression(
     boolean_expression: &open_dds::boolean_expression::BooleanExpressionTypeV1,
     object_aggregate_operand: &open_dds::boolean_expression::BooleanExpressionObjectAggregateOperand,
     scalar_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
+        boolean_expressions::BooleanExpressionTypeIdentifier,
         scalar_boolean_expressions::ResolvedScalarBooleanExpressionType,
     >,
     unresolved_bool_exps: &[QualifiedObject<
@@ -446,7 +443,7 @@ fn resolve_object_aggregate_boolean_expression(
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, ScalarTypeRepresentation>,
     object_types: &BTreeMap<Qualified<CustomTypeName>, ObjectTypeWithPermissions>,
     graphql_config: &graphql_config::GraphqlConfig,
-    graphql_types: &mut BTreeSet<ast::TypeName>,
+    graphql_types: &mut graphql_config::GraphqlTypeNames,
     issues: &mut Vec<AggregateBooleanExpressionIssue>,
 ) -> Result<ObjectAggregateBooleanExpression, AggregateBooleanExpressionError> {
     // Check if the specified operand type is actually an object type
@@ -829,7 +826,7 @@ fn resolve_comparable_relationship(
         .map(|q| {
             Qualified::new(
                 model_target_subgraph.clone(),
-                q.object.object_type().clone(),
+                q.object.object_type().value.clone(),
             )
         })
         .ok_or_else(|| {
@@ -907,7 +904,7 @@ fn resolve_count_aggregation_function(
     aggregate_count_definition: &AggregateCountDefinition,
     boolean_expression: &open_dds::boolean_expression::BooleanExpressionTypeV1,
     scalar_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
+        boolean_expressions::BooleanExpressionTypeIdentifier,
         ResolvedScalarBooleanExpressionType,
     >,
     graphql_config: &graphql_config::GraphqlConfig,
@@ -922,10 +919,13 @@ fn resolve_count_aggregation_function(
         });
     }
 
-    let count_bool_exp_name = Qualified::new(
-        subgraph.clone(),
-        comparable_count.boolean_expression_type.clone(),
-    );
+    let count_bool_exp_name =
+        boolean_expressions::BooleanExpressionTypeIdentifier::FromBooleanExpressionType(
+            Qualified::new(
+                subgraph.clone(),
+                comparable_count.boolean_expression_type.clone(),
+            ),
+        );
 
     // Check that the boolean expression used for comparison to the count result exists
     let count_bool_exp = scalar_boolean_expression_types
@@ -1006,12 +1006,15 @@ fn resolve_object_aggregate_filter_input(
             // Check that the type of the model matches the operand type.
             // We can assume the subgraphs match because the model is from the same subgraph as this
             // object aggregate operand
-            if operand_type.name != *model.object_type() {
+            if operand_type.name != model.object_type().value {
                 return Err(
                     AggregateBooleanExpressionError::FilterInputModelTypeMismatch {
                         operand_type: operand_type.clone(),
                         model_name,
-                        model_type: Qualified::new(subgraph.clone(), model.object_type().clone()),
+                        model_type: Qualified::new(
+                            subgraph.clone(),
+                            model.object_type().value.clone(),
+                        ),
                     },
                 );
             }

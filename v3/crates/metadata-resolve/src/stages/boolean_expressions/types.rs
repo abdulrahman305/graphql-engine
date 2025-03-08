@@ -3,30 +3,34 @@ use crate::stages::{
     scalar_boolean_expressions::{self, LogicalOperators, LogicalOperatorsGraphqlConfig},
 };
 use crate::types::error::ShouldBeAnError;
-use crate::types::subgraph::{Qualified, QualifiedTypeReference};
+use crate::types::subgraph::{Qualified, QualifiedTypeName, QualifiedTypeReference};
 use lang_graphql::ast::common as ast;
 use open_dds::{
-    data_connector::{DataConnectorName, DataConnectorOperatorName},
+    data_connector::{DataConnectorName, DataConnectorObjectType, DataConnectorOperatorName},
     relationships::RelationshipName,
     types::{CustomTypeName, FieldName, OperatorName},
 };
 use ref_cast::RefCast;
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
+use std::fmt::Display;
 
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
 pub enum BooleanExpressionIssue {
-    #[error("The data connector {data_connector_name} cannot be used for filtering nested array {nested_type_name:} within {parent_type_name:} as it has not defined any capabilities for nested array filtering")]
-    NoNestedArrayFilteringCapabilitiesDefined {
-        parent_type_name: Qualified<CustomTypeName>,
-        nested_type_name: Qualified<CustomTypeName>,
+    #[error("The data connector '{data_connector_name}' does not support filtering by nested object arrays. The comparable field '{field_name}' within {boolean_expression_type_name}' is of an object array type: {field_type}")]
+    DataConnectorDoesNotSupportNestedObjectArrayFiltering {
         data_connector_name: Qualified<DataConnectorName>,
-    },
-    #[error("The underlying type for the field {field_name} is array, but the boolean expression type used for the field is {boolean_expression_type_name}, which is a scalar boolean expression type")]
-    BooleanExpressionArrayFieldComparedWithScalarType {
-        field_name: FieldName,
         boolean_expression_type_name: Qualified<CustomTypeName>,
+        field_name: FieldName,
+        field_type: QualifiedTypeReference,
+    },
+    #[error("The data connector '{data_connector_name}' does not support filtering by nested scalar arrays. The comparable field '{field_name}' within '{boolean_expression_type_name}' is of a scalar array type: {field_type}")]
+    DataConnectorDoesNotSupportNestedScalarArrayFiltering {
+        data_connector_name: Qualified<DataConnectorName>,
+        boolean_expression_type_name: Qualified<CustomTypeName>,
+        field_name: FieldName,
+        field_type: QualifiedTypeReference,
     },
     #[error("the comparable field '{name}' is defined more than once in the boolean expression type '{type_name}'")]
     DuplicateComparableFieldFound {
@@ -45,22 +49,40 @@ pub enum BooleanExpressionIssue {
         name_source_1: FieldNameSource,
         name_source_2: FieldNameSource,
     },
+    #[error("the type of the comparable field '{field_name}' on the boolean expresssion '{boolean_expression_type_name}' is a multidimensional array type: {field_type}. Multidimensional arrays are not supported in boolean expressions")]
+    MultidimensionalArrayComparableFieldNotSupported {
+        boolean_expression_type_name: Qualified<CustomTypeName>,
+        field_name: FieldName,
+        field_type: QualifiedTypeReference,
+    },
+    #[error("the boolean expression type with name {type_name} is defined more than once")]
+    DuplicateBooleanExpressionType {
+        type_name: Qualified<CustomTypeName>,
+    },
 }
 
 impl ShouldBeAnError for BooleanExpressionIssue {
-    fn should_be_an_error(&self, flags: &open_dds::flags::Flags) -> bool {
+    fn should_be_an_error(&self, flags: &open_dds::flags::OpenDdFlags) -> bool {
         match self {
-            BooleanExpressionIssue::NoNestedArrayFilteringCapabilitiesDefined { .. } => {
-                flags.require_nested_array_filtering_capability
-            }
-            BooleanExpressionIssue::BooleanExpressionArrayFieldComparedWithScalarType {
+            BooleanExpressionIssue::DataConnectorDoesNotSupportNestedObjectArrayFiltering {
                 ..
-            } => flags.disallow_array_field_compared_with_scalar_boolean_type,
+            } => flags.contains(open_dds::flags::Flag::RequireNestedArrayFilteringCapability),
+            BooleanExpressionIssue::DataConnectorDoesNotSupportNestedScalarArrayFiltering {
+                ..
+            } => flags
+                .contains(open_dds::flags::Flag::DisallowArrayFieldComparedWithScalarBooleanType),
             BooleanExpressionIssue::DuplicateComparableFieldFound { .. }
             | BooleanExpressionIssue::DuplicateComparableRelationshipFound { .. }
             | BooleanExpressionIssue::GraphqlFieldNameConflict { .. } => {
-                flags.disallow_duplicate_names_in_boolean_expressions
+                flags.contains(open_dds::flags::Flag::DisallowDuplicateNamesInBooleanExpressions)
             }
+            BooleanExpressionIssue::MultidimensionalArrayComparableFieldNotSupported { .. } => {
+                flags.contains(
+                    open_dds::flags::Flag::DisallowMultidimensionalArraysInBooleanExpressions,
+                )
+            }
+            BooleanExpressionIssue::DuplicateBooleanExpressionType { .. } => flags
+                .contains(open_dds::flags::Flag::DisallowDuplicateNamesAcrossTypesAndExpressions),
         }
     }
 }
@@ -76,13 +98,13 @@ pub enum FieldNameSource {
 }
 
 #[serde_as]
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Default)]
 pub struct BooleanExpressionTypes {
     #[serde_as(as = "Vec<(_, _)>")]
     pub objects: BTreeMap<Qualified<CustomTypeName>, ResolvedObjectBooleanExpressionType>,
     #[serde_as(as = "Vec<(_, _)>")]
     pub scalars: BTreeMap<
-        Qualified<CustomTypeName>,
+        BooleanExpressionTypeIdentifier,
         scalar_boolean_expressions::ResolvedScalarBooleanExpressionType,
     >,
     #[serde_as(as = "Vec<(_, _)>")]
@@ -100,13 +122,13 @@ pub struct BooleanExpressionTypes {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BooleanExpressionsOutput {
     pub boolean_expression_types: BooleanExpressionTypes,
-    pub graphql_types: BTreeSet<ast::TypeName>,
     pub issues: Vec<BooleanExpressionIssue>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub enum ComparableFieldKind {
     Scalar,
+    ScalarArray,
     Object,
     ObjectArray,
 }
@@ -119,6 +141,14 @@ pub struct ResolvedObjectBooleanExpressionType {
     pub fields: ResolvedObjectBooleanExpressionTypeFields,
     // do we allow _and, _or, etc for this type?
     pub include_logical_operators: IncludeLogicalOperators,
+    // only required for checking legacy `ObjectBooleanExpressionType`
+    pub data_connector: Option<ObjectBooleanExpressionDataConnector>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ObjectBooleanExpressionDataConnector {
+    pub name: Qualified<DataConnectorName>,
+    pub object_type: DataConnectorObjectType,
 }
 
 impl ResolvedObjectBooleanExpressionType {
@@ -126,9 +156,11 @@ impl ResolvedObjectBooleanExpressionType {
     // or b) flag is passed that allows us to expose it to other frontends
     pub fn get_fields(
         &self,
-        flags: &open_dds::flags::Flags,
+        flags: &open_dds::flags::OpenDdFlags,
     ) -> Option<&ResolvedObjectBooleanExpressionTypeFields> {
-        if self.graphql.is_some() || flags.allow_boolean_expression_fields_without_graphql {
+        if self.graphql.is_some()
+            || flags.contains(open_dds::flags::Flag::AllowBooleanExpressionFieldsWithoutGraphql)
+        {
             Some(&self.fields)
         } else {
             None
@@ -172,19 +204,43 @@ impl Default for OperatorMapping {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum ScalarComparisonKind {
+    Scalar,
+    ScalarArray,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct DataConnectorType {
+    pub data_connector_name: Qualified<DataConnectorName>,
+    pub type_name: QualifiedTypeName,
+}
+
+impl Display for DataConnectorType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} from {}", self.type_name, self.data_connector_name)
+    }
+}
+
+// When converting `ObjectBooleanExpressionType` to `BooleanExpressionType`, we need
+// a way to identify auto-generated scalar boolean expression types
+#[derive(
+    Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, derive_more::Display,
+)]
+pub enum BooleanExpressionTypeIdentifier {
+    FromBooleanExpressionType(Qualified<CustomTypeName>),
+    FromDataConnectorScalarRepresentation(DataConnectorType),
+}
+
 #[serde_as]
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ComparisonExpressionInfo {
-    // we reuse this type for ObjectBooleanExpressionType and BooleanExpressionType
-    // the former does not use this, hence partial
-    // it will be good to get rid of `Option` in future
-    #[serde(default = "serde_ext::ser_default")]
-    #[serde(skip_serializing_if = "serde_ext::is_ser_default")]
-    pub object_type_name: Option<Qualified<CustomTypeName>>,
+    pub boolean_expression_type_name: BooleanExpressionTypeIdentifier,
     pub operators: BTreeMap<OperatorName, QualifiedTypeReference>,
     #[serde_as(as = "Vec<(_, _)>")]
     pub operator_mapping: BTreeMap<Qualified<DataConnectorName>, OperatorMapping>,
     pub logical_operators: LogicalOperators,
+    pub field_kind: ScalarComparisonKind,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
@@ -195,7 +251,7 @@ pub enum ObjectComparisonKind {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct ObjectComparisonExpressionInfo {
-    pub object_type_name: Qualified<CustomTypeName>,
+    pub boolean_expression_type_name: Qualified<CustomTypeName>,
     pub underlying_object_type_name: Qualified<CustomTypeName>,
     pub field_kind: ObjectComparisonKind,
 }
@@ -233,4 +289,19 @@ pub struct BooleanExpressionGraphqlConfig {
     pub object_fields: BTreeMap<FieldName, ObjectBooleanExpressionGraphqlConfig>,
     pub scalar_fields: BTreeMap<FieldName, ScalarBooleanExpressionGraphqlConfig>,
     pub field_config: BooleanExpressionGraphqlFieldConfig,
+}
+
+/// Defines strategies for executing relationship predicates.
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum ComparableRelationshipExecutionStrategy {
+    /// Pushes predicate resolution to the NDC (Data Connector).
+    /// This is feasible only if the data connector supports the 'relation_comparisons' capability
+    /// and is used when both source and target connectors are the same (local relationship).
+    NDCPushdown,
+
+    /// Resolves predicates within the Engine itself.
+    /// This approach is used when dealing with remote relationships or if the data connector lacks
+    /// the 'relation_comparisons' capability. The Engine queries field values from the target model
+    /// and constructs the necessary comparison expressions.
+    InEngine,
 }

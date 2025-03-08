@@ -13,9 +13,19 @@ use plan_types::{
 };
 
 #[derive(Debug, thiserror::Error)]
+#[allow(clippy::enum_variant_names)]
 pub enum NdcV01CompatibilityError {
     #[error("Nested relationships in expressions are not supported in NDC v0.1.x")]
     NestedRelationshipsInExpressionsNotSupported,
+
+    #[error("Nested relationships in order by targets are not supported in NDC v0.1.x")]
+    NestedRelationshipsInOrderByTargetsNotSupported,
+
+    #[error("Comparisons against elements in scalar arrays are not supported in NDC v0.1.x")]
+    NestedScalarArrayComparisonsNotSupported,
+
+    #[error("Groupings are not supported in NDC v0.1.x")]
+    GroupByNotSupported,
 }
 
 pub fn make_query_request(
@@ -75,6 +85,15 @@ fn make_variables(
 }
 
 fn make_query(query_node: QueryNodeNew) -> Result<ndc_models_v01::Query, FieldError> {
+    // Group by is not supported in 0.1.x
+    if query_node.group_by.is_some() {
+        return Err(FieldError::InternalError(
+            FieldInternalError::NdcV01CompatibilityError(
+                NdcV01CompatibilityError::GroupByNotSupported,
+            ),
+        ));
+    }
+
     let ndc_predicate = query_node.predicate.map(make_expression).transpose()?;
 
     let ndc_fields = query_node
@@ -253,6 +272,11 @@ fn make_expression(
                 predicate: Some(Box::new(ndc_expression)),
             })
         }
+        ResolvedFilterExpression::LocalNestedScalarArray { .. } => Err(FieldError::InternalError(
+            FieldInternalError::NdcV01CompatibilityError(
+                NdcV01CompatibilityError::NestedScalarArrayComparisonsNotSupported,
+            ),
+        )),
         ResolvedFilterExpression::LocalFieldComparison(
             plan_types::LocalFieldComparison::UnaryComparison { column, operator },
         ) => Ok(ndc_models_v01::Expression::UnaryComparisonOperator {
@@ -475,6 +499,14 @@ fn make_order_by_target(
             // called `text`, you'll have to provide the following paths to access the `text` column:
             // ["UserPosts", "PostsComments"]
             for path_element in relationship_path {
+                if !path_element.field_path.is_empty() {
+                    return Err(FieldError::InternalError(
+                        FieldInternalError::NdcV01CompatibilityError(
+                            NdcV01CompatibilityError::NestedRelationshipsInOrderByTargetsNotSupported,
+                        ),
+                    ));
+                }
+
                 order_by_element_path.push(ndc_models_v01::PathElement {
                     relationship: ndc_models_v01::RelationshipName::from(
                         path_element.relationship_name.as_str(),

@@ -4,7 +4,7 @@ use crate::helpers::argument::{get_argument_mappings, ArgumentMappingResults};
 use crate::helpers::ndc_validation::{self};
 use crate::helpers::types::{object_type_exists, unwrap_custom_type_name};
 use crate::stages::{
-    boolean_expressions, data_connectors, object_boolean_expressions, scalar_types,
+    boolean_expressions, data_connector_scalar_types, data_connectors, scalar_types,
     type_permissions,
 };
 use crate::types::subgraph::Qualified;
@@ -13,6 +13,7 @@ use super::types::CommandsIssue;
 pub use super::types::{Command, CommandSource};
 use open_dds::commands::{self, DataConnectorCommand};
 
+use open_dds::data_connector::DataConnectorName;
 use open_dds::identifier::SubgraphName;
 use open_dds::types::{CustomTypeName, DataConnectorArgumentName};
 
@@ -31,12 +32,12 @@ pub fn resolve_command_source(
     command: &Command,
     subgraph: &SubgraphName,
     data_connectors: &data_connectors::DataConnectors,
+    data_connector_scalars: &BTreeMap<
+        Qualified<DataConnectorName>,
+        data_connector_scalar_types::DataConnectorScalars,
+    >,
     object_types: &type_permissions::ObjectTypesWithPermissions,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
 ) -> Result<(CommandSource, Vec<CommandsIssue>), CommandsError> {
     if command.source.is_some() {
@@ -112,6 +113,13 @@ pub fn resolve_command_source(
         }
     };
 
+    let data_connector_scalar_types = data_connector_scalars
+        .get(&qualified_data_connector_name)
+        .ok_or_else(|| CommandsError::UnknownCommandDataConnector {
+            command_name: command.name.clone(),
+            data_connector: qualified_data_connector_name.clone(),
+        })?;
+
     // Get the mappings of arguments and any type mappings that need resolving from the arguments
     let ArgumentMappingResults {
         argument_mappings,
@@ -123,9 +131,9 @@ pub fn resolve_command_source(
         &command_source.argument_mapping,
         &command_source_response.arguments,
         data_connector_context,
+        data_connector_scalar_types,
         object_types,
         scalar_types,
-        object_boolean_expression_types,
         boolean_expression_types,
     )
     .map_err(|err| match &command_source.data_connector_command {

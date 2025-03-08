@@ -1,21 +1,25 @@
 use super::ndc_validation::{unwrap_nullable_type, NDCValidationError};
-
 use crate::data_connectors::DataConnectorContext;
 use crate::helpers::ndc_validation;
 use crate::helpers::type_mappings;
+use crate::helpers::type_validation;
+use crate::helpers::typecheck::{
+    typecheck_qualified_type_reference, TypecheckError, TypecheckIssue,
+};
 use crate::helpers::types::{
-    get_object_type_for_boolean_expression, get_object_type_for_object_boolean_expression,
-    get_type_representation, unwrap_custom_type_name, TypeRepresentation,
+    get_object_type_for_boolean_expression, get_type_representation, unwrap_custom_type_name,
+    TypeRepresentation,
 };
 use crate::stages::{
     boolean_expressions, data_connector_scalar_types, data_connectors, model_permissions,
-    models_graphql, object_boolean_expressions, object_relationships, object_types, scalar_types,
-    type_permissions,
+    models_graphql, object_relationships, object_types, scalar_types, type_permissions,
 };
+use crate::types::error::ShouldBeAnError;
 use crate::types::error::{Error, TypeError, TypePredicateError};
 use crate::types::permission::ValueExpressionOrPredicate;
 use crate::types::subgraph::{ArgumentInfo, ArgumentKind, Qualified, QualifiedTypeReference};
 
+use hasura_authn_core::Role;
 use indexmap::IndexMap;
 use ndc_models;
 use open_dds::arguments::ArgumentName;
@@ -77,6 +81,23 @@ pub enum ArgumentMappingIssue {
     UnmappedNdcArguments {
         ndc_argument_names: Vec<DataConnectorArgumentName>,
     },
+    #[error("the type of argument '{argument_name:}' is not compatible with the type of the data connector argument '{ndc_argument_name:}': {issue:}")]
+    IncompatibleType {
+        argument_name: ArgumentName,
+        ndc_argument_name: DataConnectorArgumentName,
+        issue: type_validation::TypeCompatibilityIssue,
+    },
+}
+
+impl ShouldBeAnError for ArgumentMappingIssue {
+    fn should_be_an_error(&self, flags: &open_dds::flags::OpenDdFlags) -> bool {
+        match self {
+            ArgumentMappingIssue::UnmappedNdcArguments { .. } => false,
+            ArgumentMappingIssue::IncompatibleType { .. } => {
+                flags.contains(open_dds::flags::Flag::ValidateArgumentMappingTypes)
+            }
+        }
+    }
 }
 
 pub struct ArgumentMappingResults<'a> {
@@ -92,17 +113,15 @@ pub fn get_argument_mappings<'a>(
     argument_mapping: &BTreeMap<ArgumentName, DataConnectorArgumentName>,
     ndc_arguments_types: &'a BTreeMap<DataConnectorArgumentName, ndc_models::Type>,
     data_connector_context: &DataConnectorContext,
+    data_connector_scalars: &'a data_connector_scalar_types::DataConnectorScalars,
     object_types: &'a BTreeMap<
         Qualified<CustomTypeName>,
         type_permissions::ObjectTypeWithPermissions,
     >,
     scalar_types: &'a BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
-    object_boolean_expression_types: &'a BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &'a boolean_expressions::BooleanExpressionTypes,
 ) -> Result<ArgumentMappingResults<'a>, ArgumentMappingError> {
+    let mut issues = Vec::new();
     let mut unconsumed_argument_mappings: BTreeMap<&ArgumentName, &DataConnectorArgumentName> =
         argument_mapping.iter().collect();
     let mut unmapped_ndc_arguments: HashSet<&DataConnectorArgumentName> =
@@ -129,6 +148,18 @@ pub fn get_argument_mappings<'a>(
                 argument_name: argument_name.clone(),
                 ndc_argument_name: mapped_to_ndc_argument_name.clone(),
             })?;
+        // Validate the type compatibility
+        if let Some(issue) = type_validation::validate_type_compatibility(
+            data_connector_scalars,
+            &argument_type.argument_type,
+            ndc_argument_type,
+        ) {
+            issues.push(ArgumentMappingIssue::IncompatibleType {
+                argument_name: argument_name.clone(),
+                ndc_argument_name: mapped_to_ndc_argument_name.clone(),
+                issue,
+            });
+        }
         if !unmapped_ndc_arguments.remove(&mapped_to_ndc_argument_name) {
             return Err(ArgumentMappingError::DuplicateNdcArgumentMapping {
                 ndc_argument_name: mapped_to_ndc_argument_name.clone(),
@@ -150,7 +181,6 @@ pub fn get_argument_mappings<'a>(
                 object_type_name,
                 object_types,
                 scalar_types,
-                object_boolean_expression_types,
                 boolean_expression_types,
             )
             .map_err(|_| ArgumentMappingError::UnknownType {
@@ -174,16 +204,6 @@ pub fn get_argument_mappings<'a>(
                     // resolve the object type the boolean expression refers to
                     type_mappings_to_collect.push(type_mappings::TypeMappingToCollect {
                         type_name: &boolean_expression_type.object_type,
-                        ndc_object_type_name: underlying_ndc_argument_named_type,
-                    });
-                }
-                TypeRepresentation::BooleanExpression(object_boolean_expression_type) => {
-                    let underlying_ndc_argument_named_type =
-                        ndc_validation::get_underlying_named_type(ndc_argument_type);
-
-                    // resolve the object type the boolean expression refers to
-                    type_mappings_to_collect.push(type_mappings::TypeMappingToCollect {
-                        type_name: &object_boolean_expression_type.object_type,
                         ndc_object_type_name: underlying_ndc_argument_named_type,
                     });
                 }
@@ -230,15 +250,11 @@ pub fn get_argument_mappings<'a>(
     // If any unmapped ndc arguments, we have missing arguments or data connector link argument presets
     // We raise this as an issue because existing projects have this issue and we need to be backwards
     // compatible. Those existing projects will probably fail at query time, but they do build and start 😭
-    let issues = if unmapped_ndc_arguments.is_empty() {
-        vec![]
-    } else {
-        vec![
-            (ArgumentMappingIssue::UnmappedNdcArguments {
-                ndc_argument_names: unmapped_ndc_arguments.into_iter().cloned().collect(),
-            }),
-        ]
-    };
+    if !unmapped_ndc_arguments.is_empty() {
+        issues.push(ArgumentMappingIssue::UnmappedNdcArguments {
+            ndc_argument_names: unmapped_ndc_arguments.into_iter().cloned().collect(),
+        });
+    }
 
     Ok(ArgumentMappingResults {
         argument_mappings: resolved_argument_mappings,
@@ -253,7 +269,8 @@ pub fn get_argument_mappings<'a>(
 /// type to validate it against to ensure the fields it refers to
 /// exist etc
 pub(crate) fn resolve_value_expression_for_argument(
-    flags: &open_dds::flags::Flags,
+    role: &Role,
+    flags: &open_dds::flags::OpenDdFlags,
     argument_name: &open_dds::arguments::ArgumentName,
     value_expression: &open_dds::permissions::ValueExpressionOrPredicate,
     argument_type: &QualifiedTypeReference,
@@ -265,28 +282,83 @@ pub(crate) fn resolve_value_expression_for_argument(
         object_relationships::ObjectTypeWithRelationships,
     >,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
     models: &IndexMap<Qualified<ModelName>, models_graphql::ModelWithGraphql>,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
         data_connector_scalar_types::DataConnectorScalars,
     >,
-) -> Result<ValueExpressionOrPredicate, Error> {
+    type_error_mapper: impl Fn(TypecheckError) -> Error,
+) -> Result<(ValueExpressionOrPredicate, Vec<TypecheckIssue>), Error> {
     match value_expression {
         open_dds::permissions::ValueExpressionOrPredicate::SessionVariable(session_variable) => {
-            Ok::<ValueExpressionOrPredicate, Error>(ValueExpressionOrPredicate::SessionVariable(
-                hasura_authn_core::SessionVariableReference {
-                    name: session_variable.clone(),
-                    passed_as_json: flags.json_session_variables,
-                },
+            Ok::<(ValueExpressionOrPredicate, Vec<TypecheckIssue>), Error>((
+                ValueExpressionOrPredicate::SessionVariable(
+                    hasura_authn_core::SessionVariableReference {
+                        name: session_variable.clone(),
+                        passed_as_json: flags.contains(open_dds::flags::Flag::JsonSessionVariables),
+                        disallow_unknown_fields: flags
+                            .contains(open_dds::flags::Flag::DisallowUnknownValuesInArguments),
+                    },
+                ),
+                vec![],
             ))
         }
         open_dds::permissions::ValueExpressionOrPredicate::Literal(json_value) => {
-            Ok(ValueExpressionOrPredicate::Literal(json_value.clone()))
+            let mut issues = vec![];
+
+            // first typecheck the values
+            typecheck_qualified_type_reference(
+                &object_types
+                    .iter()
+                    .map(|(field_name, object_type)| (field_name, &object_type.object_type))
+                    .collect(), // Convert &BTreeMap<field_name, object_type> to BTreeMap<&field_name, &object_type>
+                argument_type,
+                json_value,
+                &mut issues,
+            )
+            .map_err(&type_error_mapper)?;
+
+            // now we have a small problem - our user may be providing us a partial value to fill
+            // it with presets etc
+            // if they do, let's look at the presets and see if they're going to be filled in later
+            let mut filtered_issues = vec![];
+
+            for issue in issues {
+                if match issue {
+                    TypecheckIssue::ObjectTypeField {
+                        error: TypecheckError::NullInNonNullableColumn,
+                        ref field_name,
+                        ref object_type,
+                    } => {
+                        let object_type_representation =
+                            object_types.get(object_type).ok_or_else(|| {
+                                Error::UnknownObjectType {
+                                    data_type: object_type.clone(),
+                                }
+                            })?;
+
+                        // is there a preset for this role and this field?
+                        let has_preset = object_type_representation
+                            .type_input_permissions
+                            .get(role)
+                            .is_some_and(|type_input_permission| {
+                                type_input_permission.field_presets.contains_key(field_name)
+                            });
+
+                        // if the field has no preset, then keep the error as it's legitimate
+                        !has_preset
+                    }
+                    _ => true,
+                } {
+                    filtered_issues.push(issue);
+                }
+            }
+
+            Ok((
+                ValueExpressionOrPredicate::Literal(json_value.clone()),
+                filtered_issues,
+            ))
         }
         open_dds::permissions::ValueExpressionOrPredicate::BooleanExpression(bool_exp) => {
             // get underlying object type name from argument type (ie, unwrap
@@ -300,28 +372,15 @@ pub(crate) fn resolve_value_expression_for_argument(
                 })?;
 
             // lookup the relevant boolean expression type and get the underlying object type
-            let (boolean_expression_fields, object_type_representation) =
-                match object_boolean_expression_types.get(base_type) {
-                    Some(object_boolean_expression_type) => Ok((
-                        None,
-                        get_object_type_for_object_boolean_expression(
-                            object_boolean_expression_type,
-                            object_types,
-                        )?,
-                    )),
-                    None => match boolean_expression_types.objects.get(base_type) {
-                        Some(boolean_expression_type) => Ok((
-                            boolean_expression_type.get_fields(flags),
-                            get_object_type_for_boolean_expression(
-                                boolean_expression_type,
-                                object_types,
-                            )?,
-                        )),
-                        None => Err(Error::UnknownType {
-                            data_type: base_type.clone(),
-                        }),
-                    },
-                }?;
+            let boolean_expression_type = boolean_expression_types
+                .objects
+                .get(base_type)
+                .ok_or_else(|| Error::UnknownType {
+                    data_type: base_type.clone(),
+                })?;
+            let boolean_expression_fields = boolean_expression_type.get_fields(flags);
+            let object_type_representation =
+                get_object_type_for_boolean_expression(boolean_expression_type, object_types)?;
 
             // get the data_connector_object_type from the NDC command argument type
             // or explode
@@ -373,7 +432,7 @@ pub(crate) fn resolve_value_expression_for_argument(
             let resolved_model_predicate = model_permissions::resolve_model_predicate_with_type(
                 flags,
                 bool_exp,
-                base_type,
+                &boolean_expression_type.object_type,
                 object_type_representation,
                 boolean_expression_fields,
                 data_connector_field_mappings,
@@ -387,9 +446,10 @@ pub(crate) fn resolve_value_expression_for_argument(
                 &object_type_representation.object_type.fields,
             )?;
 
-            Ok(ValueExpressionOrPredicate::BooleanExpression(Box::new(
-                resolved_model_predicate,
-            )))
+            Ok((
+                ValueExpressionOrPredicate::BooleanExpression(Box::new(resolved_model_predicate)),
+                vec![],
+            ))
         }
     }
 }
@@ -398,19 +458,10 @@ pub(crate) fn resolve_value_expression_for_argument(
 pub fn get_argument_kind(
     type_obj: &TypeReference,
     subgraph: &SubgraphName,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
 ) -> ArgumentKind {
     match &type_obj.underlying_type {
-        BaseType::List(type_obj) => get_argument_kind(
-            type_obj,
-            subgraph,
-            object_boolean_expression_types,
-            boolean_expression_types,
-        ),
+        BaseType::List(type_obj) => get_argument_kind(type_obj, subgraph, boolean_expression_types),
         BaseType::Named(type_name) => match type_name {
             TypeName::Inbuilt(_) => ArgumentKind::Other,
             TypeName::Custom(type_name) => {
@@ -423,13 +474,11 @@ pub fn get_argument_kind(
                     &qualified_type_name,
                     &BTreeMap::new(),
                     &BTreeMap::new(),
-                    object_boolean_expression_types,
                     boolean_expression_types,
                 ) {
                     Ok(
                         TypeRepresentation::BooleanExpressionScalar(_)
-                        | TypeRepresentation::BooleanExpressionObject(_)
-                        | TypeRepresentation::BooleanExpression(_),
+                        | TypeRepresentation::BooleanExpressionObject(_),
                     ) => ArgumentKind::NDCExpression,
                     _ => ArgumentKind::Other,
                 }

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use super::parse;
 use super::process_response;
-use super::types::{QueryResult, RelationshipTree, RequestError};
+use super::types::{RelationshipTree, RequestError};
 use crate::catalog::{Catalog, Model, State};
 use axum::http::{HeaderMap, Method, Uri};
 use engine_types::HttpContext;
@@ -12,7 +12,7 @@ use plan_types::{NDCQueryExecution, ProcessResponseAs};
 use tracing_util::SpanVisibility;
 
 #[allow(clippy::unused_async)]
-pub async fn handler_internal<'metadata>(
+pub async fn handler_internal(
     request_headers: Arc<HeaderMap>,
     http_context: Arc<HttpContext>,
     session: Arc<Session>,
@@ -54,14 +54,14 @@ pub async fn handler_internal<'metadata>(
             )?;
 
             // execute the query with the query-engine
-            let result = tracer
+            let rowsets = tracer
                 .in_span_async(
                     "query_engine_execute",
                     "Execute query",
                     SpanVisibility::User,
                     || {
                         Box::pin(query_engine_execute(
-                            &query_ir,
+                            &query_ir.query_request,
                             &metadata,
                             &session,
                             &http_context,
@@ -76,7 +76,15 @@ pub async fn handler_internal<'metadata>(
                 "process_response",
                 "Process response",
                 SpanVisibility::User,
-                || Ok(process_response::process_result(result, &relationship_tree)),
+                || {
+                    process_response::process_result(
+                        rowsets,
+                        &query_ir.root_type_name,
+                        &relationship_tree,
+                        &query_string,
+                        &state.object_types,
+                    )
+                },
             )
         }
     }
@@ -96,30 +104,26 @@ fn validate_route<'a>(state: &'a State, uri: &'a Uri) -> Option<&'a Model> {
 async fn query_engine_execute(
     query_ir: &open_dds::query::QueryRequest,
     metadata: &Metadata,
-    session: &Arc<Session>,
+    session: &Session,
     http_context: &Arc<HttpContext>,
     request_headers: &HeaderMap,
-) -> Result<QueryResult, RequestError> {
+) -> Result<Vec<ndc_models::RowSet>, RequestError> {
     let execution_plan = plan::plan_query_request(query_ir, metadata, session, request_headers)
         .map_err(RequestError::PlanError)?;
     match execution_plan {
         plan::ExecutionPlan::Queries(queries) => match queries.first() {
-            Some((_alias, query_execution)) => {
+            Some((_alias, execution_tree)) => {
                 let ndc_query_execution = NDCQueryExecution {
                     execution_span_attribute: "REST",
-                    execution_tree: query_execution.execution_tree.clone(),
+                    execution_tree: execution_tree.clone(),
                     field_span_attribute: "REST".into(),
                     process_response_as: ProcessResponseAs::Array { is_nullable: false },
                 };
-                let rowsets =
+                Ok(
                     execute::resolve_ndc_query_execution(http_context, ndc_query_execution, None)
                         .await
-                        .map_err(RequestError::ExecuteError)?;
-
-                Ok(QueryResult {
-                    rowsets,
-                    type_name: query_execution.query_context.type_name.clone(),
-                })
+                        .map_err(RequestError::ExecuteError)?,
+                )
             }
             None => todo!("handle empty query result in JSONAPI"),
         },

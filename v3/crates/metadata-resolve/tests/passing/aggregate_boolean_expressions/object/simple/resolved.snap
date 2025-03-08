@@ -29,7 +29,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         Int,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The ID of the album",
@@ -48,7 +48,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         Int,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The ID of the album's artist",
@@ -67,7 +67,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The title of the album",
@@ -85,8 +85,10 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                 type_output_permissions: {},
                 type_input_permissions: {},
                 relationship_fields: {
-                    Name(
-                        "artist",
+                    RelationshipName(
+                        Identifier(
+                            "artist",
+                        ),
                     ): RelationshipField {
                         field_name: Name(
                             "artist",
@@ -138,25 +140,30 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                                 ),
                                             ),
                                         },
-                                        target_field: FieldAccess {
-                                            field_name: FieldName(
-                                                Identifier(
-                                                    "artist_id",
-                                                ),
-                                            ),
-                                        },
-                                        target_ndc_column: Some(
-                                            NdcColumnForComparison {
-                                                column: DataConnectorColumnName(
-                                                    "artist_id",
-                                                ),
-                                                equal_operator: DataConnectorOperatorName(
-                                                    "_eq",
+                                        target: ModelField(
+                                            RelationshipModelMappingFieldTarget {
+                                                target_field: FieldAccess {
+                                                    field_name: FieldName(
+                                                        Identifier(
+                                                            "artist_id",
+                                                        ),
+                                                    ),
+                                                },
+                                                target_ndc_column: Some(
+                                                    NdcColumnForComparison {
+                                                        column: DataConnectorColumnName(
+                                                            "artist_id",
+                                                        ),
+                                                        equal_operator: DataConnectorOperatorName(
+                                                            "_eq",
+                                                        ),
+                                                    },
                                                 ),
                                             },
                                         ),
                                     },
                                 ],
+                                relationship_aggregate: None,
                             },
                         ),
                         target_capabilities: Some(
@@ -217,13 +224,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -246,13 +296,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -275,13 +368,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -315,7 +451,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         Int,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The ID of the artist",
@@ -334,7 +470,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The name of the artist",
@@ -389,13 +525,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -418,13 +597,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         ),
                                         comparison_operators: Some(
                                             ComparisonOperators {
-                                                equality_operators: [
+                                                eq_operator: Some(
                                                     DataConnectorOperatorName(
                                                         "_eq",
                                                     ),
-                                                ],
-                                                in_operators: [],
+                                                ),
+                                                in_operator: None,
+                                                lt_operator: None,
+                                                lte_operator: None,
+                                                gt_operator: None,
+                                                gte_operator: None,
+                                                contains_operator: None,
+                                                icontains_operator: None,
+                                                starts_with_operator: None,
+                                                istarts_with_operator: None,
+                                                ends_with_operator: None,
+                                                iends_with_operator: None,
                                                 other_operators: [],
+                                            },
+                                        ),
+                                        aggregate_functions: Some(
+                                            AggregateFunctions {
+                                                sum_function: None,
+                                                min_function: None,
+                                                max_function: None,
+                                                avg_function: None,
+                                                other_functions: [
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_max",
+                                                    ),
+                                                    DataConnectorAggregationFunctionName(
+                                                        "_min",
+                                                    ),
+                                                ],
+                                            },
+                                        ),
+                                        extraction_functions: Some(
+                                            ExtractionFunctions {
+                                                year_function: None,
+                                                month_function: None,
+                                                day_function: None,
+                                                nanosecond_function: None,
+                                                microsecond_function: None,
+                                                second_function: None,
+                                                minute_function: None,
+                                                hour_function: None,
+                                                week_function: None,
+                                                quarter_function: None,
+                                                day_of_week_function: None,
+                                                day_of_year_function: None,
+                                                other_functions: [],
                                             },
                                         ),
                                         argument_mappings: {},
@@ -447,7 +669,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                         "Artists",
                     ),
                 ),
-            }: ModelWithArgumentPresets {
+            }: ModelWithPermissions {
                 model: Model {
                     path: JSONPath(
                         [
@@ -485,6 +707,28 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             ),
                         ),
                     },
+                    data_type_path: JSONPath(
+                        [
+                            Key(
+                                "subgraphs",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "objects",
+                            ),
+                            Index(
+                                12,
+                            ),
+                            Key(
+                                "definition",
+                            ),
+                            Key(
+                                "objectType",
+                            ),
+                        ],
+                    ),
                     type_fields: {
                         FieldName(
                             Identifier(
@@ -497,7 +741,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         Int,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The ID of the artist",
@@ -516,7 +760,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The name of the artist",
@@ -570,10 +814,14 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                     supports_explaining_queries: false,
                                     supports_explaining_mutations: false,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: false,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: None,
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: false,
@@ -630,13 +878,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -659,13 +950,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -680,28 +1014,38 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                     ),
                     global_id_source: None,
                     apollo_federation_key_source: None,
-                    order_by_expression: Some(
-                        Qualified {
-                            subgraph: SubgraphName(
-                                "default",
-                            ),
-                            name: FromModel(
-                                ModelName(
-                                    Identifier(
-                                        "Artists",
-                                    ),
-                                ),
-                            ),
-                        },
-                    ),
                     aggregate_expression: None,
                     raw: ModelRaw {
                         filter_expression_type: None,
                         graphql: None,
                         description: None,
+                        order_by: ModelV1 {
+                            graphql_type_name: None,
+                            orderable_fields: [
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "artist_id",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "name",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                            ],
+                        },
                     },
                 },
-                argument_presets: {},
                 select_permissions: {},
                 filter_expression_type: None,
                 graphql_api: ModelGraphQlApi {
@@ -724,7 +1068,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                         "Albums",
                     ),
                 ),
-            }: ModelWithArgumentPresets {
+            }: ModelWithPermissions {
                 model: Model {
                     path: JSONPath(
                         [
@@ -762,6 +1106,28 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             ),
                         ),
                     },
+                    data_type_path: JSONPath(
+                        [
+                            Key(
+                                "subgraphs",
+                            ),
+                            Index(
+                                0,
+                            ),
+                            Key(
+                                "objects",
+                            ),
+                            Index(
+                                13,
+                            ),
+                            Key(
+                                "definition",
+                            ),
+                            Key(
+                                "objectType",
+                            ),
+                        ],
+                    ),
                     type_fields: {
                         FieldName(
                             Identifier(
@@ -774,7 +1140,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         Int,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The ID of the album",
@@ -793,7 +1159,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         Int,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The ID of the album's artist",
@@ -812,7 +1178,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                         String,
                                     ),
                                 ),
-                                nullable: true,
+                                nullable: false,
                             },
                             description: Some(
                                 "The title of the album",
@@ -866,10 +1232,14 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                     supports_explaining_queries: false,
                                     supports_explaining_mutations: false,
                                     supports_nested_object_filtering: false,
-                                    supports_nested_array_filtering: false,
+                                    supports_nested_object_ordering: false,
+                                    supports_nested_object_array_filtering: false,
+                                    supports_nested_scalar_array_filtering: false,
                                     supports_aggregates: Some(
                                         DataConnectorAggregateCapabilities {
                                             supports_nested_object_aggregations: false,
+                                            aggregate_count_scalar_type: None,
+                                            supports_grouping: None,
                                         },
                                     ),
                                     supports_query_variables: false,
@@ -926,13 +1296,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -955,13 +1368,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -984,13 +1440,56 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                                             ),
                                             comparison_operators: Some(
                                                 ComparisonOperators {
-                                                    equality_operators: [
+                                                    eq_operator: Some(
                                                         DataConnectorOperatorName(
                                                             "_eq",
                                                         ),
-                                                    ],
-                                                    in_operators: [],
+                                                    ),
+                                                    in_operator: None,
+                                                    lt_operator: None,
+                                                    lte_operator: None,
+                                                    gt_operator: None,
+                                                    gte_operator: None,
+                                                    contains_operator: None,
+                                                    icontains_operator: None,
+                                                    starts_with_operator: None,
+                                                    istarts_with_operator: None,
+                                                    ends_with_operator: None,
+                                                    iends_with_operator: None,
                                                     other_operators: [],
+                                                },
+                                            ),
+                                            aggregate_functions: Some(
+                                                AggregateFunctions {
+                                                    sum_function: None,
+                                                    min_function: None,
+                                                    max_function: None,
+                                                    avg_function: None,
+                                                    other_functions: [
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_max",
+                                                        ),
+                                                        DataConnectorAggregationFunctionName(
+                                                            "_min",
+                                                        ),
+                                                    ],
+                                                },
+                                            ),
+                                            extraction_functions: Some(
+                                                ExtractionFunctions {
+                                                    year_function: None,
+                                                    month_function: None,
+                                                    day_function: None,
+                                                    nanosecond_function: None,
+                                                    microsecond_function: None,
+                                                    second_function: None,
+                                                    minute_function: None,
+                                                    hour_function: None,
+                                                    week_function: None,
+                                                    quarter_function: None,
+                                                    day_of_week_function: None,
+                                                    day_of_year_function: None,
+                                                    other_functions: [],
                                                 },
                                             ),
                                             argument_mappings: {},
@@ -1005,28 +1504,48 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                     ),
                     global_id_source: None,
                     apollo_federation_key_source: None,
-                    order_by_expression: Some(
-                        Qualified {
-                            subgraph: SubgraphName(
-                                "default",
-                            ),
-                            name: FromModel(
-                                ModelName(
-                                    Identifier(
-                                        "Albums",
-                                    ),
-                                ),
-                            ),
-                        },
-                    ),
                     aggregate_expression: None,
                     raw: ModelRaw {
                         filter_expression_type: None,
                         graphql: None,
                         description: None,
+                        order_by: ModelV1 {
+                            graphql_type_name: None,
+                            orderable_fields: [
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "album_id",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "artist_id",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                                OrderableField {
+                                    field_name: FieldName(
+                                        Identifier(
+                                            "title",
+                                        ),
+                                    ),
+                                    order_by_directions: EnableAll(
+                                        true,
+                                    ),
+                                },
+                            ],
+                        },
                     },
                 },
-                argument_presets: {},
                 select_permissions: {},
                 filter_expression_type: None,
                 graphql_api: ModelGraphQlApi {
@@ -1042,21 +1561,11 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
             },
         },
         commands: {},
-        object_boolean_expression_types: {},
         boolean_expression_types: BooleanExpressionTypes {
             objects: {},
             scalars: {
-                Qualified {
-                    subgraph: SubgraphName(
-                        "default",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "Int_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "default",
                         ),
@@ -1066,6 +1575,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         Int,
                     ),
@@ -1087,17 +1597,8 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                         ),
                     },
                 },
-                Qualified {
-                    subgraph: SubgraphName(
-                        "default",
-                    ),
-                    name: CustomTypeName(
-                        Identifier(
-                            "String_bool_exp",
-                        ),
-                    ),
-                }: ResolvedScalarBooleanExpressionType {
-                    name: Qualified {
+                FromBooleanExpressionType(
+                    Qualified {
                         subgraph: SubgraphName(
                             "default",
                         ),
@@ -1107,6 +1608,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             ),
                         ),
                     },
+                ): ResolvedScalarBooleanExpressionType {
                     operand_type: Inbuilt(
                         String,
                     ),
@@ -1202,16 +1704,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                     ],
                     count_aggregation: Some(
                         ComparableCountAggregation {
-                            boolean_expression_type: Qualified {
-                                subgraph: SubgraphName(
-                                    "default",
-                                ),
-                                name: CustomTypeName(
-                                    Identifier(
-                                        "Int_bool_exp",
+                            boolean_expression_type: FromBooleanExpressionType(
+                                Qualified {
+                                    subgraph: SubgraphName(
+                                        "default",
                                     ),
-                                ),
-                            },
+                                    name: CustomTypeName(
+                                        Identifier(
+                                            "Int_bool_exp",
+                                        ),
+                                    ),
+                                },
+                            ),
                             graphql: Some(
                                 ComparableCountGraphqlConfig {
                                     field_name: Name(
@@ -1325,16 +1829,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                     comparable_relationships: [],
                     count_aggregation: Some(
                         ComparableCountAggregation {
-                            boolean_expression_type: Qualified {
-                                subgraph: SubgraphName(
-                                    "default",
-                                ),
-                                name: CustomTypeName(
-                                    Identifier(
-                                        "Int_bool_exp",
+                            boolean_expression_type: FromBooleanExpressionType(
+                                Qualified {
+                                    subgraph: SubgraphName(
+                                        "default",
                                     ),
-                                ),
-                            },
+                                    name: CustomTypeName(
+                                        Identifier(
+                                            "Int_bool_exp",
+                                        ),
+                                    ),
+                                },
+                            ),
                             graphql: Some(
                                 ComparableCountGraphqlConfig {
                                     field_name: Name(
@@ -1430,30 +1936,34 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             description: Some(
                                 "The lexicographically least string",
                             ),
-                            boolean_expression_type: Qualified {
-                                subgraph: SubgraphName(
-                                    "default",
-                                ),
-                                name: CustomTypeName(
-                                    Identifier(
-                                        "String_bool_exp",
+                            boolean_expression_type: FromBooleanExpressionType(
+                                Qualified {
+                                    subgraph: SubgraphName(
+                                        "default",
                                     ),
-                                ),
-                            },
+                                    name: CustomTypeName(
+                                        Identifier(
+                                            "String_bool_exp",
+                                        ),
+                                    ),
+                                },
+                            ),
                         },
                     ],
                     count_aggregation: Some(
                         ComparableCountAggregation {
-                            boolean_expression_type: Qualified {
-                                subgraph: SubgraphName(
-                                    "default",
-                                ),
-                                name: CustomTypeName(
-                                    Identifier(
-                                        "Int_bool_exp",
+                            boolean_expression_type: FromBooleanExpressionType(
+                                Qualified {
+                                    subgraph: SubgraphName(
+                                        "default",
                                     ),
-                                ),
-                            },
+                                    name: CustomTypeName(
+                                        Identifier(
+                                            "Int_bool_exp",
+                                        ),
+                                    ),
+                                },
+                            ),
                             graphql: Some(
                                 ComparableCountGraphqlConfig {
                                     field_name: Name(
@@ -1465,16 +1975,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                     ),
                     count_distinct_aggregation: Some(
                         ComparableCountAggregation {
-                            boolean_expression_type: Qualified {
-                                subgraph: SubgraphName(
-                                    "default",
-                                ),
-                                name: CustomTypeName(
-                                    Identifier(
-                                        "Int_bool_exp",
+                            boolean_expression_type: FromBooleanExpressionType(
+                                Qualified {
+                                    subgraph: SubgraphName(
+                                        "default",
                                     ),
-                                ),
-                            },
+                                    name: CustomTypeName(
+                                        Identifier(
+                                            "Int_bool_exp",
+                                        ),
+                                    ),
+                                },
+                            ),
                             graphql: Some(
                                 ComparableCountGraphqlConfig {
                                     field_name: Name(
@@ -1624,7 +2136,15 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             },
                         ),
                     },
-                    orderable_relationships: ModelV1AllowAll,
+                    orderable_relationships: {
+                        RelationshipName(
+                            Identifier(
+                                "artist",
+                            ),
+                        ): OrderableRelationship {
+                            order_by_expression: None,
+                        },
+                    },
                     graphql: None,
                     description: Some(
                         "OrderByExpression for Model Albums (in subgraph default)",
@@ -1716,7 +2236,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                             },
                         ),
                     },
-                    orderable_relationships: ModelV1AllowAll,
+                    orderable_relationships: {},
                     graphql: None,
                     description: Some(
                         "OrderByExpression for Model Artists (in subgraph default)",
@@ -1820,10 +2340,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                 count: AggregateCountDefinition {
                     enable: true,
                     description: None,
+                    result_type: Inbuilt(
+                        Int,
+                    ),
+                    result_type_defaulted: true,
                 },
                 count_distinct: AggregateCountDefinition {
                     enable: false,
                     description: None,
+                    result_type: Inbuilt(
+                        Int,
+                    ),
+                    result_type_defaulted: true,
                 },
                 graphql: None,
                 description: None,
@@ -1904,10 +2432,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                 count: AggregateCountDefinition {
                     enable: true,
                     description: None,
+                    result_type: Inbuilt(
+                        Int,
+                    ),
+                    result_type_defaulted: true,
                 },
                 count_distinct: AggregateCountDefinition {
                     enable: false,
                     description: None,
+                    result_type: Inbuilt(
+                        Int,
+                    ),
+                    result_type_defaulted: true,
                 },
                 graphql: None,
                 description: None,
@@ -1962,10 +2498,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                 count: AggregateCountDefinition {
                     enable: true,
                     description: None,
+                    result_type: Inbuilt(
+                        Int,
+                    ),
+                    result_type_defaulted: true,
                 },
                 count_distinct: AggregateCountDefinition {
                     enable: true,
                     description: None,
+                    result_type: Inbuilt(
+                        Int,
+                    ),
+                    result_type_defaulted: true,
                 },
                 graphql: None,
                 description: None,
@@ -2020,10 +2564,18 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                 count: AggregateCountDefinition {
                     enable: true,
                     description: None,
+                    result_type: Inbuilt(
+                        Int,
+                    ),
+                    result_type_defaulted: true,
                 },
                 count_distinct: AggregateCountDefinition {
                     enable: true,
                     description: None,
+                    result_type: Inbuilt(
+                        Int,
+                    ),
+                    result_type_defaulted: true,
                 },
                 graphql: None,
                 description: None,
@@ -2064,6 +2616,7 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
             pre_response_plugins: [],
+            pre_route_plugins: [],
         },
         roles: {},
     },

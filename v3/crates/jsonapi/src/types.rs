@@ -64,15 +64,15 @@ impl RequestError {
             RequestError::NotFound => {
                 serde_json::json!({"error": "invalid route or path"})
             }
-            RequestError::InternalError(InternalError::EmptyQuerySet) => {
-                serde_json::json!({"error": "Internal error"})
-            }
-            RequestError::PlanError(
-                plan::PlanError::Internal(msg) | plan::PlanError::Relationship(msg),
+            RequestError::InternalError(InternalError::EmptyQuerySet)
+            | RequestError::PlanError(
+                plan::PlanError::Internal(_)
+                | plan::PlanError::InternalError(_)
+                | plan::PlanError::ArgumentPresetExecutionError(_)
+                | plan::PlanError::Relationship(_)
+                | plan::PlanError::OrderBy(_)
+                | plan::PlanError::External(_),
             ) => {
-                serde_json::json!({"error": msg })
-            }
-            RequestError::PlanError(plan::PlanError::External(_err)) => {
                 serde_json::json!({"error": "Internal error" })
             }
             RequestError::PlanError(plan::PlanError::Permission(_msg)) => {
@@ -108,12 +108,6 @@ pub struct ModelInfo {
     pub relationship: Vec<String>,
 }
 
-// this is not the correct output type, we should be outputting a JSONAPI document instead
-pub struct QueryResult {
-    pub type_name: Qualified<CustomTypeName>,
-    pub rowsets: Vec<ndc_models::RowSet>,
-}
-
 /// A tree of relationships, used in processing of relationships in the JSON:API response creation
 #[derive(Default)]
 pub struct RelationshipTree {
@@ -123,5 +117,6 @@ pub struct RelationshipTree {
 pub struct RelationshipNode {
     pub object_type: Qualified<CustomTypeName>,
     pub relationship_type: RelationshipType,
+    pub is_command_relationship: bool,
     pub nested: RelationshipTree,
 }

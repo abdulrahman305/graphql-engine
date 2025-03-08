@@ -1,14 +1,14 @@
 mod types;
 use crate::stages::{
-    boolean_expressions, data_connector_scalar_types, data_connectors, models_graphql,
-    object_boolean_expressions, object_relationships, scalar_types,
+    boolean_expressions, data_connector_scalar_types, models_graphql, object_relationships,
+    scalar_types,
 };
 use indexmap::IndexMap;
 use open_dds::{data_connector::DataConnectorName, models::ModelName, types::CustomTypeName};
 use std::collections::BTreeMap;
 pub use types::{
-    FilterPermission, ModelPredicate, ModelTargetSource, ModelWithPermissions, SelectPermission,
-    UnaryComparisonOperator,
+    FilterPermission, ModelPermissionIssue, ModelPermissionsOutput, ModelPredicate,
+    ModelTargetSource, ModelWithPermissions, SelectPermission, UnaryComparisonOperator,
 };
 mod model_permission;
 pub(crate) use model_permission::resolve_model_predicate_with_type;
@@ -20,7 +20,6 @@ use crate::types::subgraph::Qualified;
 /// resolve model permissions
 pub fn resolve(
     metadata_accessor: &open_dds::accessor::MetadataAccessor,
-    data_connectors: &data_connectors::DataConnectors,
     data_connector_scalars: &BTreeMap<
         Qualified<DataConnectorName>,
         data_connector_scalar_types::DataConnectorScalars,
@@ -31,13 +30,9 @@ pub fn resolve(
     >,
     scalar_types: &BTreeMap<Qualified<CustomTypeName>, scalar_types::ScalarTypeRepresentation>,
     models: &IndexMap<Qualified<ModelName>, models_graphql::ModelWithGraphql>,
-    object_boolean_expression_types: &BTreeMap<
-        Qualified<CustomTypeName>,
-        object_boolean_expressions::ObjectBooleanExpressionType,
-    >,
     boolean_expression_types: &boolean_expressions::BooleanExpressionTypes,
-    flags: &open_dds::flags::Flags,
-) -> Result<IndexMap<Qualified<ModelName>, ModelWithPermissions>, Error> {
+) -> Result<ModelPermissionsOutput, Error> {
+    let mut issues = Vec::new();
     let mut models_with_permissions: IndexMap<Qualified<ModelName>, ModelWithPermissions> = models
         .iter()
         .map(|(model_name, model)| {
@@ -70,18 +65,10 @@ pub fn resolve(
             })?;
 
         if model.select_permissions.is_empty() {
-            // `boolean_expression_fields` is Some for new `BooleanExpressionType` but None for
-            // old `ObjectBooleanExpressionType`.
-            let boolean_expression_fields =
-                model
-                    .filter_expression_type
-                    .as_ref()
-                    .and_then(|filter| match filter {
-                        models_graphql::ModelExpressionType::BooleanExpressionType(
-                            boolean_expression_type,
-                        ) => boolean_expression_type.get_fields(flags),
-                        models_graphql::ModelExpressionType::ObjectBooleanExpressionType(_) => None,
-                    });
+            let boolean_expression_fields = model
+                .filter_expression_type
+                .as_ref()
+                .and_then(|filter| filter.get_fields(&metadata_accessor.flags));
 
             let select_permissions = model_permission::resolve_model_select_permissions(
                 &metadata_accessor.flags,
@@ -89,13 +76,12 @@ pub fn resolve(
                 subgraph,
                 permissions,
                 boolean_expression_fields,
-                data_connectors,
                 data_connector_scalars,
                 object_types,
                 scalar_types,
                 models, // This is required to get the model for the relationship target
-                object_boolean_expression_types,
                 boolean_expression_types,
+                &mut issues,
             )?;
 
             model.select_permissions = select_permissions;
@@ -105,5 +91,8 @@ pub fn resolve(
             });
         }
     }
-    Ok(models_with_permissions)
+    Ok(ModelPermissionsOutput {
+        permissions: models_with_permissions,
+        issues,
+    })
 }

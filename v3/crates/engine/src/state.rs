@@ -1,52 +1,72 @@
 use crate::{EngineState, StartupError};
-use hasura_authn::resolve_auth_config;
-use std::fmt::Display;
-use std::path::PathBuf;
-use std::sync::Arc;
-
 use engine_types::{ExposeInternalErrors, HttpContext};
+use graphql_ir::GraphqlRequestPipeline;
+use std::fmt::Display;
+use std::sync::Arc;
 
 #[allow(clippy::print_stdout)]
 /// Print any build warnings to stdout
-fn print_warnings<T: Display>(warnings: Vec<T>) {
+pub fn print_warnings<T: Display>(warnings: Vec<T>) {
     for warning in warnings {
         println!("Warning: {warning}");
     }
 }
 
-/// Build the engine state - include auth, metadata, and sql context.
-pub fn build_state(
-    expose_internal_errors: ExposeInternalErrors,
-    authn_config_path: &PathBuf,
-    metadata_path: &PathBuf,
-    enable_sql_interface: bool,
+pub fn resolve_metadata(
+    opendd_metadata_json: &str,
+    raw_auth_config: &str,
     metadata_resolve_configuration: &metadata_resolve::configuration::Configuration,
-) -> Result<EngineState, anyhow::Error> {
-    // Auth Config
-    let raw_auth_config = std::fs::read_to_string(authn_config_path)?;
-    let (auth_config, auth_warnings) =
-        resolve_auth_config(&raw_auth_config).map_err(StartupError::ReadAuth)?;
-
+) -> Result<(metadata_resolve::Metadata, hasura_authn::ResolvedAuthConfig), anyhow::Error> {
     // Metadata
-    let raw_metadata = std::fs::read_to_string(metadata_path)?;
-    let metadata = open_dds::Metadata::from_json_str(&raw_metadata)?;
+    let metadata = open_dds::Metadata::from_json_str(opendd_metadata_json)?;
+    let flags = metadata.get_flags();
+
+    // Auth Config
+    let auth_config =
+        hasura_authn::parse_auth_config(raw_auth_config).map_err(StartupError::ReadAuth)?;
+    let (resolved_auth_config, auth_warnings) =
+        hasura_authn::resolve_auth_config(auth_config, flags.as_ref())?;
+
     let (resolved_metadata, warnings) =
-        metadata_resolve::resolve(metadata, metadata_resolve_configuration)?;
-    let resolved_metadata = Arc::new(resolved_metadata);
+        metadata_resolve::resolve(metadata, metadata_resolve_configuration).map_err(|error| {
+            match metadata_resolve::to_fancy_error(
+                opendd_metadata_json,
+                &error,
+                ariadne::Config::new(),
+            ) {
+                Some(report) => {
+                    report
+                        .eprint(ariadne::Source::from(opendd_metadata_json))
+                        .unwrap();
+
+                    // return empty error to stop printing twice
+                    anyhow::anyhow!("error building metadata")
+                }
+                None => anyhow::anyhow!(error),
+            }
+        })?;
 
     print_warnings(auth_warnings);
     print_warnings(warnings);
+
+    Ok((resolved_metadata, resolved_auth_config))
+}
+
+/// Build the engine state - include auth, metadata, and jsonapi context.
+pub fn build_state(
+    request_pipeline: GraphqlRequestPipeline,
+    expose_internal_errors: ExposeInternalErrors,
+    auth_config: hasura_authn::ResolvedAuthConfig,
+    resolved_metadata: metadata_resolve::Metadata,
+) -> Result<EngineState, anyhow::Error> {
+    // Metadata
+    let resolved_metadata = Arc::new(resolved_metadata);
 
     let http_context = HttpContext {
         client: reqwest::Client::new(),
         ndc_response_size_limit: None,
     };
     let plugin_configs = resolved_metadata.plugin_configs.clone();
-    let sql_context = if enable_sql_interface {
-        sql::catalog::Catalog::from_metadata(&resolved_metadata)
-    } else {
-        sql::catalog::Catalog::empty()
-    };
 
     let schema = graphql_schema::GDS {
         metadata: resolved_metadata.clone(),
@@ -56,13 +76,13 @@ pub fn build_state(
     let (jsonapi_catalog, _json_api_warnings) = jsonapi::Catalog::new(&resolved_metadata);
 
     let state = EngineState {
+        request_pipeline,
         expose_internal_errors,
         http_context,
         graphql_state: Arc::new(schema),
         jsonapi_catalog: Arc::new(jsonapi_catalog),
         resolved_metadata,
         auth_config: Arc::new(auth_config),
-        sql_context: sql_context.into(),
         plugin_configs: Arc::new(plugin_configs),
         graphql_websocket_server: Arc::new(graphql_ws::WebSocketServer::new()),
     };

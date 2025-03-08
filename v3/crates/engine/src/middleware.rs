@@ -1,7 +1,9 @@
+use std::borrow::Cow;
+
 use crate::EngineState;
 use crate::VERSION;
 use axum::{
-    extract::State,
+    extract::{ConnectInfo, State},
     http::{HeaderMap, Request},
     middleware::Next,
     response::IntoResponse,
@@ -87,38 +89,11 @@ pub async fn explain_request_tracing_middleware(
         .response
 }
 
-/// Middleware to start tracing of the `/v1/sql` request.
-/// This middleware must be active for the entire duration
-/// of the request i.e. this middleware should be the
-/// entry point and the exit point of the SQL request.
-pub async fn sql_request_tracing_middleware(
-    request: Request<Body>,
-    next: Next,
-) -> axum::response::Response {
-    let tracer = tracing_util::global_tracer();
-    let path = "/v1/sql";
-    tracer
-        .in_span_async_with_parent_context(
-            path,
-            path,
-            SpanVisibility::User,
-            &request.headers().clone(),
-            || {
-                Box::pin(async move {
-                    let response = next.run(request).await;
-                    TraceableHttpResponse::new(response, path)
-                })
-            },
-        )
-        .await
-        .response
-}
-
 /// This middleware authenticates the incoming GraphQL request according to the
 /// authentication configuration present in the `auth_config` of `EngineState`. The
 /// result of the authentication is `hasura-authn-core::Identity`, which is then
 /// made available to the GraphQL request handler.
-pub async fn authentication_middleware<'a>(
+pub async fn authentication_middleware(
     State(engine_state): State<EngineState>,
     headers_map: HeaderMap,
     mut request: Request<Body>,
@@ -146,6 +121,7 @@ pub async fn authentication_middleware<'a>(
 }
 
 pub async fn plugins_middleware(
+    ConnectInfo(client_address): ConnectInfo<std::net::SocketAddr>,
     State(engine_state): State<EngineState>,
     Extension(session): Extension<Session>,
     headers_map: HeaderMap,
@@ -172,6 +148,7 @@ pub async fn plugins_middleware(
             }
             Some(pre_parse_plugins) => {
                 let response = pre_parse_plugins_handler(
+                    client_address,
                     &pre_parse_plugins,
                     &engine_state.http_context.client,
                     session.clone(),
@@ -203,6 +180,7 @@ pub async fn plugins_middleware(
         nonempty::NonEmpty::from_slice(&engine_state.plugin_configs.pre_response_plugins)
     {
         pre_response_plugins_handler(
+            client_address,
             &pre_response_plugins,
             &engine_state.http_context.client,
             session,
@@ -214,4 +192,31 @@ pub async fn plugins_middleware(
     let recreated_response =
         axum::response::Response::from_parts(parts, axum::body::Body::from(response_bytes));
     Ok(recreated_response)
+}
+
+/// Middleware to start tracing of the `/*path` request.
+/// This middleware must be active for the entire duration
+/// of the request i.e. this middleware should be the
+/// entry point and the exit point of the pre-route request.
+pub async fn pre_route_request_tracing_middleware(
+    request: Request<Body>,
+    next: Next,
+) -> axum::response::Response {
+    let tracer = tracing_util::global_tracer();
+    let path = request.uri().to_string();
+    tracer
+        .in_span_async_with_parent_context(
+            Cow::from(path.clone()),
+            path.clone(),
+            SpanVisibility::User,
+            &request.headers().clone(),
+            || {
+                Box::pin(async move {
+                    let response = next.run(request).await;
+                    TraceableHttpResponse::new(response, Cow::from(path))
+                })
+            },
+        )
+        .await
+        .response
 }

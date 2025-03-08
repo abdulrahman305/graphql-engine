@@ -1,11 +1,15 @@
 use crate::helpers::typecheck::TypecheckError;
+use crate::helpers::{
+    ndc_validation::NDCValidationError, type_mappings::TypeMappingCollectionError, typecheck,
+};
 use crate::stages::{
-    aggregate_boolean_expressions, aggregates::AggregateExpressionError, apollo, argument_presets,
+    aggregate_boolean_expressions, aggregates::AggregateExpressionError, apollo,
     boolean_expressions, commands, data_connector_scalar_types, data_connectors, graphql_config,
     models, object_types, order_by_expressions, relationships, relay, scalar_boolean_expressions,
     scalar_types, type_permissions,
 };
 use crate::types::subgraph::{Qualified, QualifiedTypeReference};
+use hasura_authn_core::Role;
 use lang_graphql::ast::common as ast;
 use open_dds::data_connector::DataConnectorColumnName;
 use open_dds::flags;
@@ -19,10 +23,6 @@ use open_dds::{
     types::{CustomTypeName, FieldName, OperatorName},
 };
 use std::fmt::Display;
-
-use crate::helpers::{
-    ndc_validation::NDCValidationError, type_mappings::TypeMappingCollectionError, typecheck,
-};
 
 // Eventually, we'll just delete the `Raw` variant and this will become a regular struct when all
 // errors have all the relevant path information.
@@ -111,10 +111,6 @@ pub enum Error {
         model_name: Qualified<ModelName>,
         argument_name: ArgumentName,
     },
-    #[error("model arguments graphql input configuration has been specified for model {model_name:} that does not have arguments")]
-    UnnecessaryModelArgumentsGraphQlInputConfiguration { model_name: Qualified<ModelName> },
-    #[error("an unnecessary filter input type name graphql configuration has been specified for model {model_name:} that does not use aggregates")]
-    UnnecessaryFilterInputTypeNameGraphqlConfiguration { model_name: Qualified<ModelName> },
     #[error("filter input type name graphql configuration must be specified for model {model_name:} because aggregates are used with it")]
     MissingFilterInputTypeNameGraphqlConfiguration { model_name: Qualified<ModelName> },
     #[error("unknown field {field_name:} in unique identifier defined for model {model_name:}")]
@@ -127,8 +123,6 @@ pub enum Error {
         model_name: Qualified<ModelName>,
         field_name: FieldName,
     },
-    #[error("a source must be defined for model {model:} in order to use filter expressions")]
-    CannotUseFilterExpressionsWithoutSource { model: Qualified<ModelName> },
     #[error("graphql config must be defined for a filter expression to be used in a {model:}")]
     CannotUseFilterExpressionsWithoutGraphQlConfig {
         model: Qualified<ModelName>,
@@ -253,30 +247,32 @@ pub enum Error {
         relationship_name: RelationshipName,
         type_name: Qualified<CustomTypeName>,
     },
-    #[error("the data type {data_type:} has not been defined")]
+    #[error("The data type {data_type:} has not been defined")]
     UnknownType {
         data_type: Qualified<CustomTypeName>,
     },
-    #[error("the object type {data_type:} has not been defined")]
+    #[error("The object type {data_type:} has not been defined")]
     UnknownObjectType {
         data_type: Qualified<CustomTypeName>,
     },
-    #[error("the scalar type {data_type:} has not been defined")]
+    #[error("The scalar type {data_type:} has not been defined")]
     UnknownScalarType {
         data_type: Qualified<CustomTypeName>,
     },
     #[error(
-        "Type error in preset argument {argument_name:} for command {command_name:}: {type_error:}"
+        "Type error in preset argument {argument_name:} for role {role:} in command {command_name:}: {type_error:}"
     )]
     CommandArgumentPresetTypeError {
+        role: Role,
         command_name: Qualified<CommandName>,
         argument_name: ArgumentName,
         type_error: typecheck::TypecheckError,
     },
     #[error(
-        "Type error in preset argument {argument_name:} for model {model_name:}: {type_error:}"
+        "Type error in preset argument {argument_name:} for role {role:} in model {model_name:}: {type_error:}"
     )]
     ModelArgumentPresetTypeError {
+        role: Role,
         model_name: Qualified<ModelName>,
         argument_name: ArgumentName,
         type_error: typecheck::TypecheckError,
@@ -337,8 +333,6 @@ pub enum Error {
     DataConnectorScalarTypesError(
         #[from] data_connector_scalar_types::DataConnectorScalarTypesError,
     ),
-    #[error("{0}")]
-    ArgumentPresetError(#[from] argument_presets::ArgumentPresetError),
     #[error(
         "The following issues were raised but disallowed by compatibility configuration:\n\n{warnings_as_errors}"
     )]
@@ -348,7 +342,20 @@ pub enum Error {
 }
 
 pub trait ShouldBeAnError {
-    fn should_be_an_error(&self, flags: &flags::Flags) -> bool;
+    fn should_be_an_error(&self, flags: &flags::OpenDdFlags) -> bool;
+}
+
+pub trait ContextualError {
+    fn create_error_context(&self) -> Option<error_context::Context>;
+}
+
+impl ContextualError for Error {
+    fn create_error_context(&self) -> Option<error_context::Context> {
+        match self {
+            Error::ModelsError(error) => error.create_error_context(),
+            _other => None,
+        }
+    }
 }
 
 // A small utility type which exists for the sole purpose of displaying a vector with a certain
@@ -387,8 +394,15 @@ pub enum RelationshipError {
         model_name: Qualified<ModelName>,
         field_name: FieldName,
     },
+    #[error("target argument {argument_name} in argument mapping for relationship {relationship_name} on type {source_type} to model {model_name} is unknown.")]
+    UnknownTargetModelArgumentInRelationshipMapping {
+        source_type: Qualified<CustomTypeName>,
+        relationship_name: RelationshipName,
+        model_name: Qualified<ModelName>,
+        argument_name: ArgumentName,
+    },
     #[error("target argument {argument_name} in argument mapping for relationship {relationship_name} on type {source_type} to command {command_name} is unknown.")]
-    UnknownTargetArgumentInRelationshipMapping {
+    UnknownTargetCommandArgumentInRelationshipMapping {
         source_type: Qualified<CustomTypeName>,
         relationship_name: RelationshipName,
         command_name: Qualified<CommandName>,
@@ -400,8 +414,15 @@ pub enum RelationshipError {
         field_name: FieldName,
         relationship_name: RelationshipName,
     },
-    #[error("Mapping for target argument {argument_name} of command {command_name} already exists in the relationship {relationship_name} on type {type_name}")]
-    ArgumentMappingExistsInRelationship {
+    #[error("The target argument {argument_name} of model {model_name} has been mapped more than once in the relationship {relationship_name} on type {type_name}")]
+    ModelArgumentMappingExistsInRelationship {
+        argument_name: ArgumentName,
+        model_name: Qualified<ModelName>,
+        relationship_name: RelationshipName,
+        type_name: Qualified<CustomTypeName>,
+    },
+    #[error("The target argument {argument_name} of command {command_name} has been mapped more than once in the relationship {relationship_name} on type {type_name}")]
+    CommandArgumentMappingExistsInRelationship {
         argument_name: ArgumentName,
         command_name: Qualified<CommandName>,
         relationship_name: RelationshipName,
@@ -437,6 +458,16 @@ pub enum RelationshipError {
         error: models::ModelsError, // ideally, this would return the more accurate
                                     // `ModelAggregateExpressionError` instead
     },
+    #[error("The source field '{source_field_name}' of type '{source_field_type}' in the relationship '{relationship_name}' on type '{source_type}' cannot be mapped to the target argument '{target_argument_name}' of type '{target_argument_type}' on the target model '{target_model_name}' because their types are incompatible")]
+    ModelArgumentTargetMappingTypeMismatch {
+        source_type: Qualified<CustomTypeName>,
+        relationship_name: RelationshipName,
+        source_field_name: FieldName,
+        source_field_type: QualifiedTypeReference,
+        target_model_name: Qualified<ModelName>,
+        target_argument_name: ArgumentName,
+        target_argument_type: QualifiedTypeReference,
+    },
 }
 
 impl From<RelationshipError> for Error {
@@ -449,6 +480,11 @@ impl From<RelationshipError> for Error {
 
 #[derive(Debug, thiserror::Error)]
 pub enum TypePredicateError {
+    #[error("field '{field_name:}' used in predicate for type '{type_name:}' not found in data connector field mappings")]
+    UnknownFieldInDataConnectorFieldMappingsForTypePredicate {
+        field_name: FieldName,
+        type_name: Qualified<CustomTypeName>,
+    },
     #[error("unknown field '{field_name:}' used in predicate for type '{type_name:}'")]
     UnknownFieldInTypePredicate {
         field_name: FieldName,

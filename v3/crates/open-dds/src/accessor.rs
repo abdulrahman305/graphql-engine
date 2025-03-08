@@ -27,8 +27,6 @@ impl<T> QualifiedObject<T> {
     }
 }
 
-const DEFAULT_FLAGS: flags::Flags = flags::Flags::new();
-
 pub struct MetadataAccessor {
     pub subgraphs: HashSet<SubgraphName>,
     pub data_connectors: Vec<QualifiedObject<data_connector::DataConnectorLinkV1>>,
@@ -46,7 +44,7 @@ pub struct MetadataAccessor {
     pub relationships: Vec<QualifiedObject<relationships::RelationshipV1>>,
     pub commands: Vec<QualifiedObject<commands::CommandV1>>,
     pub command_permissions: Vec<QualifiedObject<permissions::CommandPermissionsV1>>,
-    pub flags: flags::Flags,
+    pub flags: flags::OpenDdFlags,
     // `graphql_config` is a vector because we want to do some validation depending on the presence of the object
     pub graphql_config: Vec<QualifiedObject<graphql_config::GraphqlConfig>>,
     pub plugins: Vec<QualifiedObject<plugins::LifecyclePluginHookV1>>,
@@ -62,69 +60,69 @@ fn load_metadata_objects(
         match object {
             OpenDdSubgraphObject::DataConnectorLink(data_connector) => {
                 accessor.data_connectors.push(QualifiedObject::new(
-                    Path::new(),
+                    data_connector.path,
                     subgraph,
-                    data_connector.upgrade(),
+                    data_connector.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::GraphqlConfig(graphql_config) => {
                 accessor.graphql_config.push(QualifiedObject::new(
-                    Path::new(),
+                    graphql_config.path,
                     subgraph,
-                    *graphql_config,
+                    graphql_config.value.clone(),
                 ));
             }
             OpenDdSubgraphObject::ObjectType(object_type) => {
                 accessor.object_types.push(QualifiedObject::new(
-                    Path::new(),
+                    object_type.path,
                     subgraph,
-                    object_type.upgrade(),
+                    object_type.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::ScalarType(scalar_type) => {
                 accessor.scalar_types.push(QualifiedObject::new(
-                    Path::new(),
+                    scalar_type.path,
                     subgraph,
-                    scalar_type.upgrade(),
+                    scalar_type.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::ObjectBooleanExpressionType(object_boolean_expression_type) => {
                 accessor
                     .object_boolean_expression_types
                     .push(QualifiedObject::new(
-                        Path::new(),
+                        object_boolean_expression_type.path,
                         subgraph,
-                        object_boolean_expression_type.upgrade(),
+                        object_boolean_expression_type.value.upgrade(),
                     ));
             }
             OpenDdSubgraphObject::BooleanExpressionType(boolean_expression_type) => {
                 accessor.boolean_expression_types.push(QualifiedObject::new(
-                    Path::new(),
+                    boolean_expression_type.path,
                     subgraph,
-                    boolean_expression_type.upgrade(),
+                    boolean_expression_type.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::OrderByExpression(order_by_expression) => {
                 accessor.order_by_expressions.push(QualifiedObject::new(
-                    Path::new(),
+                    order_by_expression.path,
                     subgraph,
-                    order_by_expression.upgrade(),
+                    order_by_expression.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::DataConnectorScalarRepresentation(scalar_representation) => {
                 accessor
                     .data_connector_scalar_representations
                     .push(QualifiedObject::new(
-                        Path::new(),
+                        scalar_representation.path,
                         subgraph,
-                        scalar_representation.upgrade(),
+                        scalar_representation.value.upgrade(),
                     ));
             }
             OpenDdSubgraphObject::AggregateExpression(aggregate_expression) => {
                 accessor.aggregate_expressions.push(QualifiedObject::new(
-                    Path::new(),
+                    aggregate_expression.path,
                     subgraph,
-                    aggregate_expression.upgrade(),
+                    aggregate_expression.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::Model(model) => {
@@ -136,44 +134,44 @@ fn load_metadata_objects(
             }
             OpenDdSubgraphObject::TypePermissions(permissions) => {
                 accessor.type_permissions.push(QualifiedObject::new(
-                    Path::new(),
+                    permissions.path,
                     subgraph,
-                    permissions.upgrade(),
+                    permissions.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::ModelPermissions(permissions) => {
                 accessor.model_permissions.push(QualifiedObject::new(
-                    Path::new(),
+                    permissions.path,
                     subgraph,
-                    permissions.upgrade(),
+                    permissions.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::Relationship(relationship) => {
                 accessor.relationships.push(QualifiedObject::new(
-                    Path::new(),
+                    relationship.path,
                     subgraph,
-                    relationship.upgrade(),
+                    relationship.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::Command(command) => {
                 accessor.commands.push(QualifiedObject::new(
-                    Path::new(),
+                    command.path,
                     subgraph,
-                    command.upgrade(),
+                    command.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::CommandPermissions(permissions) => {
                 accessor.command_permissions.push(QualifiedObject::new(
-                    Path::new(),
+                    permissions.path,
                     subgraph,
-                    permissions.upgrade(),
+                    permissions.value.upgrade(),
                 ));
             }
             OpenDdSubgraphObject::LifecyclePluginHook(plugin) => {
                 accessor.plugins.push(QualifiedObject::new(
-                    Path::new(),
+                    plugin.path,
                     subgraph,
-                    plugin.upgrade(),
+                    plugin.value.upgrade(),
                 ));
             }
         }
@@ -234,7 +232,7 @@ impl MetadataAccessor {
         }
     }
 
-    fn new_empty(flags: Option<flags::Flags>) -> MetadataAccessor {
+    fn new_empty(flags: Option<flags::OpenDdFlags>) -> MetadataAccessor {
         MetadataAccessor {
             subgraphs: HashSet::new(),
             data_connectors: vec![],
@@ -251,7 +249,7 @@ impl MetadataAccessor {
             relationships: vec![],
             commands: vec![],
             command_permissions: vec![],
-            flags: flags.unwrap_or(DEFAULT_FLAGS),
+            flags: flags.unwrap_or_default(),
             graphql_config: vec![],
             plugins: vec![],
         }

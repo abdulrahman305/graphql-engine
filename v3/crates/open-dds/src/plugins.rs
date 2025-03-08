@@ -74,6 +74,8 @@ pub enum LifecyclePluginHookV1 {
     Parse(LifecyclePreParsePluginHook),
     /// Definition of a lifecycle plugin hook for the pre-response stage.
     Response(LifecyclePreResponsePluginHook),
+    /// Definition of a lifecycle plugin hook for the pre-route stage.
+    Route(LifecyclePreRoutePluginHook),
 }
 
 type LifecyclePluginUrl = EnvironmentValue;
@@ -206,6 +208,114 @@ pub struct LifecyclePreResponsePluginHookConfigRequest {
     pub raw_request: RawRequestConfig,
     /// Configuration for the response.
     pub raw_response: Option<LeafConfig>,
+}
+
+#[derive(
+    Serialize, Deserialize, JsonSchema, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd,
+)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+#[schemars(title = "LifecyclePreRoutePluginHook")]
+/// Definition of a lifecycle plugin hook for the pre-route stage.
+pub struct LifecyclePreRoutePluginHook {
+    /// The name of the lifecycle plugin hook.
+    pub name: LifecyclePluginName,
+    /// The URL to access the lifecycle plugin hook.
+    pub url: LifecyclePluginUrl,
+    /// Configuration for the lifecycle plugin hook.
+    pub config: LifecyclePreRoutePluginHookConfig,
+}
+
+#[derive(
+    Serialize, Deserialize, JsonSchema, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd,
+)]
+#[schemars(title = "RequestMethod")]
+#[serde(deny_unknown_fields)]
+/// Possible HTTP Request Methods for the incoming requests handled by the pre-route plugin hook.
+pub enum LifecyclePreRoutePluginHookIncomingHTTPMethod {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    PATCH,
+}
+
+#[derive(
+    Serialize, Deserialize, JsonSchema, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd,
+)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+#[schemars(title = "LifecyclePreRoutePluginHookConfig")]
+/// Configuration for a lifecycle plugin hook.
+pub struct LifecyclePreRoutePluginHookConfig {
+    #[serde(alias = "match")]
+    #[opendd(alias = "match")]
+    /// Regex to match the request path
+    pub match_path: String,
+    /// Possible HTTP methods for the request
+    pub match_methods: Vec<LifecyclePreRoutePluginHookIncomingHTTPMethod>,
+    /// Configuration for the request to the lifecycle plugin hook.
+    pub request: LifecyclePreRoutePluginHookConfigRequest,
+    #[serde(default)]
+    /// Configuration for the response to the lifecycle plugin hook.
+    pub response: Option<LifecyclePreRoutePluginHookConfigResponse>,
+}
+
+#[derive(
+    Serialize, Deserialize, JsonSchema, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd,
+)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+#[schemars(title = "LifecyclePreRoutePluginHookConfigRequest")]
+/// Configuration for a lifecycle plugin hook request.
+pub struct LifecyclePreRoutePluginHookConfigRequest {
+    /// Configuration for the headers in the pre-route plugin hook HTTP requests.
+    pub headers: Option<LifecyclePluginHookHeadersConfig>,
+    /// Configuration for the HTTP method for the pre-route plugin hook HTTP requests.
+    pub method: LifecyclePreRoutePluginHookConfigRequestMethod,
+    // Configuration for the request body for the pre-route plugin hook HTTP requests.
+    pub raw_request: PreRouteRequestConfig,
+}
+
+#[derive(
+    Serialize, Deserialize, JsonSchema, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd,
+)]
+#[schemars(title = "LifecyclePreRoutePluginHookConfigRequestMethods")]
+#[serde(deny_unknown_fields)]
+/// Configuration for the method for the pre-route plugin hook HTTP requests.
+pub enum LifecyclePreRoutePluginHookConfigRequestMethod {
+    GET,
+    POST,
+}
+
+#[derive(
+    Serialize, Deserialize, JsonSchema, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd,
+)]
+#[schemars(title = "PreRouteRequestConfig")]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+/// Configuration for the raw request body for the pre-route plugin hook HTTP requests.
+pub struct PreRouteRequestConfig {
+    /// Configuration for adding/excluding the request path of the incoming request
+    pub path: Option<LeafConfig>,
+    /// Configuration for adding/excluding the request method of the incoming request
+    pub method: Option<LeafConfig>,
+    /// Configuration for adding/excluding the query params of the incoming request
+    pub query: Option<LeafConfig>,
+    /// Configuration for adding/excluding the body of the incoming request
+    pub body: Option<LeafConfig>,
+}
+
+#[derive(
+    Serialize, Deserialize, JsonSchema, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd,
+)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+#[schemars(title = "LifecyclePreRoutePluginHookConfigResponse")]
+/// Configuration for a lifecycle plugin hook response.
+pub struct LifecyclePreRoutePluginHookConfigResponse {
+    /// Configuration for the headers in the response from the engine.
+    pub headers: Option<LifecyclePluginHookHeadersConfig>,
 }
 
 #[test]

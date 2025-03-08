@@ -14,7 +14,7 @@ pub fn add_filter_input_argument_field(
     fields: &mut BTreeMap<ast::Name, gql_schema::Namespaced<GDS, gql_schema::InputField<GDS>>>,
     field_name: &ast::Name,
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
 ) -> Result<(), Error> {
     let filter_input_type_name = get_model_filter_input_type(builder, model)?;
 
@@ -39,7 +39,7 @@ pub fn add_filter_input_argument_field(
 
 pub fn get_model_filter_input_type(
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
 ) -> Result<gql_schema::RegisteredTypeName, Error> {
     model
         .graphql_api
@@ -106,7 +106,7 @@ pub fn build_model_filter_input_type(
 pub fn add_limit_input_field(
     fields: &mut BTreeMap<ast::Name, gql_schema::Namespaced<GDS, gql_schema::InputField<GDS>>>,
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
 ) -> Result<(), Error> {
     if let Some(limit_field) = &model.graphql_api.limit_field {
         let limit_argument = generate_int_input_argument(
@@ -127,7 +127,7 @@ pub fn add_limit_input_field(
 pub fn add_offset_input_field(
     fields: &mut BTreeMap<ast::Name, gql_schema::Namespaced<GDS, gql_schema::InputField<GDS>>>,
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
 ) -> Result<(), Error> {
     if let Some(offset_field) = &model.graphql_api.offset_field {
         let offset_argument = generate_int_input_argument(
@@ -149,16 +149,11 @@ pub fn add_offset_input_field(
 pub fn add_order_by_input_field(
     fields: &mut BTreeMap<ast::Name, gql_schema::Namespaced<GDS, gql_schema::InputField<GDS>>>,
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
 ) {
     if let Some(order_by_expression_info) = &model.graphql_api.order_by_expression {
-        let order_by_argument = {
-            get_order_by_expression_input_field(
-                builder,
-                model.model.name.clone(),
-                order_by_expression_info,
-            )
-        };
+        let order_by_argument =
+            { get_order_by_expression_input_field(builder, order_by_expression_info) };
 
         fields.insert(
             order_by_argument.name.clone(),
@@ -170,28 +165,14 @@ pub fn add_order_by_input_field(
 pub fn add_where_input_field(
     fields: &mut BTreeMap<ast::Name, gql_schema::Namespaced<GDS, gql_schema::InputField<GDS>>>,
     builder: &mut gql_schema::Builder<GDS>,
-    model: &metadata_resolve::ModelWithArgumentPresets,
+    model: &metadata_resolve::ModelWithPermissions,
 ) {
     let boolean_expression_filter_type =
         &model
             .filter_expression_type
             .as_ref()
-            .and_then(|bool_exp| match bool_exp {
-                metadata_resolve::ModelExpressionType::ObjectBooleanExpressionType(
-                    object_boolean_expression_type,
-                ) => object_boolean_expression_type
-                    .graphql
-                    .as_ref()
-                    .map(|graphql_config| {
-                        (
-                            object_boolean_expression_type.name.clone(),
-                            &graphql_config.type_name,
-                            &graphql_config.field_config,
-                        )
-                    }),
-                metadata_resolve::ModelExpressionType::BooleanExpressionType(
-                    boolean_expression_object_type,
-                ) => boolean_expression_object_type
+            .and_then(|boolean_expression_object_type| {
+                boolean_expression_object_type
                     .graphql
                     .as_ref()
                     .map(|graphql_config| {
@@ -200,7 +181,7 @@ pub fn add_where_input_field(
                             &graphql_config.type_name,
                             &graphql_config.field_config,
                         )
-                    }),
+                    })
             });
 
     if let Some((

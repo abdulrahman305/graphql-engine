@@ -5,7 +5,6 @@ use open_dds::{
     arguments::ArgumentName,
     data_connector::{DataConnectorColumnName, DataConnectorName},
     relationships::RelationshipName,
-    session_variables::SessionVariableName,
     types::{CustomTypeName, FieldName},
 };
 use serde_json as json;
@@ -13,8 +12,23 @@ use thiserror::Error;
 use tracing_util::{ErrorVisibility, TraceableError};
 use transitive::Transitive;
 
-use graphql_schema::{Annotation, NamespaceAnnotation};
+use graphql_schema::Annotation;
 use metadata_resolve::{Qualified, QualifiedTypeName};
+
+impl From<plan::InternalError> for Error {
+    fn from(plan_internal_error: plan::InternalError) -> Error {
+        match plan_internal_error {
+            plan::InternalError::Engine(engine_error) => Error::Internal(InternalError::Engine(
+                InternalEngineError::PlanInternalEngineError(engine_error),
+            )),
+            plan::InternalError::Developer(developer_error) => {
+                Error::Internal(InternalError::Developer(
+                    InternalDeveloperError::PlanInternalDeveloperError(developer_error),
+                ))
+            }
+        }
+    }
+}
 
 #[allow(clippy::duplicated_attributes)] // suppress spurious warnings from Clippy
 #[derive(Error, Debug, Transitive)]
@@ -38,6 +52,15 @@ pub enum Error {
     #[error("'{name:}' is not a valid GraphQL name.")]
     TypeFieldInvalidGraphQlName { name: String },
 
+    #[error("'{alias:} is not a valid alias")]
+    InvalidAlias { alias: String },
+
+    #[error("{value} is not a valid limit value")]
+    InvalidLimitValue { value: u32 },
+
+    #[error("{value} is not a valid offset value")]
+    InvalidOffsetValue { value: u32 },
+
     #[error("field '{field_name:} not found in entity representation")]
     FieldNotFoundInEntityRepresentation { field_name: FieldName },
 
@@ -53,7 +76,27 @@ pub enum Error {
     #[error("Only one subscription root field is allowed")]
     NoneOrMoreSubscriptionRootFields,
 
-    #[error("internal: {0}")]
+    #[error("internal error: type mapping not found for type {type_name:}")]
+    InternalTypeMappingNotFound {
+        type_name: Qualified<CustomTypeName>,
+    },
+
+    #[error("internal error: type mapping or field mapping not found for type {type_name:} and field {field_name:}")]
+    InternalMappingNotFound {
+        type_name: Qualified<CustomTypeName>,
+        field_name: FieldName,
+    },
+
+    #[error("internal error: missing target model source for the relationship {relationship_name:} on type {type_name:}")]
+    InternalMissingTargetModelSourceForRelationship {
+        relationship_name: RelationshipName,
+        type_name: Qualified<CustomTypeName>,
+    },
+
+    #[error("{0}")]
+    PlanError(#[from] plan::PlanError),
+
+    #[error("{0}")]
     Internal(#[from] InternalError),
 }
 
@@ -77,10 +120,8 @@ impl Error {
 impl TraceableError for Error {
     fn visibility(&self) -> ErrorVisibility {
         match self {
-            Self::Internal(internal) => match internal {
-                InternalError::Developer(_) => ErrorVisibility::User,
-                InternalError::Engine(_) => ErrorVisibility::Internal,
-            },
+            Self::Internal(internal) => internal.visibility(),
+            Self::PlanError(error) => error.visibility(),
             _ => ErrorVisibility::User,
         }
     }
@@ -97,8 +138,29 @@ pub enum InternalError {
     Engine(#[from] InternalEngineError),
 }
 
+impl TraceableError for InternalError {
+    fn visibility(&self) -> ErrorVisibility {
+        match self {
+            Self::Developer(_) => ErrorVisibility::User,
+            Self::Engine(_) => ErrorVisibility::Internal,
+        }
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum InternalDeveloperError {
+    #[error("Target model {model_name} not found for relationship {relationship_name}")]
+    TargetModelNotFoundForRelationship {
+        model_name: Qualified<open_dds::models::ModelName>,
+        relationship_name: open_dds::relationships::RelationshipName,
+    },
+
+    #[error("Target command {command_name} not found for relationship {relationship_name}")]
+    TargetCommandNotFoundForRelationship {
+        command_name: Qualified<open_dds::commands::CommandName>,
+        relationship_name: open_dds::relationships::RelationshipName,
+    },
+
     #[error("No source data connector specified for field {field_name} of type {type_name}")]
     NoSourceDataConnector {
         type_name: ast::TypeName,
@@ -117,43 +179,10 @@ pub enum InternalDeveloperError {
         argument_name: ast::Name,
     },
 
-    #[error("Required session variable not found in the request: {session_variable}")]
-    MissingSessionVariable {
-        session_variable: SessionVariableName,
-    },
-
-    #[error("The session variables {session_variable} is not encoded as a string. JSON-typed session variables are not supported unless you update your compatibility date")]
-    VariableJsonNotSupported {
-        session_variable: SessionVariableName,
-    },
-
-    #[error("Session variable {session_variable} value is of an unexpected type. Expected: {expected}, but found: {found}")]
-    VariableTypeCast {
-        session_variable: SessionVariableName,
-        expected: String,
-        found: String,
-    },
-
-    #[error("Typecasting session variable {session_variable} to an array is not supported. Update your compatibility date to enable JSON session variables")]
-    VariableArrayTypeCastNotSupported {
-        session_variable: SessionVariableName,
-    },
-
-    #[error("Expected session variable {session_variable} to be a valid JSON value, but encountered a JSON parsing error: {parse_error}")]
-    VariableExpectedJson {
-        session_variable: SessionVariableName,
-        parse_error: serde_json::Error,
-    },
-
     #[error("Mapping for the {mapping_kind} typename {type_name:} not found")]
     TypenameMappingNotFound {
         type_name: ast::TypeName,
         mapping_kind: &'static str,
-    },
-
-    #[error("Type mapping not found for the type name {type_name:}")]
-    TypeMappingNotFound {
-        type_name: Qualified<CustomTypeName>,
     },
 
     #[error("Field mapping not found for the field {field_name:} of type {type_name:}")]
@@ -163,23 +192,13 @@ pub enum InternalDeveloperError {
     },
 
     #[error("{0}")]
-    RelationshipFieldMappingError(#[from] metadata_resolve::RelationshipFieldMappingError),
-
-    #[error("Field mapping not found for the field {field_name:} of type {type_name:} while executing the relationship {relationship_name:}")]
-    FieldMappingNotFoundForRelationship {
-        type_name: Qualified<CustomTypeName>,
-        relationship_name: RelationshipName,
-        field_name: FieldName,
-    },
+    RelationshipFieldMappingError(#[from] plan::RelationshipFieldMappingError),
 
     #[error("Argument mapping not found for the argument {argument_name:} while executing the relationship {relationship_name:}")]
     ArgumentMappingNotFoundForRelationship {
         relationship_name: RelationshipName,
         argument_name: ArgumentName,
     },
-
-    #[error("Could not convert the provided header value to string as it contains non-visible ASCII characters")]
-    IllegalCharactersInHeaderValue,
 
     #[error("The aggregation function {aggregation_function} operating over the {aggregate_operand_type} type is missing a data connector mapping for {data_connector_name}")]
     DataConnectorAggregationFunctionNotFound {
@@ -200,8 +219,8 @@ pub enum InternalDeveloperError {
         aggregation_function: AggregationFunctionName,
     },
 
-    #[error("The relationship '{relationship_name}' is from a nested object and cannot be used in a predicate")]
-    NestedObjectRelationshipInPredicate { relationship_name: RelationshipName },
+    #[error("{0}")]
+    PlanInternalDeveloperError(plan::InternalDeveloperError),
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -218,22 +237,19 @@ pub enum InternalEngineError {
     #[error("unexpected annotation: {annotation}")]
     UnexpectedAnnotation { annotation: Annotation },
 
-    #[error("unexpected namespace annotation: {namespace_annotation:} found, expected type {expected_type:}")]
-    UnexpectedNamespaceAnnotation {
-        namespace_annotation: NamespaceAnnotation,
-        expected_type: String,
-    },
-
     #[error("expected namespace annotation type {namespace_annotation_type} but not found")]
     // Running into this error means that the GDS field was not annotated with the correct
     // namespace annotation while building the metadata.
     ExpectedNamespaceAnnotationNotFound { namespace_annotation_type: String },
 
-    #[error("internal error during execution of argument presets: {description}")]
-    ArgumentPresetExecution { description: String },
-
     #[error("Subscription is restricted by select permission")]
     SubscriptionNotAllowed,
+
+    #[error("{0}")]
+    PlanInternalEngineError(plan::InternalEngineError),
+
+    #[error("{0}")]
+    OrderableRelationshipError(#[from] metadata_resolve::OrderableRelationshipError),
 
     #[error("internal error: {description}")]
     InternalGeneric { description: String },

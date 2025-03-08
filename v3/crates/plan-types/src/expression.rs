@@ -7,6 +7,8 @@ use std::sync::Arc;
 
 use crate::{LocalModelRelationshipInfo, NdcRelationshipName, VariableName};
 
+pub const EXPRESSION_SCALAR_VALUE_VIRTUAL_COLUMN_NAME: &str = "__value";
+
 /// Represent a boolean expression that can be used to filter data
 #[derive(Debug, Serialize, Clone, PartialEq)]
 pub enum Expression<'s> {
@@ -23,6 +25,14 @@ pub enum Expression<'s> {
     LocalField(LocalFieldComparison),
     /// Expression using a nested array for comparison
     LocalNestedArray {
+        column: DataConnectorColumnName,
+        field_path: Vec<DataConnectorColumnName>,
+        predicate: Box<Expression<'s>>,
+    },
+    /// Expression using a nested array of scalars for comparison.
+    /// Each scalar element is lifted into a virtual object with one '__value' property
+    /// that contains the scalar value
+    LocalNestedScalarArray {
         column: DataConnectorColumnName,
         field_path: Vec<DataConnectorColumnName>,
         predicate: Box<Expression<'s>>,
@@ -72,19 +82,21 @@ impl<'s> Expression<'s> {
         if expressions.len() == 1 {
             expressions.into_iter().next().unwrap()
         }
-        // If all subexpressions are also `and`, we can flatten into a single `and`
+        // If any subexpressions are also `and`, we can flatten into a single `and`
         // ie. and([and([x,y]), and([a,b])]) == and([x,y,a,b])
+        // ie. and([a, and([b,c])]) == and([a,b,c])
         else if expressions
             .iter()
-            .all(|expr| matches!(expr, Expression::And { .. }))
+            .any(|expr| matches!(expr, Expression::And { .. }))
         {
             let subexprs = expressions
                 .into_iter()
                 .flat_map(|expr| match expr {
                     Expression::And { expressions } => expressions,
-                    _ => vec![],
+                    other => vec![other],
                 })
                 .collect();
+
             Expression::And {
                 expressions: subexprs,
             }
