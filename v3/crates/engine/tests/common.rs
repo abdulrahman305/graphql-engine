@@ -1,15 +1,14 @@
 use anyhow::anyhow;
-use goldenfile::{differs::text_diff, Mint};
+use goldenfile::{Mint, differs::text_diff};
 use graphql_frontend::execute_query;
-use graphql_ir::GraphqlRequestPipeline;
 use graphql_schema::GDS;
 use hasura_authn_core::{
     Identity, JsonSessionVariableValue, Role, Session, SessionError, SessionVariableValue,
 };
 use lang_graphql::ast::common as ast;
 use lang_graphql::{http::RawRequest, schema::Schema};
-use metadata_resolve::{data_connectors::NdcVersion, LifecyclePluginConfigs};
-use open_dds::session_variables::{SessionVariableName, SESSION_VARIABLE_ROLE};
+use metadata_resolve::data_connectors::NdcVersion;
+use open_dds::session_variables::{SESSION_VARIABLE_ROLE, SessionVariableName};
 use pretty_assertions::assert_eq;
 use serde_json as json;
 use std::collections::BTreeMap;
@@ -22,8 +21,10 @@ use std::{
     path::PathBuf,
 };
 extern crate json_value_merge;
+use axum::http::{HeaderMap, Method, Uri};
 use engine_types::{ExposeInternalErrors, HttpContext, ProjectId};
 use json_value_merge::Merge;
+use jsonapi_library::query::Query;
 use serde_json::Value;
 
 pub struct GoldenTestContext {
@@ -145,8 +146,7 @@ pub(crate) fn test_introspection_expectation(
         // Execute the test
         let mut responses = Vec::new();
         for session in &sessions {
-            let (_, http_response, _) = execute_query(
-                GraphqlRequestPipeline::Old,
+            let (_, http_response) = execute_query(
                 ExposeInternalErrors::Expose,
                 &test_ctx.http_context,
                 &schema,
@@ -158,22 +158,6 @@ pub(crate) fn test_introspection_expectation(
             )
             .await;
             let response = http_response.inner();
-
-            // do the same with OpenDD pipeline and diff the responses
-            let (_, open_dd_response, _) = execute_query(
-                GraphqlRequestPipeline::OpenDd, // the interesting part
-                ExposeInternalErrors::Expose,
-                &test_ctx.http_context,
-                &schema,
-                &arc_resolved_metadata,
-                session,
-                &request_headers,
-                raw_request.clone(),
-                None,
-            )
-            .await;
-
-            compare_graphql_responses(&response, &open_dd_response.inner(), "OpenDD pipeline");
 
             responses.push(response);
         }
@@ -205,6 +189,120 @@ pub fn test_execution_expectation(
         common_metadata_paths,
         BTreeMap::new(),
     )
+}
+
+#[derive(Debug, serde::Deserialize)]
+enum JsonApiRequest {
+    #[serde(rename = "GET")]
+    Get(String),
+}
+
+impl JsonApiRequest {
+    fn to_method(&self) -> Method {
+        match self {
+            JsonApiRequest::Get(_) => Method::GET,
+        }
+    }
+
+    fn to_path(&self) -> &str {
+        match self {
+            JsonApiRequest::Get(path) => path,
+        }
+    }
+}
+
+async fn test_jsonapi(
+    test_path: &Path,
+    test_path_string: &str,
+    test_ctx: &mut GoldenTestContext,
+    sessions: &[Session],
+    resolved_metadata: Arc<metadata_resolve::Metadata>,
+) -> anyhow::Result<()> {
+    let request_path = test_path.join("request_jsonapi.json");
+    let response_path = test_path_string.to_string() + "/expected_jsonapi.json";
+
+    // Skip if no JSONAPI request file exists
+    if !request_path.exists() {
+        return Ok(());
+    }
+
+    // Get JSONAPI catalog
+    let (catalog, _warnings) = jsonapi::Catalog::new(&resolved_metadata);
+
+    // Read and parse requests
+    let request_content = std::fs::read_to_string(&request_path)?;
+    let requests: Vec<JsonApiRequest> = serde_json::from_str(&request_content).map_err(|e| {
+        anyhow::anyhow!(
+            "Failed to parse JSONAPI request file {}: {}",
+            request_path.display(),
+            e
+        )
+    })?;
+
+    // For each session, execute all requests
+    let mut all_responses = Vec::with_capacity(sessions.len());
+
+    for session in sessions {
+        let mut session_responses = Vec::with_capacity(requests.len());
+
+        for request in &requests {
+            let (path, query_params) = parse_jsonapi_request(request.to_path());
+
+            let result = jsonapi::handler_internal(
+                Arc::new(HeaderMap::default()),
+                Arc::new(test_ctx.http_context.clone()),
+                Arc::new(session.clone()),
+                &catalog,
+                resolved_metadata.clone(),
+                request.to_method(),
+                Uri::try_from(&path).map_err(|e| anyhow::anyhow!("Invalid URI: {}", e))?,
+                Query::from_params(&query_params),
+            )
+            .await;
+
+            let response = match result {
+                Ok(response) => serde_json::to_value(response)?,
+                Err(e) => serde_json::to_value(
+                    e.into_http_error(engine_types::ExposeInternalErrors::Expose)
+                        .into_document_error(),
+                )?,
+            };
+
+            session_responses.push(response);
+        }
+
+        all_responses.push(session_responses);
+    }
+
+    // Write JSONAPI responses
+    let mut expected_jsonapi = test_ctx.mint.new_goldenfile_with_differ(
+        &response_path,
+        Box::new(|file1, file2| {
+            let json1: serde_json::Value =
+                serde_json::from_reader(File::open(file1).unwrap()).unwrap();
+            let json2: serde_json::Value =
+                serde_json::from_reader(File::open(file2).unwrap()).unwrap();
+            if json1 != json2 {
+                text_diff(file1, file2);
+            }
+        }),
+    )?;
+    write!(
+        expected_jsonapi,
+        "{}",
+        serde_json::to_string_pretty(&all_responses)?
+    )?;
+
+    Ok(())
+}
+
+fn parse_jsonapi_request(content: &str) -> (String, String) {
+    let parts: Vec<&str> = content.trim().split('?').collect();
+    match parts.len() {
+        1 => (parts[0].to_string(), String::new()),
+        2 => (parts[0].to_string(), parts[1].to_string()),
+        _ => panic!("Invalid JSONAPI request format"),
+    }
 }
 
 #[allow(clippy::print_stdout, dead_code)]
@@ -336,8 +434,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                         variables: None,
                     };
                     for session in &sessions {
-                        let (_, response, _) = execute_query(
-                            GraphqlRequestPipeline::Old,
+                        let (_, response) = execute_query(
                             ExposeInternalErrors::Expose,
                             &test_ctx.http_context,
                             &schema,
@@ -349,8 +446,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                         )
                         .await;
                         let http_response = response.inner();
-                        let graphql_ws_response_old = run_query_graphql_ws(
-                            GraphqlRequestPipeline::Old,
+                        let graphql_ws_response = run_query_graphql_ws(
                             ExposeInternalErrors::Expose,
                             &test_ctx.http_context,
                             &schema,
@@ -363,52 +459,8 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                         .await;
                         compare_graphql_responses(
                             &http_response,
-                            &graphql_ws_response_old,
+                            &graphql_ws_response,
                             "websockets",
-                        );
-                        let graphql_ws_response_new = run_query_graphql_ws(
-                            GraphqlRequestPipeline::OpenDd,
-                            ExposeInternalErrors::Expose,
-                            &test_ctx.http_context,
-                            &schema,
-                            arc_resolved_metadata.clone(),
-                            session,
-                            &request_headers,
-                            raw_request.clone(),
-                            None,
-                        )
-                        .await;
-                        compare_graphql_responses(
-                            &http_response,
-                            &graphql_ws_response_new,
-                            "websockets",
-                        );
-                        // run tests with new pipeline and diff them
-                        let (_, open_dd_response, _) = execute_query(
-                            GraphqlRequestPipeline::OpenDd, // the interesting part
-                            ExposeInternalErrors::Expose,
-                            &test_ctx.http_context,
-                            &schema,
-                            &arc_resolved_metadata,
-                            session,
-                            &request_headers,
-                            raw_request.clone(),
-                            None,
-                        )
-                        .await;
-                        compare_graphql_responses(
-                            &http_response,
-                            &open_dd_response.inner(),
-                            "OpenDD pipeline",
-                        );
-
-                        // check execution plans are the same
-                        diff_execution_plan(
-                            &schema,
-                            &arc_resolved_metadata.clone(),
-                            session,
-                            &request_headers,
-                            &raw_request,
                         );
 
                         responses.push(http_response);
@@ -422,8 +474,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                             variables: Some(variables),
                         };
                         // do actual test
-                        let (_, response, _) = execute_query(
-                            GraphqlRequestPipeline::Old,
+                        let (_, response) = execute_query(
                             ExposeInternalErrors::Expose,
                             &test_ctx.http_context,
                             &schema,
@@ -435,8 +486,7 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                         )
                         .await;
                         let http_response = response.inner();
-                        let graphql_ws_response_old = run_query_graphql_ws(
-                            GraphqlRequestPipeline::Old,
+                        let graphql_ws_response = run_query_graphql_ws(
                             ExposeInternalErrors::Expose,
                             &test_ctx.http_context,
                             &schema,
@@ -449,53 +499,8 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                         .await;
                         compare_graphql_responses(
                             &http_response,
-                            &graphql_ws_response_old,
+                            &graphql_ws_response,
                             "websockets",
-                        );
-                        let graphql_ws_response_new = run_query_graphql_ws(
-                            GraphqlRequestPipeline::OpenDd,
-                            ExposeInternalErrors::Expose,
-                            &test_ctx.http_context,
-                            &schema,
-                            arc_resolved_metadata.clone(),
-                            session,
-                            &request_headers,
-                            raw_request.clone(),
-                            None,
-                        )
-                        .await;
-                        compare_graphql_responses(
-                            &http_response,
-                            &graphql_ws_response_new,
-                            "websockets",
-                        );
-
-                        // run tests with new pipeline and diff them
-                        let (_, open_dd_response, _) = execute_query(
-                            GraphqlRequestPipeline::OpenDd, // the interesting part
-                            ExposeInternalErrors::Expose,
-                            &test_ctx.http_context,
-                            &schema,
-                            &arc_resolved_metadata,
-                            session,
-                            &request_headers,
-                            raw_request.clone(),
-                            None,
-                        )
-                        .await;
-                        compare_graphql_responses(
-                            &http_response,
-                            &open_dd_response.inner(),
-                            "OpenDD pipeline",
-                        );
-
-                        // check execution plans are the same
-                        diff_execution_plan(
-                            &schema,
-                            &arc_resolved_metadata.clone(),
-                            session,
-                            &request_headers,
-                            &raw_request,
                         );
 
                         responses.push(http_response);
@@ -530,6 +535,16 @@ pub fn test_execution_expectation_for_multiple_ndc_versions(
                 }),
             )?;
             write!(expected, "{}", serde_json::to_string_pretty(&responses)?)?;
+
+            // Run JSONAPI test
+            test_jsonapi(
+                &test_path,
+                test_path_string,
+                &mut test_ctx,
+                &sessions,
+                arc_resolved_metadata.clone(),
+            )
+            .await?;
         }
 
         Ok(())
@@ -608,7 +623,6 @@ pub fn test_execute_explain(
             variables: None,
         };
         let (_, raw_response) = graphql_frontend::execute_explain(
-            GraphqlRequestPipeline::Old,
             ExposeInternalErrors::Expose,
             &test_ctx.http_context,
             &schema,
@@ -678,7 +692,6 @@ fn compare_graphql_responses(
 
 /// Execute a GraphQL query over a dummy WebSocket connection.
 async fn run_query_graphql_ws(
-    request_pipeline: GraphqlRequestPipeline,
     expose_internal_errors: ExposeInternalErrors,
     http_context: &HttpContext,
     schema: &Schema<GDS>,
@@ -702,8 +715,9 @@ async fn run_query_graphql_ws(
         auth_config_flags: hasura_authn::AuthConfigFlags::default(),
     };
 
+    let runtime_flags = metadata.runtime_flags.clone();
+
     let context = graphql_ws::Context {
-        request_pipeline,
         connection_expiry: graphql_ws::ConnectionExpiry::Never,
         http_context: http_context.clone(),
         expose_internal_errors,
@@ -711,11 +725,6 @@ async fn run_query_graphql_ws(
         project_id: project_id.cloned(),
         schema: Arc::new(schema.clone()),
         auth_config: Arc::new(dummy_auth_config),
-        plugin_configs: Arc::new(LifecyclePluginConfigs {
-            pre_parse_plugins: Vec::new(),
-            pre_response_plugins: Vec::new(),
-            pre_route_plugins: Vec::new(),
-        }),
         metrics: graphql_ws::NoOpWebSocketMetrics,
         handshake_headers: Arc::new(request_headers.clone()),
     };
@@ -734,6 +743,7 @@ async fn run_query_graphql_ws(
         request_headers.clone(),
         &dummy_conn,
         request,
+        &runtime_flags,
     )
     .await;
     match result {
@@ -789,59 +799,4 @@ async fn run_query_graphql_ws(
         };
     }
     response
-}
-
-/// Compare executions plans. If they fail to build, ignore them.
-pub fn diff_execution_plan(
-    schema: &'_ lang_graphql::schema::Schema<GDS>,
-    metadata: &'_ Arc<metadata_resolve::Metadata>,
-    session: &Session,
-    request_headers: &reqwest::header::HeaderMap,
-    raw_request: &lang_graphql::http::RawRequest,
-) {
-    // parse the raw request into a GQL query
-    if let Ok(query) = graphql_frontend::parse_query(&raw_request.query) {
-        // normalize the parsed GQL query
-        if let Ok(normalized_request) =
-            graphql_frontend::normalize_request(schema, session, query, raw_request)
-        {
-            // generate IR
-            if let Ok(old_ir) = graphql_frontend::build_ir(
-                GraphqlRequestPipeline::Old,
-                schema,
-                metadata,
-                session,
-                request_headers,
-                &normalized_request,
-            ) {
-                // construct a plan to execute the request
-                if let Ok(old_request_plan) = graphql_frontend::build_request_plan(
-                    &old_ir,
-                    metadata,
-                    session,
-                    request_headers,
-                ) {
-                    // generate IR
-                    if let Ok(new_ir) = graphql_frontend::build_ir(
-                        GraphqlRequestPipeline::OpenDd,
-                        schema,
-                        metadata,
-                        session,
-                        request_headers,
-                        &normalized_request,
-                    ) {
-                        // construct a plan to execute the request
-                        if let Ok(new_request_plan) = graphql_frontend::build_request_plan(
-                            &new_ir,
-                            metadata,
-                            session,
-                            request_headers,
-                        ) {
-                            similar_asserts::assert_eq!(old_request_plan, new_request_plan);
-                        }
-                    }
-                }
-            }
-        }
-    }
 }

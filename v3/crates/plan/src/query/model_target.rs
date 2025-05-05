@@ -73,7 +73,6 @@ pub fn model_target_to_ndc_query(
                 metadata,
                 session,
                 &model_source.type_mappings,
-                &model.model.data_type,
                 model_object_type,
                 model.filter_expression_type.as_ref(),
                 expr,
@@ -88,7 +87,7 @@ pub fn model_target_to_ndc_query(
                 unique_number,
             )?;
 
-            Some(resolved_filter_expression)
+            resolved_filter_expression.remove_always_true_expression()
         }
         _ => None,
     };
@@ -99,7 +98,8 @@ pub fn model_target_to_ndc_query(
             permission_filter,
             filter,
         ])),
-    };
+    }
+    .and_then(ResolvedFilterExpression::remove_always_true_expression);
 
     let order_by_elements = model_target
         .order_by

@@ -5,7 +5,7 @@ use std::{
     sync::LazyLock,
 };
 
-use schemars::{schema, JsonSchema};
+use schemars::{JsonSchema, schema};
 use serde::{Deserialize, Serialize};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -50,6 +50,11 @@ pub enum Flag {
     ValidateArgumentMappingTypes,
     DisallowInvalidHeadersInAuthConfig,
     RequireJwtAudienceValidationIfAudClaimPresent,
+    DisallowProcedureCommandRelationships,
+    DisallowDuplicateModelPermissionsRoles,
+    ValidateScalarBooleanExpressionOperators,
+    ValidateNonNullGraphqlVariables,
+    DisallowComparableRelationshipTargetWithNoBooleanExpressionType,
 }
 
 impl Flag {
@@ -134,6 +139,19 @@ impl Flag {
             Flag::DisallowInvalidHeadersInAuthConfig => "disallow_invalid_headers_in_auth_config",
             Flag::RequireJwtAudienceValidationIfAudClaimPresent => {
                 "require_jwt_audience_validation_if_aud_claim_present"
+            }
+            Flag::DisallowProcedureCommandRelationships => {
+                "disallow_procedure_command_relationships"
+            }
+            Flag::DisallowDuplicateModelPermissionsRoles => {
+                "disallow_duplicate_model_permissions_roles"
+            }
+            Flag::ValidateScalarBooleanExpressionOperators => {
+                "validate_scalar_boolean_expression_operators"
+            }
+            Flag::ValidateNonNullGraphqlVariables => "validate_non_null_graphql_variables",
+            Flag::DisallowComparableRelationshipTargetWithNoBooleanExpressionType => {
+                "disallow_comparable_relationship_target_with_no_boolean_expression_type"
             }
         }
     }
@@ -271,7 +289,7 @@ impl JsonSchema for OpenDdFlags {
         "OpenDdFlags".to_owned()
     }
 
-    fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> schema::Schema {
+    fn json_schema(_gen: &mut schemars::r#gen::SchemaGenerator) -> schema::Schema {
         let mut properties = schemars::Map::<String, schema::Schema>::new();
 
         for flag in Flag::iter() {

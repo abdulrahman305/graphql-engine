@@ -4,22 +4,21 @@ use std::sync::OnceLock;
 use std::time::Duration;
 
 use auth_base::{Identity, Role, RoleAuthorization, SessionVariableName, SessionVariableValue};
-use axum::{
-    http::{HeaderMap, HeaderName, StatusCode},
-    response::IntoResponse,
-};
-use reqwest::{header::ToStrError, Url};
-use serde::{de::Error as SerdeDeError, Deserialize, Deserializer, Serialize, Serializer};
+use axum::http::{HeaderMap, HeaderName, StatusCode};
+use reqwest::{Url, header::ToStrError};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as SerdeDeError};
 
 use hasura_authn_core as auth_base;
-use open_dds::{session_variables, EnvironmentValue};
+use open_dds::{EnvironmentValue, session_variables};
 use schemars::JsonSchema;
 use serde_json::Value;
 use tracing_util::{ErrorVisibility, SpanVisibility, TraceableError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Error in converting the header value corresponding to the {header_name} to a String - {error}")]
+    #[error(
+        "Error in converting the header value corresponding to the {header_name} to a String - {error}"
+    )]
     ErrorInConvertingHeaderValueToString {
         header_name: HeaderName,
         error: ToStrError,
@@ -41,7 +40,9 @@ impl TraceableError for Error {
 pub enum InternalError {
     #[error("Error while making the authentication HTTP request to the webhook - {0}")]
     ErrorWhileMakingHTTPRequestToTheAuthHook(reqwest::Error),
-    #[error("The authentication hook has returned the status {0}. Only 200 and 401 response status are recognized.")]
+    #[error(
+        "The authentication hook has returned the status {0}. Only 200 and 401 response status are recognized."
+    )]
     AuthHookUnexpectedStatus(reqwest::StatusCode),
     #[error("Reqwest error: {0}")]
     ReqwestError(reqwest::Error),
@@ -68,22 +69,19 @@ impl Error {
             Error::Internal(_e) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
-}
 
-impl IntoResponse for Error {
-    fn into_response(self) -> axum::response::Response {
+    pub fn into_middleware_error(self) -> engine_types::MiddlewareError {
         let is_internal = match &self {
             Error::ErrorInConvertingHeaderValueToString { .. } | Error::AuthenticationFailed => {
                 false
             }
             Error::Internal(_e) => true,
         };
-        lang_graphql::http::Response::error_message_with_status(
-            self.to_status_code(),
-            self.to_string(),
+        engine_types::MiddlewareError {
+            status: self.to_status_code(),
+            message: self.to_string(),
             is_internal,
-        )
-        .into_response()
+        }
     }
 }
 
@@ -429,7 +427,7 @@ impl schemars::JsonSchema for All {
         "All".to_string()
     }
 
-    fn json_schema(_gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+    fn json_schema(_gen: &mut schemars::r#gen::SchemaGenerator) -> schemars::schema::Schema {
         schemars::schema::Schema::Object(schemars::schema::SchemaObject {
             metadata: Some(Box::new(schemars::schema::Metadata {
                 title: Some(Self::schema_name()),
@@ -841,7 +839,7 @@ mod tests {
     use super::*;
     use auth_base::Role;
     use mockito;
-    use rand::{thread_rng, Rng};
+    use rand::{Rng, rng};
     use reqwest::header::CONTENT_TYPE;
     use serde_json::json;
 
@@ -1244,14 +1242,14 @@ mod tests {
 
         let url = server.url();
 
-        let mut rng = thread_rng();
+        let mut rng = rng();
 
         // Generate a random HTTP status code
-        let mut http_status_code: usize = rng.gen_range(100..600);
+        let mut http_status_code: usize = rng.random_range(100..600);
 
         // Make sure that it's not either 200/401.
         while http_status_code == 200 || http_status_code == 401 {
-            http_status_code = rng.gen_range(100..600);
+            http_status_code = rng.random_range(100..600);
         }
 
         // Create a mock

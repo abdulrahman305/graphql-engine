@@ -2,21 +2,20 @@ use std::collections::HashMap;
 use std::time::Duration;
 
 use axum::http::{HeaderMap, HeaderValue};
-use axum::response::IntoResponse;
 use cookie::{self, Cookie};
 use hasura_authn_core::{JsonSessionVariableValue, Role};
 use jsonptr::Pointer;
-use jsonwebtoken::{self as jwt, decode, DecodingKey, Validation};
+use jsonwebtoken::{self as jwt, DecodingKey, Validation, decode};
 use jwt::decode_header;
 use open_dds::session_variables::SessionVariableName;
-use reqwest::header::{AUTHORIZATION, COOKIE};
 use reqwest::StatusCode;
-use schemars::gen::SchemaGenerator;
+use reqwest::header::{AUTHORIZATION, COOKIE};
+use schemars::r#gen::SchemaGenerator;
 use schemars::schema::{Schema, SchemaObject};
 
 use schemars::JsonSchema;
-use serde::{de::Error as SerdeDeError, Deserialize, Deserializer, Serialize, Serializer};
-use serde_json::{json, Value};
+use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as SerdeDeError};
+use serde_json::{Value, json};
 use std::collections::HashSet;
 use tracing_util::{ErrorVisibility, SpanVisibility, TraceableError};
 use url::Url;
@@ -120,10 +119,8 @@ impl Error {
             | Error::ClaimMustBeAString { claim_name: _ } => StatusCode::BAD_REQUEST,
         }
     }
-}
 
-impl IntoResponse for Error {
-    fn into_response(self) -> axum::response::Response {
+    pub fn into_middleware_error(self) -> engine_types::MiddlewareError {
         let is_internal = match self {
             Error::Internal(_) => true,
             Error::ErrorDecodingAuthorizationHeader(_)
@@ -146,12 +143,11 @@ impl IntoResponse for Error {
             | Error::MissingCookieValue { cookie_name: _ }
             | Error::ClaimMustBeAString { claim_name: _ } => false,
         };
-        lang_graphql::http::Response::error_message_with_status(
-            self.to_status_code(),
-            self.to_string(),
+        engine_types::MiddlewareError {
+            status: self.to_status_code(),
+            message: self.to_string(),
             is_internal,
-        )
-        .into_response()
+        }
     }
 }
 
@@ -233,8 +229,8 @@ pub enum JWTClaimsFormat {
     StringifiedJson,
 }
 
-fn json_pointer_schema(gen: &mut SchemaGenerator) -> Schema {
-    let mut schema: SchemaObject = <String>::json_schema(gen).into();
+fn json_pointer_schema(generator: &mut SchemaGenerator) -> Schema {
+    let mut schema: SchemaObject = <String>::json_schema(generator).into();
     schema.format = Some("JSON pointer".to_string());
     schema.into()
 }
@@ -750,7 +746,7 @@ mod tests {
 
     use jsonwebkey as jwk;
     use jwk::{Algorithm::ES256, JsonWebKey};
-    use jwt::{encode, EncodingKey};
+    use jwt::{EncodingKey, encode};
     use openssl::pkey::PKey;
     use openssl::rsa::Rsa;
     use tokio;

@@ -2,6 +2,156 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed a bug where scalar type lookups in remote relationships would fail due
+  to looking up in the source rather than target data connector
+
+### Changed
+
+### Added
+
+## [v2025.04.30]
+
+### Fixed
+
+### Changed
+
+### Added
+
+## [v2025.04.28]
+
+### Fixed
+
+- Fixed regression where `is_null` calls on nested array fields would throw an
+  error
+
+## [v2025.04.23]
+
+### Added
+
+- Clearer error messages when defining a comparable relationship to a model that
+  has no filter expression defined
+
+## [v2025.04.14]
+
+### Fixed
+
+- Fixed a bug in which using a graphql alias in a query involving a remote
+  relationship would result in a runtime error
+
+## [v2025.04.02]
+
+### Added
+
+- Add data connector error details to trace error messages. This will help
+  debugging data connector errors.
+- Add a flag `validate_non_null_graphql_variables` to enable runtime validations
+  for non-nullable GraphQL variables.
+- Improved metadata JSON deserialization errors by adding more contextual
+  information.
+
+### Changed
+
+- Model permissions can now reference nested object fields. For instance, to
+  select all institutions where the country of their location is "UK":
+
+```yaml
+kind: ModelPermissions
+version: v1
+definition:
+  modelName: institutions
+  permissions:
+    - role: admin
+      select:
+        filter:
+          nestedField:
+            fieldName: location
+            predicate:
+              nestedField:
+                fieldName: country
+                predicate:
+                  fieldComparison:
+                    field: name
+                    operator: _eq
+                    value:
+                      literal: UK
+```
+
+## [v2025.03.25]
+
+### Fixed
+
+- Apply validations for operators in scalar boolean expressions:
+  - Disallow non-list argument types for the `_in` operator.
+  - Argument type must match the scalar type for `_eq`, `_lt`, `_lte`, `_gt` and
+    `_gte` operators.
+  - Operators such as `contains`, `icontains`, `starts_with`, `istarts_with`,
+    `ends_with`, and `iends_with` now only applicable on string scalars, with
+    arguments strictly of type string.
+  - Check if mapped operators exist in the data connector.
+  - Check the argument type compatibility with the mapped operator's NDC
+    argument type.
+- The `value` alias for `literal` fields in `ValueExpression` and
+  `ValueExpressionOrPredicate` was removed in a recent change, and is now
+  reinstated.
+
+## [v2025.03.20]
+
+### Changed
+
+- Improved error messages for ModelPermissions build errors that include more
+  contextual information
+
+### Fixed
+
+- JSON paths in metadata parse errors involving externally tagged unions (such
+  as `BooleanExpressionOperand`) now correctly include the tag property in the
+  path.
+- ModelPermissions no longer allow roles to be defined more than once
+
+## [v2025.03.17]
+
+### Added
+
+- Added `/v1/jsonapi` as an alias for `/v1/rest` endpoints to better reflect the
+  JSONAPI specification compliance.
+
+## [v2025.03.13]
+
+### Changed
+
+- Data connectors resolve step now returns multiple errors rather than failing
+  on the first one.
+- Improved build errors for when older versions of the ddn CLI generate invalid
+  metadata in the DataConnectorLink; the new error guides users to upgrade their
+  CLI version.
+- Scalar types resolve step now returns multiple errors rather than failing on
+  the first one.
+
+### Fixed
+
+- Remote joins that map fields that contain objects now correctly pass the whole
+  object contained in that field to the target data connector, instead of
+  sometimes a subset based on what's been selected in the GraphQL query. In
+  addition, the fields of the object are now mapped correctly to the target data
+  connector's field names.
+
+## [v2025.03.11]
+
+### Added
+
+- Add error contexts and paths to some argument errors for Models and Commands.
+
+### Changed
+
+- Empty filter expressions are consistent between old and OpenDD execution
+  pipelines
+
+- Fixed error responses from JSON:API by making it spec-compliant.
+
+## [v2025.03.10]
+
 ### Added
 
 #### Native Data Connector (NDC) Specification v0.2.0 Support
@@ -239,6 +389,8 @@ definition:
 
 #### Other
 
+- Relationships that target models are now able to provide mappings that target
+  model arguments.
 - Pretty print errors where they have had contexts and paths provided
 
 ### Fixed
@@ -250,6 +402,7 @@ definition:
 - Validate `AuthConfig` headers to ensure they are valid HTTP headers.
 - GraphQL API: Fixed a bug where `null` inputs for nullable query parameters
   like `limit`, `offset`, `order_by` and `where` would cause an error.
+- Disallow relationships targeting procedure based commands.
 
 ### Changed
 
@@ -259,8 +412,6 @@ definition:
 
 - Added validation for command output types to ensure they reference valid types
   in the schema.
-- Relationships that target models are now able to provide mappings that target
-  model arguments.
 
 ### Fixed
 
@@ -1451,7 +1602,18 @@ Initial release.
 
 <!-- end -->
 
-[Unreleased]: https://github.com/hasura/v3-engine/compare/v2025.02.26...HEAD
+[Unreleased]: https://github.com/hasura/v3-engine/compare/v2025.04.30...HEAD
+[v2025.04.30]: https://github.com/hasura/v3-engine/releases/tag/v2025.04.30
+[v2025.04.28]: https://github.com/hasura/v3-engine/releases/tag/v2025.04.28
+[v2025.04.23]: https://github.com/hasura/v3-engine/releases/tag/v2025.04.23
+[v2025.04.14]: https://github.com/hasura/v3-engine/releases/tag/v2025.04.14
+[v2025.04.02]: https://github.com/hasura/v3-engine/releases/tag/v2025.04.02
+[v2025.03.25]: https://github.com/hasura/v3-engine/releases/tag/v2025.03.25
+[v2025.03.20]: https://github.com/hasura/v3-engine/releases/tag/v2025.03.20
+[v2025.03.17]: https://github.com/hasura/v3-engine/releases/tag/v2025.03.17
+[v2025.03.13]: https://github.com/hasura/v3-engine/releases/tag/v2025.03.13
+[v2025.03.11]: https://github.com/hasura/v3-engine/releases/tag/v2025.03.11
+[v2025.03.10]: https://github.com/hasura/v3-engine/releases/tag/v2025.03.10
 [v2025.02.26]: https://github.com/hasura/v3-engine/releases/tag/v2025.02.26
 [v2025.02.20]: https://github.com/hasura/v3-engine/releases/tag/v2025.02.20
 [v2025.02.19]: https://github.com/hasura/v3-engine/releases/tag/v2025.02.19

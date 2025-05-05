@@ -2,7 +2,7 @@
 resolver = "2"
 
 package.version = "3.0.0"
-package.edition = "2021"
+package.edition = "2024"
 package.license = "Apache-2.0"
 
 members = [
@@ -64,7 +64,7 @@ used_underscore_binding = "allow"
 private_intra_doc_links = "allow"
 
 [workspace.dependencies]
-ndc-models = { package = "ndc-models", git = "https://github.com/hasura/ndc-spec.git", tag = "v0.2.0" } # When you update this tag, also update the schema references in crates/open-dds/src/data_connector.rs
+ndc-models = { package = "ndc-models", git = "https://github.com/hasura/ndc-spec.git", tag = "v0.2.2", features = ["arc-relation"]} # When you update this tag, also update the schema references in crates/open-dds/src/data_connector.rs
 ndc-models-v01 = { package = "ndc-models", git = "https://github.com/hasura/ndc-spec.git", tag = "v0.1.6" } # When you update this tag, also update the schema references in crates/open-dds/src/data_connector.rs
 
 anyhow = "1"
@@ -102,7 +102,7 @@ human_bytes = "0.4"
 indexmap = { version = "2", features = ["serde"] }
 insta = { version = "1", features = ["glob", "json"] }
 iso8601 = "0.6.2"
-itertools = "0.13.0"
+itertools = "0.14.0"
 json_value_merge = "2"
 jsonapi_library = { package = "jsonapi", git = "https://github.com/hasura/jsonapi-rust.git", rev = "9b5a3a08414e559c7285b539acd4d4fc7b31f3b5" }
 jsonptr = "0.4"
@@ -126,11 +126,12 @@ opentelemetry-semantic-conventions = "0.16"
 opentelemetry-stdout = { version = "0.5", default-features = false, features = ["trace"] }
 opentelemetry-zipkin = "0.22"
 opentelemetry_sdk = { version = "0.24", features = ["rt-tokio"] }
+partition_eithers = "0.1.0"
 postcard = { version = "1", features = ["use-std"] }
 pretty_assertions = "1"
 proc-macro2 = "1"
 quote = "1"
-rand = "0.8"
+rand = "0.9"
 ref-cast = "1"
 regex = "1"
 reqwest = { version = "0.12", features = ["json", "multipart", "stream"] }
@@ -138,6 +139,7 @@ rmp-serde = "1"
 semver = "1.0"
 schemars = { version = "0.8", features = ["preserve_order", "smol_str", "url"] }
 serde = { version = "1", features = ["derive", "rc"] }
+serde_arrow = { version = "0.13.3", features = ["arrow-54"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 serde_path_to_error = "0.1"
 serde_with = { version = "3", features = ["indexmap_2"] }
@@ -147,7 +149,7 @@ smol_str = "0.1"
 strum = "0.26"
 strum_macros = "0.26"
 syn = "2"
-thiserror = "1"
+thiserror = "2"
 tokio = { version = "1", features = ["macros", "parking_lot", "rt-multi-thread", "signal", "time"] }
 tokio-test = "0.4"
 tokio-tungstenite = "0.24.0"
