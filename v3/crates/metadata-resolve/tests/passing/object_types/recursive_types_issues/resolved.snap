@@ -78,7 +78,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     authorization_rules: [],
                     by_role: {},
                 },
-                type_input_permissions: {},
+                type_input_permissions: TypeInputPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
                     mappings: {},
@@ -156,7 +159,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     authorization_rules: [],
                     by_role: {},
                 },
-                type_input_permissions: {},
+                type_input_permissions: TypeInputPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
                     mappings: {},
@@ -234,7 +240,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     authorization_rules: [],
                     by_role: {},
                 },
-                type_input_permissions: {},
+                type_input_permissions: TypeInputPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
                     mappings: {},
@@ -312,7 +321,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     authorization_rules: [],
                     by_role: {},
                 },
-                type_input_permissions: {},
+                type_input_permissions: TypeInputPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
                     mappings: {},
@@ -390,7 +402,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     authorization_rules: [],
                     by_role: {},
                 },
-                type_input_permissions: {},
+                type_input_permissions: TypeInputPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
                     mappings: {},
@@ -468,7 +483,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     authorization_rules: [],
                     by_role: {},
                 },
-                type_input_permissions: {},
+                type_input_permissions: TypeInputPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
                     mappings: {},
@@ -547,7 +565,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     source: None,
                     description: None,
                 },
-                permissions: {},
+                permissions: CommandPermissions {
+                    by_role: {},
+                    authorization_rules: [],
+                },
             },
             Qualified {
                 subgraph: SubgraphName(
@@ -618,7 +639,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     source: None,
                     description: None,
                 },
-                permissions: {},
+                permissions: CommandPermissions {
+                    by_role: {},
+                    authorization_rules: [],
+                },
             },
             Qualified {
                 subgraph: SubgraphName(
@@ -689,7 +713,10 @@ input_file: crates/metadata-resolve/tests/passing/object_types/recursive_types_i
                     source: None,
                     description: None,
                 },
-                permissions: {},
+                permissions: CommandPermissions {
+                    by_role: {},
+                    authorization_rules: [],
+                },
             },
         },
         boolean_expression_types: BooleanExpressionTypes {

@@ -137,7 +137,10 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                         },
                     },
                 },
-                type_input_permissions: {},
+                type_input_permissions: TypeInputPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
                     mappings: {
@@ -503,7 +506,11 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                             supports_project: DataConnectorRelationalProjectionCapabilities {
                                                 expression_capabilities: DataConnectorRelationalExpressionCapabilities {
                                                     supports_conditional: DataConnectorRelationalConditionalExpressionCapabilities {
-                                                        supports_case: true,
+                                                        supports_case: Some(
+                                                            DataConnectorRelationalCaseExpressionCapabilities {
+                                                                supports_scrutinee: false,
+                                                            },
+                                                        ),
                                                         supports_nullif: true,
                                                     },
                                                     supports_comparison: DataConnectorRelationalComparisonExpressionCapabilities {
@@ -521,6 +528,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                         supports_is_true: true,
                                                         supports_less_than: true,
                                                         supports_less_than_eq: true,
+                                                        supports_is_distinct_from: false,
                                                     },
                                                     supports_scalar: DataConnectorRelationalScalarExpressionCapabilities {
                                                         supports_abs: true,
@@ -606,7 +614,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                         supports_first_value: false,
                                                         supports_last_value: false,
                                                         supports_median: false,
-                                                        supports_string_agg: false,
+                                                        supports_string_agg: None,
                                                         supports_var: false,
                                                         supports_avg: true,
                                                         supports_sum: true,
@@ -616,7 +624,12 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                         supports_stddev_pop: true,
                                                         supports_approx_percentile_cont: true,
                                                         supports_approx_distinct: true,
-                                                        supports_array_agg: true,
+                                                        supports_array_agg: Some(
+                                                            DataConnectorRelationalOrderedAggregateFunctionCapabilities {
+                                                                supports_distinct: false,
+                                                                supports_order_by: false,
+                                                            },
+                                                        ),
                                                     },
                                                     supports_window: DataConnectorRelationalWindowExpressionCapabilities {
                                                         supports_row_number: true,
@@ -626,12 +639,17 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                         supports_cume_dist: false,
                                                         supports_percent_rank: false,
                                                     },
+                                                    supports_scalar_types: None,
                                                 },
                                             },
                                             supports_filter: Some(
                                                 DataConnectorRelationalExpressionCapabilities {
                                                     supports_conditional: DataConnectorRelationalConditionalExpressionCapabilities {
-                                                        supports_case: true,
+                                                        supports_case: Some(
+                                                            DataConnectorRelationalCaseExpressionCapabilities {
+                                                                supports_scrutinee: false,
+                                                            },
+                                                        ),
                                                         supports_nullif: true,
                                                     },
                                                     supports_comparison: DataConnectorRelationalComparisonExpressionCapabilities {
@@ -649,6 +667,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                         supports_is_true: true,
                                                         supports_less_than: true,
                                                         supports_less_than_eq: true,
+                                                        supports_is_distinct_from: false,
                                                     },
                                                     supports_scalar: DataConnectorRelationalScalarExpressionCapabilities {
                                                         supports_abs: true,
@@ -734,7 +753,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                         supports_first_value: false,
                                                         supports_last_value: false,
                                                         supports_median: false,
-                                                        supports_string_agg: false,
+                                                        supports_string_agg: None,
                                                         supports_var: false,
                                                         supports_avg: true,
                                                         supports_sum: true,
@@ -744,7 +763,12 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                         supports_stddev_pop: true,
                                                         supports_approx_percentile_cont: true,
                                                         supports_approx_distinct: true,
-                                                        supports_array_agg: true,
+                                                        supports_array_agg: Some(
+                                                            DataConnectorRelationalOrderedAggregateFunctionCapabilities {
+                                                                supports_distinct: false,
+                                                                supports_order_by: false,
+                                                            },
+                                                        ),
                                                     },
                                                     supports_window: DataConnectorRelationalWindowExpressionCapabilities {
                                                         supports_row_number: true,
@@ -754,13 +778,18 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                         supports_cume_dist: false,
                                                         supports_percent_rank: false,
                                                     },
+                                                    supports_scalar_types: None,
                                                 },
                                             ),
                                             supports_sort: Some(
                                                 DataConnectorRelationalSortCapabilities {
                                                     expression_capabilities: DataConnectorRelationalExpressionCapabilities {
                                                         supports_conditional: DataConnectorRelationalConditionalExpressionCapabilities {
-                                                            supports_case: true,
+                                                            supports_case: Some(
+                                                                DataConnectorRelationalCaseExpressionCapabilities {
+                                                                    supports_scrutinee: false,
+                                                                },
+                                                            ),
                                                             supports_nullif: true,
                                                         },
                                                         supports_comparison: DataConnectorRelationalComparisonExpressionCapabilities {
@@ -778,6 +807,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_is_true: true,
                                                             supports_less_than: true,
                                                             supports_less_than_eq: true,
+                                                            supports_is_distinct_from: false,
                                                         },
                                                         supports_scalar: DataConnectorRelationalScalarExpressionCapabilities {
                                                             supports_abs: true,
@@ -863,7 +893,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_first_value: false,
                                                             supports_last_value: false,
                                                             supports_median: false,
-                                                            supports_string_agg: false,
+                                                            supports_string_agg: None,
                                                             supports_var: false,
                                                             supports_avg: true,
                                                             supports_sum: true,
@@ -873,7 +903,12 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_stddev_pop: true,
                                                             supports_approx_percentile_cont: true,
                                                             supports_approx_distinct: true,
-                                                            supports_array_agg: true,
+                                                            supports_array_agg: Some(
+                                                                DataConnectorRelationalOrderedAggregateFunctionCapabilities {
+                                                                    supports_distinct: false,
+                                                                    supports_order_by: false,
+                                                                },
+                                                            ),
                                                         },
                                                         supports_window: DataConnectorRelationalWindowExpressionCapabilities {
                                                             supports_row_number: true,
@@ -883,6 +918,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_cume_dist: false,
                                                             supports_percent_rank: false,
                                                         },
+                                                        supports_scalar_types: None,
                                                     },
                                                 },
                                             ),
@@ -890,7 +926,11 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                 DataConnectorRelationalJoinCapabilities {
                                                     expression_capabilities: DataConnectorRelationalExpressionCapabilities {
                                                         supports_conditional: DataConnectorRelationalConditionalExpressionCapabilities {
-                                                            supports_case: true,
+                                                            supports_case: Some(
+                                                                DataConnectorRelationalCaseExpressionCapabilities {
+                                                                    supports_scrutinee: false,
+                                                                },
+                                                            ),
                                                             supports_nullif: true,
                                                         },
                                                         supports_comparison: DataConnectorRelationalComparisonExpressionCapabilities {
@@ -908,6 +948,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_is_true: true,
                                                             supports_less_than: true,
                                                             supports_less_than_eq: true,
+                                                            supports_is_distinct_from: false,
                                                         },
                                                         supports_scalar: DataConnectorRelationalScalarExpressionCapabilities {
                                                             supports_abs: true,
@@ -993,7 +1034,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_first_value: false,
                                                             supports_last_value: false,
                                                             supports_median: false,
-                                                            supports_string_agg: false,
+                                                            supports_string_agg: None,
                                                             supports_var: false,
                                                             supports_avg: true,
                                                             supports_sum: true,
@@ -1003,7 +1044,12 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_stddev_pop: true,
                                                             supports_approx_percentile_cont: true,
                                                             supports_approx_distinct: true,
-                                                            supports_array_agg: true,
+                                                            supports_array_agg: Some(
+                                                                DataConnectorRelationalOrderedAggregateFunctionCapabilities {
+                                                                    supports_distinct: false,
+                                                                    supports_order_by: false,
+                                                                },
+                                                            ),
                                                         },
                                                         supports_window: DataConnectorRelationalWindowExpressionCapabilities {
                                                             supports_row_number: true,
@@ -1013,6 +1059,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_cume_dist: false,
                                                             supports_percent_rank: false,
                                                         },
+                                                        supports_scalar_types: None,
                                                     },
                                                     supports_join_types: DataConnectorRelationalJoinTypeCapabilities {
                                                         supports_left: true,
@@ -1030,7 +1077,11 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                 DataConnectorRelationalAggregateCapabilities {
                                                     expression_capabilities: DataConnectorRelationalExpressionCapabilities {
                                                         supports_conditional: DataConnectorRelationalConditionalExpressionCapabilities {
-                                                            supports_case: true,
+                                                            supports_case: Some(
+                                                                DataConnectorRelationalCaseExpressionCapabilities {
+                                                                    supports_scrutinee: false,
+                                                                },
+                                                            ),
                                                             supports_nullif: true,
                                                         },
                                                         supports_comparison: DataConnectorRelationalComparisonExpressionCapabilities {
@@ -1048,6 +1099,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_is_true: true,
                                                             supports_less_than: true,
                                                             supports_less_than_eq: true,
+                                                            supports_is_distinct_from: false,
                                                         },
                                                         supports_scalar: DataConnectorRelationalScalarExpressionCapabilities {
                                                             supports_abs: true,
@@ -1133,7 +1185,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_first_value: false,
                                                             supports_last_value: false,
                                                             supports_median: false,
-                                                            supports_string_agg: false,
+                                                            supports_string_agg: None,
                                                             supports_var: false,
                                                             supports_avg: true,
                                                             supports_sum: true,
@@ -1143,7 +1195,12 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_stddev_pop: true,
                                                             supports_approx_percentile_cont: true,
                                                             supports_approx_distinct: true,
-                                                            supports_array_agg: true,
+                                                            supports_array_agg: Some(
+                                                                DataConnectorRelationalOrderedAggregateFunctionCapabilities {
+                                                                    supports_distinct: false,
+                                                                    supports_order_by: false,
+                                                                },
+                                                            ),
                                                         },
                                                         supports_window: DataConnectorRelationalWindowExpressionCapabilities {
                                                             supports_row_number: true,
@@ -1153,6 +1210,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_cume_dist: false,
                                                             supports_percent_rank: false,
                                                         },
+                                                        supports_scalar_types: None,
                                                     },
                                                     supports_group_by: true,
                                                 },
@@ -1161,7 +1219,11 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                 DataConnectorRelationalWindowCapabilities {
                                                     expression_capabilities: DataConnectorRelationalExpressionCapabilities {
                                                         supports_conditional: DataConnectorRelationalConditionalExpressionCapabilities {
-                                                            supports_case: true,
+                                                            supports_case: Some(
+                                                                DataConnectorRelationalCaseExpressionCapabilities {
+                                                                    supports_scrutinee: false,
+                                                                },
+                                                            ),
                                                             supports_nullif: true,
                                                         },
                                                         supports_comparison: DataConnectorRelationalComparisonExpressionCapabilities {
@@ -1179,6 +1241,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_is_true: true,
                                                             supports_less_than: true,
                                                             supports_less_than_eq: true,
+                                                            supports_is_distinct_from: false,
                                                         },
                                                         supports_scalar: DataConnectorRelationalScalarExpressionCapabilities {
                                                             supports_abs: true,
@@ -1264,7 +1327,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_first_value: false,
                                                             supports_last_value: false,
                                                             supports_median: false,
-                                                            supports_string_agg: false,
+                                                            supports_string_agg: None,
                                                             supports_var: false,
                                                             supports_avg: true,
                                                             supports_sum: true,
@@ -1274,7 +1337,12 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_stddev_pop: true,
                                                             supports_approx_percentile_cont: true,
                                                             supports_approx_distinct: true,
-                                                            supports_array_agg: true,
+                                                            supports_array_agg: Some(
+                                                                DataConnectorRelationalOrderedAggregateFunctionCapabilities {
+                                                                    supports_distinct: false,
+                                                                    supports_order_by: false,
+                                                                },
+                                                            ),
                                                         },
                                                         supports_window: DataConnectorRelationalWindowExpressionCapabilities {
                                                             supports_row_number: true,
@@ -1284,6 +1352,7 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                                                             supports_cume_dist: false,
                                                             supports_percent_rank: false,
                                                         },
+                                                        supports_scalar_types: None,
                                                     },
                                                 },
                                             ),
@@ -1518,42 +1587,88 @@ input_file: crates/metadata-resolve/tests/passing/commands/functions/literal_use
                     ),
                     description: None,
                 },
-                permissions: {
-                    Role(
-                        "literal_user",
-                    ): CommandPermission {
-                        allow_execution: true,
-                        argument_presets: {
-                            ArgumentName(
+                permissions: CommandPermissions {
+                    by_role: {
+                        Role(
+                            "literal_user",
+                        ): CommandPermission {
+                            allow_execution: true,
+                            argument_presets: {
+                                ArgumentName(
+                                    Identifier(
+                                        "actor_bool_exp",
+                                    ),
+                                ): (
+                                    QualifiedTypeReference {
+                                        underlying_type: Named(
+                                            Custom(
+                                                Qualified {
+                                                    subgraph: SubgraphName(
+                                                        "default",
+                                                    ),
+                                                    name: CustomTypeName(
+                                                        Identifier(
+                                                            "actor_bool_exp",
+                                                        ),
+                                                    ),
+                                                },
+                                            ),
+                                        ),
+                                        nullable: false,
+                                    },
+                                    Literal(
+                                        Object {
+                                            "value": String("not_allowed"),
+                                        },
+                                    ),
+                                ),
+                            },
+                        },
+                    },
+                    authorization_rules: [
+                        Access {
+                            condition: Some(
+                                ConditionHash(
+                                    11131531502033717022,
+                                ),
+                            ),
+                            allow_or_deny: Allow,
+                        },
+                        ArgumentPresetValue {
+                            condition: Some(
+                                ConditionHash(
+                                    11131531502033717022,
+                                ),
+                            ),
+                            argument_name: ArgumentName(
                                 Identifier(
                                     "actor_bool_exp",
                                 ),
-                            ): (
-                                QualifiedTypeReference {
-                                    underlying_type: Named(
-                                        Custom(
-                                            Qualified {
-                                                subgraph: SubgraphName(
-                                                    "default",
+                            ),
+                            argument_type: QualifiedTypeReference {
+                                underlying_type: Named(
+                                    Custom(
+                                        Qualified {
+                                            subgraph: SubgraphName(
+                                                "default",
+                                            ),
+                                            name: CustomTypeName(
+                                                Identifier(
+                                                    "actor_bool_exp",
                                                 ),
-                                                name: CustomTypeName(
-                                                    Identifier(
-                                                        "actor_bool_exp",
-                                                    ),
-                                                ),
-                                            },
-                                        ),
+                                            ),
+                                        },
                                     ),
-                                    nullable: false,
-                                },
-                                Literal(
-                                    Object {
-                                        "value": String("not_allowed"),
-                                    },
                                 ),
+                                nullable: false,
+                            },
+                            value: Literal(
+                                Object {
+                                    "value": String("not_allowed"),
+                                },
                             ),
                         },
-                    },
+                    ],
                 },
             },
         },

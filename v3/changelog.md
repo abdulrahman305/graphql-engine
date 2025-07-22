@@ -2,7 +2,50 @@
 
 ## [Unreleased]
 
+### Changed
+
+### Fixed
+
 ### Added
+
+## [v2025.07.22]
+
+### Changed
+
+- Check data connector capabilities for nested scalar comparisons in `plan`
+  stage so any errors are returned as user rather than internal errors.
+
+## [v2025.07.21]
+
+### Added
+
+- Allow pre-parse plugins to modify the request before it is sent to the engine.
+  Use HTTP status code `299` to indicate that the request should be modified.
+
+## [v2025.07.14]
+
+### Fixed
+
+- Fixed arguments passed to command relationships
+
+```graphql
+query MyQuery {
+  Analytics {
+    ActorByMovieIdBounds(upper_bound: 7) {
+      name
+    }
+  }
+}
+```
+
+In this query, `ActorByMovieIdBounds` is a relationship from the `Analytics`
+model to a `Command` that takes two arguments.
+
+One argument, `lower_bound`, is provided by the relationship, but the
+`upper_bound` is provided by the user in the query. Previously we were not
+including the user's arguments in the generated plan, but now we are.
+
+## [v2025.07.10]
 
 ### Changed
 
@@ -11,6 +54,9 @@
   boolean expression.
 
 ### Fixed
+
+- Fixed JWT authentication errors to return correct HTTP status codes. Expired
+  tokens now return `400 Bad Request` instead of `500 Internal Server Error`.
 
 ## [v2025.07.07]
 
@@ -1820,7 +1866,11 @@ Initial release.
 
 <!-- end -->
 
-[Unreleased]: https://github.com/hasura/v3-engine/compare/v2025.07.07...HEAD
+[Unreleased]: https://github.com/hasura/v3-engine/compare/v2025.07.22...HEAD
+[v2025.07.22]: https://github.com/hasura/v3-engine/releases/tag/v2025.07.22
+[v2025.07.21]: https://github.com/hasura/v3-engine/releases/tag/v2025.07.21
+[v2025.07.14]: https://github.com/hasura/v3-engine/releases/tag/v2025.07.14
+[v2025.07.10]: https://github.com/hasura/v3-engine/releases/tag/v2025.07.10
 [v2025.07.07]: https://github.com/hasura/v3-engine/releases/tag/v2025.07.07
 [v2025.07.02]: https://github.com/hasura/v3-engine/releases/tag/v2025.07.02
 [v2025.06.27]: https://github.com/hasura/v3-engine/releases/tag/v2025.06.27

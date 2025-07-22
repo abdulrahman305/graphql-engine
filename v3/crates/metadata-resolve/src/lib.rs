@@ -75,10 +75,12 @@ pub use stages::scalar_boolean_expressions::{
     LogicalOperators, LogicalOperatorsGraphqlConfig, ResolvedScalarBooleanExpressionType,
 };
 pub use stages::scalar_type_representations::ScalarTypeRepresentation;
-pub use stages::type_permissions::{FieldAuthorizationRule, FieldPresetInfo, TypeInputPermission};
+pub use stages::type_permissions::{
+    FieldAuthorizationRule, FieldPresetInfo, TypeInputAuthorizationRule, TypeInputPermission,
+};
 pub use stages::{Metadata, resolve};
 pub use stages::{
-    command_permissions::{Command, CommandWithPermissions},
+    command_permissions::{AllowOrDeny, Command, CommandAuthorizationRule, CommandWithPermissions},
     commands::CommandSource,
     data_connectors,
 };
