@@ -130,7 +130,7 @@
     "react-arborist": "^3.0.2",
     "react-autosize-textarea": "7.1.0",
     "react-autosuggest": "10.0.2",
-    "react-bootstrap": "0.32.4",
+    "react-bootstrap": "1.0.0",
     "react-chartjs-2": "^2.7.6",
     "react-color": "^2.19.3",
     "react-copy-to-clipboard": "5.0.2",
