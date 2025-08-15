@@ -5,6 +5,7 @@ use serde_json::Value as JsonValue;
 
 use crate::{
     arguments::ArgumentName,
+    authorization,
     commands::CommandName,
     impl_JsonSchema_with_OpenDd_for,
     models::ModelName,
@@ -136,6 +137,9 @@ pub enum TypePermissionOperand {
     /// Definition of role-based type permissions on an OpenDD object type
     #[opendd(json_schema(title = "RoleBased"))]
     RoleBased(Vec<TypePermission>),
+    /// Definition of rules-based type permissions on an OpenDD object type
+    #[opendd(json_schema(title = "RulesBased"))]
+    RulesBased(Vec<authorization::TypeAuthorizationRule>),
 }
 
 #[derive(Serialize, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd)]
@@ -334,6 +338,9 @@ pub enum ModelPermissionOperand {
     /// Definition of role-based type permissions on an OpenDD model
     #[opendd(json_schema(title = "RoleBased"))]
     RoleBased(Vec<ModelPermission>),
+    /// Definition of rules-based type permissions on an OpenDD model
+    #[opendd(json_schema(title = "RulesBased"))]
+    RulesBased(Vec<authorization::ModelAuthorizationRule>),
 }
 
 #[derive(Serialize, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd)]
@@ -559,9 +566,12 @@ pub struct CommandPermissionsV1 {
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 #[opendd(externally_tagged, json_schema(title = "CommandPermissionOperand"))]
 pub enum CommandPermissionOperand {
-    /// Definition of role-based type permissions on an OpenDD command
+    /// Definition of role-based permissions on an OpenDD command
     #[opendd(json_schema(title = "RoleBased"))]
     RoleBased(Vec<CommandPermission>),
+    /// Definition of a rules-based permissions on an OpenDD command
+    #[opendd(json_schema(title = "RulesBased"))]
+    RulesBased(Vec<authorization::CommandAuthorizationRule>),
 }
 
 #[derive(Serialize, Clone, Debug, Eq, PartialEq, opendds_derive::OpenDd)]

@@ -85,10 +85,12 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                 type_output_permissions: TypeOutputPermissions {
                     authorization_rules: [],
                     by_role: {},
+                    uses_rules_based_auth: false,
                 },
                 type_input_permissions: TypeInputPermissions {
                     authorization_rules: [],
                     by_role: {},
+                    uses_rules_based_auth: false,
                 },
                 relationship_fields: {
                     RelationshipName(
@@ -497,10 +499,12 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                 type_output_permissions: TypeOutputPermissions {
                     authorization_rules: [],
                     by_role: {},
+                    uses_rules_based_auth: false,
                 },
                 type_input_permissions: TypeInputPermissions {
                     authorization_rules: [],
                     by_role: {},
+                    uses_rules_based_auth: false,
                 },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
@@ -1015,7 +1019,10 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                     aggregate_expression: None,
                 },
                 arguments: {},
-                permissions: {},
+                permissions: ModelPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 filter_expression_type: None,
                 graphql_api: ModelGraphQlApi {
                     arguments_input_config: None,
@@ -1459,7 +1466,10 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
                     aggregate_expression: None,
                 },
                 arguments: {},
-                permissions: {},
+                permissions: ModelPermissions {
+                    authorization_rules: [],
+                    by_role: {},
+                },
                 filter_expression_type: None,
                 graphql_api: ModelGraphQlApi {
                     arguments_input_config: None,
@@ -2503,10 +2513,12 @@ input_file: crates/metadata-resolve/tests/passing/aggregate_boolean_expressions/
             propagate_boolean_expression_deprecation_status: true,
             multiple_order_by_input_object_fields: Allow,
         },
-        glossaries: {},
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
-            pre_response_plugins: [],
+            pre_response_plugins: ResolvedLifecyclePreResponsePluginHooks {
+                sync_hooks: [],
+                async_hooks: [],
+            },
             pre_route_plugins: [],
             pre_ndc_request_plugins: {},
             pre_ndc_response_plugins: {},

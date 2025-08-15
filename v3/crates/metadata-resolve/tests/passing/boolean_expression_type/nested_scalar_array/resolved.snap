@@ -174,8 +174,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     ),
                                 ),
                             ],
-                            condition: ConditionHash(
-                                3363483249683024545,
+                            condition: Some(
+                                ConditionHash(
+                                    3363483249683024545,
+                                ),
                             ),
                         },
                     ],
@@ -212,10 +214,12 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             },
                         },
                     },
+                    uses_rules_based_auth: false,
                 },
                 type_input_permissions: TypeInputPermissions {
                     authorization_rules: [],
                     by_role: {},
+                    uses_rules_based_auth: false,
                 },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
@@ -616,8 +620,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     ),
                                 ),
                             ],
-                            condition: ConditionHash(
-                                3363483249683024545,
+                            condition: Some(
+                                ConditionHash(
+                                    3363483249683024545,
+                                ),
                             ),
                         },
                     ],
@@ -644,10 +650,12 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             },
                         },
                     },
+                    uses_rules_based_auth: false,
                 },
                 type_input_permissions: TypeInputPermissions {
                     authorization_rules: [],
                     by_role: {},
+                    uses_rules_based_auth: false,
                 },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
@@ -1012,8 +1020,10 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                                     ),
                                 ),
                             ],
-                            condition: ConditionHash(
-                                3363483249683024545,
+                            condition: Some(
+                                ConditionHash(
+                                    3363483249683024545,
+                                ),
                             ),
                         },
                     ],
@@ -1040,10 +1050,12 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                             },
                         },
                     },
+                    uses_rules_based_auth: false,
                 },
                 type_input_permissions: TypeInputPermissions {
                     authorization_rules: [],
                     by_role: {},
+                    uses_rules_based_auth: false,
                 },
                 relationship_fields: {},
                 type_mappings: DataConnectorTypeMappingsForObject {
@@ -2357,20 +2369,41 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
                     aggregate_expression: None,
                 },
                 arguments: {},
-                permissions: {
-                    Role(
-                        "admin",
-                    ): ResolvedPermissions {
-                        select: Some(
-                            SelectPermission {
-                                filter: AllowAll,
-                                argument_presets: {},
-                                allow_subscriptions: false,
-                            },
-                        ),
-                        relational_insert: None,
-                        relational_update: None,
-                        relational_delete: None,
+                permissions: ModelPermissions {
+                    authorization_rules: [
+                        Access {
+                            condition: Some(
+                                ConditionHash(
+                                    3363483249683024545,
+                                ),
+                            ),
+                            allow_or_deny: Allow,
+                        },
+                        Subscription {
+                            condition: Some(
+                                ConditionHash(
+                                    3363483249683024545,
+                                ),
+                            ),
+                            allow_or_deny: Deny,
+                        },
+                    ],
+                    by_role: {
+                        Role(
+                            "admin",
+                        ): ModelPermission {
+                            select: Some(
+                                SelectPermission {
+                                    filter: AllowAll,
+                                    allow_subscriptions: false,
+                                },
+                            ),
+                            input: Some(
+                                ModelInputPermission {
+                                    argument_presets: {},
+                                },
+                            ),
+                        },
                     },
                 },
                 filter_expression_type: Some(
@@ -3411,10 +3444,12 @@ input_file: crates/metadata-resolve/tests/passing/boolean_expression_type/nested
             propagate_boolean_expression_deprecation_status: true,
             multiple_order_by_input_object_fields: Disallow,
         },
-        glossaries: {},
         plugin_configs: LifecyclePluginConfigs {
             pre_parse_plugins: [],
-            pre_response_plugins: [],
+            pre_response_plugins: ResolvedLifecyclePreResponsePluginHooks {
+                sync_hooks: [],
+                async_hooks: [],
+            },
             pre_route_plugins: [],
             pre_ndc_request_plugins: {},
             pre_ndc_response_plugins: {},

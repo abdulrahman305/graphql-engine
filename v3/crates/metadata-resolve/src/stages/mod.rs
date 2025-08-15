@@ -8,7 +8,6 @@ pub mod commands;
 mod conflicting_types;
 pub mod data_connector_scalar_types;
 pub mod data_connectors;
-pub mod glossaries;
 pub mod graphql_config;
 pub mod model_permissions;
 pub mod models;
@@ -133,9 +132,13 @@ fn resolve_internal(
     let mut conditions = Conditions::new();
 
     // Fetch and validate permissions, and attach them to the relevant object types
-    let (object_types_with_permissions, type_permission_issues) =
-        type_permissions::resolve(&metadata_accessor, object_types, &mut conditions)
-            .map_err(flatten_multiple_errors)?;
+    let (object_types_with_permissions, type_permission_issues) = type_permissions::resolve(
+        &metadata_accessor,
+        object_types,
+        configuration,
+        &mut conditions,
+    )
+    .map_err(flatten_multiple_errors)?;
 
     all_issues.extend(type_permission_issues.into_iter().map(Warning::from));
 
@@ -310,6 +313,7 @@ fn resolve_internal(
         issues: command_permission_issues,
     } = command_permissions::resolve(
         &metadata_accessor,
+        configuration,
         &commands,
         &object_types_with_relationships,
         &scalar_types,
@@ -334,21 +338,16 @@ fn resolve_internal(
         &scalar_types,
         &models_with_graphql,
         &boolean_expression_types,
+        &mut conditions,
     )
     .map_err(flatten_multiple_errors)?;
 
     all_issues.extend(model_permission_issues.into_iter().map(Warning::from));
 
-    let glossaries::GlossaryOutput { glossaries, issues } =
-        glossaries::resolve(&metadata_accessor).map_err(flatten_multiple_errors)?;
-
-    all_issues.extend(issues.into_iter().map(Warning::from));
-
     let roles = roles::resolve(
         &object_types_with_relationships,
         &models_with_permissions,
         &commands_with_permissions,
-        &glossaries,
     );
 
     // include data connector information for each scalar type
@@ -377,7 +376,6 @@ fn resolve_internal(
             boolean_expression_types,
             order_by_expressions,
             aggregate_expressions,
-            glossaries,
             graphql_config: graphql_config.global,
             roles,
             plugin_configs,

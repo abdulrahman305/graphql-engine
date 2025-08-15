@@ -19,7 +19,13 @@ pub enum TypeOutputPermissionError {
     #[error("unknown field '{field_name:}' used in output permissions of type '{type_name:}'")]
     UnknownFieldInOutputPermissionsDefinition {
         field_name: FieldName,
-        type_name: CustomTypeName,
+        type_name: Qualified<CustomTypeName>,
+    },
+    #[error(
+        "Output TypePermissions for object type {object_type_name} use authorization rules but they are not enabled"
+    )]
+    AuthorizationRulesNotEnabled {
+        object_type_name: Qualified<CustomTypeName>,
     },
 }
 
@@ -55,6 +61,12 @@ pub enum TypeInputPermissionError {
         field_name: FieldName,
         type_name: CustomTypeName,
         type_error: typecheck::TypecheckError,
+    },
+    #[error(
+        "Input TypePermissions for object type {object_type_name} use authorization rules but they are not enabled"
+    )]
+    AuthorizationRulesNotEnabled {
+        object_type_name: Qualified<CustomTypeName>,
     },
 }
 
@@ -103,6 +115,12 @@ pub enum TypePermissionIssue {
         type_name: CustomTypeName,
         typecheck_issue: TypecheckIssue,
     },
+    #[error(
+        "Type {object_type_name} uses rules-based authorization so will not appear in the GraphQL schema"
+    )]
+    UsesRulesBasedAuthorizationAndGraphql {
+        object_type_name: Qualified<CustomTypeName>,
+    },
 }
 
 impl ShouldBeAnError for TypePermissionIssue {
@@ -111,6 +129,7 @@ impl ShouldBeAnError for TypePermissionIssue {
             TypePermissionIssue::FieldPresetTypecheckIssue {
                 typecheck_issue, ..
             } => typecheck_issue.should_be_an_error(flags),
+            TypePermissionIssue::UsesRulesBasedAuthorizationAndGraphql { .. } => false,
         }
     }
 }
