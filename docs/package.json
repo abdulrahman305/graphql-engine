@@ -33,7 +33,7 @@
     "cspell": "^8.14.3",
     "docusaurus-plugin-sass": "^0.2.2",
     "dompurify": "^3.1.5",
-    "graphiql": "^1.5.1",
+    "graphiql": "^3.4.1",
     "graphql": "^15.7.2",
     "graphql-ws": "^5.11.2",
     "markdown-to-jsx": "^7.3.2",
