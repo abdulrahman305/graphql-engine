@@ -53,6 +53,7 @@ return_self_not_must_use = "allow"
 struct_field_names = "allow"
 wildcard_imports = "allow"
 trivially_copy_pass_by_ref = "allow"
+unnecessary_debug_formatting = "allow"
 used_underscore_items = "allow"
 # disable these for now, but we should probably fix them
 result_large_err = "allow"
@@ -67,7 +68,7 @@ private_intra_doc_links = "allow"
 
 [workspace.dependencies]
 ndc-models = { package = "ndc-models", git = "https://github.com/hasura/ndc-spec.git", rev = "f8036879ce75b31d94d5f08d15fa93e319af00f7", features = ["arc-relation"]} # When you update this tag, also update the schema references in crates/open-dds/src/data_connector.rs
-ndc-models-v01 = { package = "ndc-models", git = "https://github.com/hasura/ndc-spec.git", tag = "v0.1.6" } # When you update this tag, also update the schema references in crates/open-dds/src/data_connector.rs
+ndc-models-v01 = { package = "ndc-models", git = "https://github.com/hasura/ndc-spec.git", tag = "v0.1.7" } # When you update this tag, also update the schema references in crates/open-dds/src/data_connector.rs
 
 anyhow = "1"
 apollo-parser = "0.7"
@@ -89,6 +90,7 @@ convert_case = "0.6"
 cookie = "0.18"
 criterion = { version = "0.5", features = ["html_reports", "async_tokio"] }
 darling = "0.20"
+# Keep this in sync with sqlparser
 datafusion = { version = "48", features = ["serde"] }
 derive_more = { version = "1.0", features = ["full"] }
 diffy = "0.4"
@@ -145,7 +147,7 @@ rmp-serde = "1"
 semver = "1.0"
 schemars = { version = "0.8", features = ["preserve_order", "smol_str", "url"] }
 serde = { version = "1", features = ["derive", "rc"] }
-serde_arrow = { version = "0.13.5", features = ["arrow-55"] }
+serde_arrow = { version = "0.13.6", features = ["arrow-55"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 serde_path_to_error = "0.1"
 serde_with = { version = "3", features = ["indexmap_2"] }
@@ -154,6 +156,8 @@ similar-asserts = "1.7"
 smol_str = "0.1"
 strum = "0.26"
 strum_macros = "0.26"
+# Keep this in sync with datafusion
+sqlparser = { version = "0.55", features = ["visitor"] }
 syn = "2"
 thiserror = "2"
 tokio = { version = "1", features = ["macros", "parking_lot", "rt-multi-thread", "signal", "time"] }

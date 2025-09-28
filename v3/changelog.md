@@ -8,6 +8,29 @@
 
 ### Fixed
 
+## [v2025.09.22]
+
+### Added
+
+- Added `contextWindowLimit` to `PromptQlConfigV2` to allow configuring the
+  maximum number of tokens to be used for the context window for threads.
+
+### Fixed
+
+- Headers returned from commands were not being being returned when the command
+  was the source of a remote relationship, now they are returned correctly. As
+  before, no headers are returned from the target of a remote relationship.
+
+## [v2025.09.05]
+
+### Changed
+
+- Update `ndc-models` to use `v0.1.7` when interfacing with `v0.1.x` data
+  connectors.
+
+- Allow `forward_headers` to be configured for `pre-ndc-request` plugins,
+  allowing forwarding request headers to the plugin.
+
 ## [v2025.08.27]
 
 - No changes
@@ -1990,7 +2013,9 @@ Initial release.
 
 <!-- end -->
 
-[Unreleased]: https://github.com/hasura/v3-engine/compare/v2025.08.27...HEAD
+[Unreleased]: https://github.com/hasura/v3-engine/compare/v2025.09.22...HEAD
+[v2025.09.22]: https://github.com/hasura/v3-engine/releases/tag/v2025.09.22
+[v2025.09.05]: https://github.com/hasura/v3-engine/releases/tag/v2025.09.05
 [v2025.08.27]: https://github.com/hasura/v3-engine/releases/tag/v2025.08.27
 [v2025.08.26]: https://github.com/hasura/v3-engine/releases/tag/v2025.08.26
 [v2025.08.18]: https://github.com/hasura/v3-engine/releases/tag/v2025.08.18
