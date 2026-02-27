@@ -1,0 +1,72 @@
+name: Jest
+
+on:
+  # Run tests on PRs to verify code doesn't break before merge
+  pull_request:
+    types: [opened, synchronize]
+    # Your production branch. If not the default, update here and set Target Branch at https://gitauto.ai/settings/rules to match
+    branches: [master]
+    paths:
+      - 'frontend/**'
+  # Run tests after merge and collect coverage as canonical source of truth
+  push:
+    # Your production branch. If not the default, update here and set Target Branch at https://gitauto.ai/settings/rules to match
+    branches: [master]
+    paths:
+      - 'frontend/**'
+  # Allow manual trigger for debugging
+  workflow_dispatch:
+
+# Cancel older runs when new commits are pushed to the same PR/branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          # Match the version pinned in frontend/.nvmrc
+          node-version: '16.15.1'
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Enable Corepack (Yarn Berry)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run tests
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            yarn nx run-many --target=test --all --passWithNoTests
+          else
+            yarn nx run-many --target=test --all --passWithNoTests --coverage --coverageReporters=lcov
+          fi
+
+      - name: Merge coverage reports
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p coverage
+          # Collect all lcov.info files produced by individual Nx project coverage runs
+          find . -path '*/coverage/lcov.info' | head -1 | xargs -I{} cp {} coverage/lcov.info || true
+          # If multiple projects produced coverage, merge them with cat
+          find . -path '*/coverage/lcov.info' -not -path './coverage/lcov.info' \
+            | xargs cat >> coverage/lcov.info 2>/dev/null || true
+
+      - name: Upload coverage report
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: frontend/coverage/lcov.info
